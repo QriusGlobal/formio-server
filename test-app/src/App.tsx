@@ -11,7 +11,7 @@ function App() {
     try {
       const response = await fetch('http://localhost:3001/health')
       const data = await response.json()
-      setTestResult(`✅ Form.io server is running: ${JSON.stringify(data)}`)
+      setTestResult(`✅ Form.io server is running!\n\nStatus: ${data.status}\nDatabase: ${data.database}\nTimestamp: ${data.timestamp}`)
     } catch (error) {
       setTestResult(`❌ Form.io server error: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
