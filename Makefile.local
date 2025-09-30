@@ -1,0 +1,168 @@
+.PHONY: help local-up local-down local-reset local-logs local-logs-formio test-app verify-upload quick-start
+
+.DEFAULT_GOAL := help
+
+help: ## Show this help message
+	@echo '╔════════════════════════════════════════════════════════════════╗'
+	@echo '║         Form.io Local Development Environment                  ║'
+	@echo '╚════════════════════════════════════════════════════════════════╝'
+	@echo ''
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
+		awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+	@echo ''
+
+local-up: ## 🚀 Start local development environment (MongoDB + GCS + Form.io)
+	@echo "🚀 Starting local development environment..."
+	@docker-compose -f docker-compose.local.yml up -d
+	@echo ""
+	@echo "⏳ Waiting for services to be ready..."
+	@sleep 10
+	@echo ""
+	@echo "🪣 Initializing GCS emulator..."
+	@./scripts/init-gcs-local.sh
+	@echo ""
+	@echo "╔════════════════════════════════════════════════════════════════╗"
+	@echo "║  ✅ Local environment ready!                                   ║"
+	@echo "╚════════════════════════════════════════════════════════════════╝"
+	@echo ""
+	@echo "Services running:"
+	@echo "  📦 MongoDB:        mongodb://localhost:27017"
+	@echo "  🗄️  GCS Emulator:   http://localhost:4443"
+	@echo "  🌐 Form.io Server: http://localhost:3001"
+	@echo ""
+	@echo "Next steps:"
+	@echo "  1. Run 'make test-app' to start the test application"
+	@echo "  2. Open http://localhost:64849 in your browser"
+	@echo "  3. Run 'make local-logs-formio' to watch server logs"
+	@echo ""
+
+local-down: ## 🛑 Stop local development environment (keeps data)
+	@echo "🛑 Stopping local development environment..."
+	@docker-compose -f docker-compose.local.yml down
+	@echo "✅ Services stopped (data preserved)"
+
+local-reset: ## 🗑️  Reset local environment (delete ALL data)
+	@echo "⚠️  WARNING: This will delete all local data!"
+	@echo "Press Ctrl+C to cancel, or wait 5 seconds to continue..."
+	@sleep 5
+	@echo ""
+	@echo "🗑️  Resetting local environment..."
+	@docker-compose -f docker-compose.local.yml down -v
+	@echo "✅ All data deleted. Run 'make local-up' to start fresh."
+
+local-logs: ## 📜 Show logs from all services (follow mode)
+	@docker-compose -f docker-compose.local.yml logs -f
+
+local-logs-formio: ## 📋 Show Form.io server logs only (follow mode)
+	@echo "📋 Form.io Server Logs (Ctrl+C to exit)"
+	@echo "════════════════════════════════════════════════════════════"
+	@docker-compose -f docker-compose.local.yml logs -f formio-server
+
+local-logs-gcs: ## 🪣 Show GCS emulator logs only (follow mode)
+	@docker-compose -f docker-compose.local.yml logs -f gcs-emulator
+
+local-logs-mongo: ## 📦 Show MongoDB logs only (follow mode)
+	@docker-compose -f docker-compose.local.yml logs -f mongodb
+
+test-app: ## 🧪 Start React test app on port 64849
+	@echo "🧪 Starting React test application..."
+	@cd test-app && npm install && npm run dev
+
+test-app-build: ## 📦 Build test app for production
+	@echo "📦 Building test app..."
+	@cd test-app && npm install && npm run build
+
+verify-upload: ## 🔍 Check files in GCS emulator
+	@echo "🔍 Files in local GCS bucket:"
+	@echo "════════════════════════════════════════════════════════════"
+	@curl -s http://localhost:4443/storage/v1/b/local-formio-uploads/o | jq -r '.items[]? | "  📄 \(.name) (\(.size) bytes)"' || echo "  (no files uploaded yet)"
+	@echo ""
+
+verify-services: ## ✅ Check if all services are healthy
+	@echo "✅ Checking service health..."
+	@echo "════════════════════════════════════════════════════════════"
+	@echo -n "MongoDB:        "
+	@docker-compose -f docker-compose.local.yml exec -T mongodb mongosh --eval "db.adminCommand('ping')" > /dev/null 2>&1 && echo "✅ Running" || echo "❌ Not running"
+	@echo -n "GCS Emulator:   "
+	@curl -s http://localhost:4443/storage/v1/b > /dev/null 2>&1 && echo "✅ Running" || echo "❌ Not running"
+	@echo -n "Form.io Server: "
+	@curl -s http://localhost:3001/health > /dev/null 2>&1 && echo "✅ Running" || echo "❌ Not running"
+	@echo ""
+
+quick-start: local-up ## 🏃 Quick start: Start everything and open test app
+	@echo ""
+	@echo "⏳ Waiting for services to stabilize..."
+	@sleep 5
+	@echo ""
+	@make verify-services
+	@echo ""
+	@echo "🎉 Opening test app..."
+	@cd test-app && npm install && npm run dev &
+	@sleep 3
+	@open http://localhost:64849 2>/dev/null || echo "Open http://localhost:64849 in your browser"
+
+# Development workflow commands
+
+dev-formio-core: ## 👁️  Watch and rebuild formio-core on changes
+	@echo "👁️  Watching formio-core for changes..."
+	@cd formio-core && yarn install && yarn build:watch
+
+dev-formio-react: ## 👁️  Watch and rebuild formio-react on changes
+	@echo "👁️  Watching formio-react for changes..."
+	@cd formio-react && yarn install && yarn build
+
+dev-formio-server-standalone: ## 🔧 Run formio server standalone (no Docker)
+	@echo "🔧 Running formio server in standalone mode..."
+	@cd formio && npm install && npm run start:dev
+
+rebuild-formio-server: ## 🔨 Rebuild formio server Docker image
+	@echo "🔨 Rebuilding formio server Docker image..."
+	@docker-compose -f docker-compose.local.yml build formio-server
+	@docker-compose -f docker-compose.local.yml up -d formio-server
+	@echo "✅ Form.io server rebuilt and restarted"
+
+# Testing commands
+
+test-integration: ## 🧪 Run integration tests against local environment
+	@echo "🧪 Running integration tests..."
+	@cd formio && npm test
+
+test-formio-core: ## 🧪 Run formio-core unit tests
+	@cd formio-core && yarn test
+
+test-formio-react: ## 🧪 Run formio-react unit tests
+	@cd formio-react && yarn test
+
+# Debugging commands
+
+shell-formio: ## 🐚 Open shell in formio server container
+	@docker-compose -f docker-compose.local.yml exec formio-server sh
+
+shell-mongo: ## 🐚 Open MongoDB shell
+	@docker-compose -f docker-compose.local.yml exec mongodb mongosh formioapp
+
+inspect-gcs: ## 🔍 Detailed GCS bucket inspection
+	@echo "🔍 GCS Bucket Details:"
+	@echo "════════════════════════════════════════════════════════════"
+	@curl -s http://localhost:4443/storage/v1/b/local-formio-uploads | jq .
+	@echo ""
+	@echo "Files:"
+	@curl -s http://localhost:4443/storage/v1/b/local-formio-uploads/o | jq '.items[]? | {name, size, contentType, timeCreated}'
+
+clean-logs: ## 🧹 Clear Docker logs
+	@echo "🧹 Clearing Docker logs..."
+	@docker-compose -f docker-compose.local.yml logs > /dev/null 2>&1
+	@echo "✅ Logs cleared"
+
+# Status commands
+
+status: verify-services ## 📊 Show full environment status
+
+ports: ## 🔌 Show all ports in use
+	@echo "🔌 Service Ports:"
+	@echo "════════════════════════════════════════════════════════════"
+	@echo "  Test App:       http://localhost:64849"
+	@echo "  Form.io Server: http://localhost:3001"
+	@echo "  GCS Emulator:   http://localhost:4443"
+	@echo "  MongoDB:        mongodb://localhost:27017"
+	@echo ""

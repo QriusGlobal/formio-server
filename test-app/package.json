@@ -1,0 +1,27 @@
+{
+  "name": "formio-test-app",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "description": "Local testing app for Form.io file upload development",
+  "scripts": {
+    "dev": "vite --port 64849",
+    "build": "tsc && vite build",
+    "preview": "vite preview --port 64849",
+    "lint": "eslint . --ext ts,tsx"
+  },
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.2.1",
+    "eslint": "^8.56.0",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.0"
+  }
+}

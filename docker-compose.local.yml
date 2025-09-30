@@ -1,0 +1,110 @@
+version: '3.8'
+
+services:
+  # MongoDB for local development
+  mongodb:
+    image: mongo:6
+    container_name: formio-mongo-local
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: formioapp
+    volumes:
+      - mongo-data-local:/data/db
+    networks:
+      - formio-local
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # GCS Emulator (S3-compatible fake server)
+  gcs-emulator:
+    image: fsouza/fake-gcs-server:latest
+    container_name: formio-gcs-local
+    ports:
+      - "4443:4443"
+    command:
+      - "-scheme=http"
+      - "-port=4443"
+      - "-external-url=http://localhost:4443"
+    volumes:
+      - gcs-data-local:/data
+    networks:
+      - formio-local
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:4443/storage/v1/b"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Form.io Server (custom build with file upload)
+  formio-server:
+    build:
+      context: ./formio
+      dockerfile: Dockerfile
+      target: production
+      args:
+        - NODE_ENV=development
+    container_name: formio-server-local
+    ports:
+      - "3001:3001"
+    environment:
+      # MongoDB Configuration
+      MONGO: mongodb://mongodb:27017/formioapp
+
+      # JWT Secrets (local development only!)
+      JWT_SECRET: "local-dev-secret-change-me-in-production"
+      DB_SECRET: "local-dev-db-secret-change-me"
+
+      # File Storage Configuration (GCS Emulator)
+      FORMIO_FILES_SERVER: gcs
+      FORMIO_S3_SERVER: http://gcs-emulator:4443
+      FORMIO_S3_BUCKET: local-formio-uploads
+      FORMIO_S3_REGION: auto
+      FORMIO_S3_KEY: local-access-key
+      FORMIO_S3_SECRET: local-secret-key
+
+      # Admin Credentials
+      ROOT_EMAIL: admin@local.test
+      ROOT_PASSWORD: admin123
+
+      # Server Configuration
+      PORT: 3001
+      HOST: 0.0.0.0
+
+      # CORS Configuration (allow test app)
+      CORS_ORIGIN: "http://localhost:64849,http://localhost:3000"
+
+      # Debug Logging
+      DEBUG: "formio:*"
+      NODE_ENV: development
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      gcs-emulator:
+        condition: service_healthy
+    networks:
+      - formio-local
+    volumes:
+      # Mount config for MongoDB connection string
+      # DO NOT mount src - it overwrites webpack bundles
+      - ./formio/config:/app/config:ro
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  mongo-data-local:
+    name: formio_mongo_local
+  gcs-data-local:
+    name: formio_gcs_local
+
+networks:
+  formio-local:
+    name: formio_local_network
+    driver: bridge
