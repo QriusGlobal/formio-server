@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Form } from '@formio/react';
-import Formio from '@formio/js';
+import { Formio } from '@formio/js';
 import FormioFileUploadModule from '@formio/file-upload';
 
 // Register file upload module
