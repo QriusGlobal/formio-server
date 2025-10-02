@@ -15,56 +15,11 @@ import { registerValidators } from './validators';
 export { TusFileUploadComponent, UppyFileUploadComponent, FileStorageProvider };
 
 // Module definition following Form.io module specification
+// Form.io only supports 'components' property in modules
 const FormioFileUploadModule = {
-  // Module name for identification
-  name: 'file-upload',
-
-  // Custom components registration
   components: {
     tusupload: TusFileUploadComponent,
     uppyupload: UppyFileUploadComponent
-  },
-
-  // Storage providers
-  providers: {
-    storage: {
-      file: FileStorageProvider
-    }
-  },
-
-  // Template registration hook
-  templates: {
-    default: registerTemplates('default')
-  },
-
-  // Validation rules
-  validators: registerValidators(),
-
-  // Module initialization
-  init: (Formio: any) => {
-    console.log('[FormioFileUpload] Module initialized');
-
-    // Register global configuration if needed
-    if (Formio.config) {
-      Formio.config.fileUpload = {
-        tusEndpoint: '/files',
-        maxFileSize: 5 * 1024 * 1024 * 1024, // 5GB
-        chunkSize: 8 * 1024 * 1024, // 8MB
-        allowedTypes: '*',
-        ...Formio.config.fileUpload
-      };
-    }
-
-    // Add global event handlers
-    Formio.events.on('fileUploadStart', (data: any) => {
-      console.log('[FormioFileUpload] Upload started:', data);
-    });
-
-    Formio.events.on('fileUploadComplete', (data: any) => {
-      console.log('[FormioFileUpload] Upload completed:', data);
-    });
-
-    return Promise.resolve();
   }
 };
 

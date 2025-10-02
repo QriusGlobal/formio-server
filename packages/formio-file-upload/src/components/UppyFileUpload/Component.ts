@@ -388,7 +388,7 @@ export default class UppyFileUploadComponent extends FileComponent {
 
   detach() {
     if (this.uppy) {
-      this.uppy.close();
+      this.uppy.cancelAll(); // Cancel all uploads (close() removed in Uppy v3+)
       this.uppy = null;
     }
     return super.detach();
@@ -396,7 +396,7 @@ export default class UppyFileUploadComponent extends FileComponent {
 
   destroy() {
     if (this.uppy) {
-      this.uppy.close();
+      this.uppy.cancelAll(); // Cancel all uploads (close() removed in Uppy v3+)
       this.uppy = null;
     }
     super.destroy();
