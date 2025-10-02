@@ -107,9 +107,12 @@ services:
   # TUS Server for resumable uploads (test mode)
   tus-server:
     image: tusproject/tusd:latest
-    container_name: formio-tus-test
+    container_name: formio-tus-server
+    user: "0:0"  # Run as root to avoid permission issues
     ports:
       - "1080:1080"
+    volumes:
+      - tus-uploads:/data/uploads
     command:
       - "-host=0.0.0.0"
       - "-port=1080"
@@ -118,8 +121,6 @@ services:
       - "-upload-dir=/data/uploads"
       - "-max-size=1073741824"  # 1GB max for tests
       - "-base-path=/files/"
-    tmpfs:
-      - /data/uploads:rw,noexec,nosuid,size=1g
     networks:
       - formio-test
     healthcheck:
@@ -175,6 +176,10 @@ networks:
     ipam:
       config:
         - subnet: 172.28.0.0/16
+
+volumes:
+  tus-uploads:
+    driver: local
 
 # Note: Using tmpfs for ephemeral test data improves performance
 # and ensures clean state between test runs
