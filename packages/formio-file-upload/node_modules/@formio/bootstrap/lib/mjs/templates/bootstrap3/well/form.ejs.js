@@ -1,0 +1,9 @@
+export default function(ctx) {
+var __t, __p = '';
+__p += '<div class="well">\n  <div ref="' +
+((__t = (ctx.nestedKey)) == null ? '' : __t) +
+'">\n    ' +
+((__t = (ctx.children)) == null ? '' : __t) +
+'\n  </div>\n</div>\n';
+return __p
+}

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { UPPY_FILE_INPUT_SELECTOR, SELECTORS, waitForTestId } from '../utils/test-selectors';
 import path from 'path';
 import fs from 'fs';
 
@@ -13,12 +14,18 @@ test.describe('TUS File Upload @tus', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
 
-    // Navigate to demo page
-    await page.click('button:has-text("Try File Upload Demo")');
+    // Navigate to demo page (try data-testid first, fallback to text)
+    const navButton = page.locator(SELECTORS.navigation.fileUploadDemo).or(
+      page.locator('button:has-text("Try File Upload Demo")')
+    );
+    await navButton.first().click();
     await expect(page.locator('h1')).toContainText('File Upload Demo');
 
-    // Switch to TUS tab
-    await page.click('button:has-text("TUS Upload")');
+    // Switch to TUS tab (try data-testid first, fallback to text)
+    const tusButton = page.locator(SELECTORS.tus.uploadButton).or(
+      page.locator('button:has-text("TUS Upload")')
+    );
+    await tusButton.first().click();
   });
 
   test('should successfully upload a small file', async ({ page }) => {
@@ -33,20 +40,28 @@ test.describe('TUS File Upload @tus', () => {
       }
     });
 
-    // Upload file
-    const fileInput = page.locator('input[type="file"]');
-    await fileInput.setInputFiles(testFilePath);
+    // Upload file (try TUS-specific selector first, fallback to Uppy)
+    const fileInput = page.locator(SELECTORS.tus.fileInput).or(
+      page.locator(SELECTORS.uppy.fileInput)
+    );
+    await fileInput.first().setInputFiles(testFilePath);
 
-    // Wait for upload to complete
-    await expect(page.locator('text=Success')).toBeVisible({ timeout: 30000 });
+    // Wait for upload to complete (try data-testid first, fallback to text)
+    const successIndicator = page.locator(SELECTORS.status.uploadSuccess).or(
+      page.locator('text=Success')
+    );
+    await expect(successIndicator.first()).toBeVisible({ timeout: 30000 });
 
     // Verify TUS protocol requests were made
     expect(tusRequests.length).toBeGreaterThan(0);
     expect(tusRequests.some(r => r.startsWith('POST'))).toBeTruthy();
     expect(tusRequests.some(r => r.startsWith('PATCH'))).toBeTruthy();
 
-    // Verify upload URL is displayed
-    const uploadUrl = await page.locator('text=/Upload URL:/').textContent();
+    // Verify upload URL is displayed (try data-testid first, fallback to text)
+    const uploadUrlElement = page.locator(SELECTORS.tus.uploadUrl).or(
+      page.locator('text=/Upload URL:/')
+    );
+    const uploadUrl = await uploadUrlElement.first().textContent();
     expect(uploadUrl).toContain('http://localhost:1080/files/');
   });
 
@@ -66,7 +81,7 @@ test.describe('TUS File Upload @tus', () => {
       }
     });
 
-    const fileInput = page.locator('input[type="file"]');
+    const fileInput = page.locator(UPPY_FILE_INPUT_SELECTOR);
     await fileInput.setInputFiles(testFilePath);
 
     // Wait for at least some progress
@@ -94,7 +109,7 @@ test.describe('TUS File Upload @tus', () => {
     const testFile1 = path.join(__dirname, '../fixtures/test-file-1mb.txt');
     const testFile2 = path.join(__dirname, '../fixtures/test-file-5mb.bin');
 
-    const fileInput = page.locator('input[type="file"]');
+    const fileInput = page.locator(UPPY_FILE_INPUT_SELECTOR);
     await fileInput.setInputFiles([testFile1, testFile2]);
 
     // Wait for both uploads to complete
@@ -114,7 +129,7 @@ test.describe('TUS File Upload @tus', () => {
 
     const testFilePath = path.join(__dirname, '../fixtures/test-file-1mb.txt');
 
-    const fileInput = page.locator('input[type="file"]');
+    const fileInput = page.locator(UPPY_FILE_INPUT_SELECTOR);
     await fileInput.setInputFiles(testFilePath);
 
     // Should show error message
@@ -140,7 +155,7 @@ test.describe('TUS File Upload @tus', () => {
 
     const testFilePath = path.join(__dirname, '../fixtures/test-file-1mb.txt');
 
-    const fileInput = page.locator('input[type="file"]');
+    const fileInput = page.locator(UPPY_FILE_INPUT_SELECTOR);
     await fileInput.setInputFiles(testFilePath);
 
     // Should eventually succeed after retries
@@ -156,7 +171,7 @@ test.describe('TUS File Upload @tus', () => {
 
     const testFilePath = path.join(__dirname, '../fixtures/test-file-1mb.txt');
 
-    const fileInput = page.locator('input[type="file"]');
+    const fileInput = page.locator(UPPY_FILE_INPUT_SELECTOR);
     await fileInput.setInputFiles(testFilePath);
 
     // Wait for upload complete
@@ -204,7 +219,7 @@ test.describe('TUS File Upload @tus', () => {
       window.TUS_MAX_FILE_SIZE = 50 * 1024 * 1024;
     });
 
-    const fileInput = page.locator('input[type="file"]');
+    const fileInput = page.locator(UPPY_FILE_INPUT_SELECTOR);
 
     // If file is too large, should show validation error before upload
     if (fs.existsSync(largeFilePath)) {
@@ -225,7 +240,12 @@ test.describe('TUS File Upload @tus', () => {
 test.describe('TUS Demo Component @tus', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await page.click('button:has-text("View TUS vs Uppy Comparison")');
+
+    // Navigate to comparison page (try data-testid first, fallback to text)
+    const comparisonButton = page.locator(SELECTORS.navigation.tusComparison).or(
+      page.locator('button:has-text("View TUS vs Uppy Comparison")')
+    );
+    await comparisonButton.first().click();
   });
 
   test('should render TUS demo with all features', async ({ page }) => {

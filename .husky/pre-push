@@ -1,0 +1,21 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🚀 Running pre-push checks..."
+
+# Check if services are running
+if ! curl -sf http://localhost:3001/health > /dev/null 2>&1; then
+  echo "⚠️  Warning: Form.io server is not running"
+  echo "   Full E2E tests will be skipped"
+  exit 0
+fi
+
+# Run critical E2E tests before push
+echo "Running critical E2E tests..."
+cd test-app
+npm run test:e2e -- --grep @critical || {
+  echo "❌ Critical E2E tests failed. Please fix before pushing."
+  exit 1
+}
+
+echo "✅ Pre-push checks passed!"

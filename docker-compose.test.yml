@@ -1,0 +1,180 @@
+version: '3.8'
+
+# Isolated test environment for E2E testing
+# Usage: docker-compose -f docker-compose.test.yml up
+
+services:
+  # MongoDB for tests (isolated database)
+  mongodb:
+    image: mongo:6
+    container_name: formio-mongo-test
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: formioapp_test
+    tmpfs:
+      - /data/db:rw,noexec,nosuid,size=1g
+    networks:
+      - formio-test
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    command: --wiredTigerCacheSizeGB 0.5
+
+  # GCS Emulator (test bucket)
+  gcs-emulator:
+    image: fsouza/fake-gcs-server:latest
+    container_name: formio-gcs-test
+    ports:
+      - "4443:4443"
+    command:
+      - "-scheme=http"
+      - "-port=4443"
+      - "-external-url=http://localhost:4443"
+    tmpfs:
+      - /data:rw,noexec,nosuid,size=1g
+    networks:
+      - formio-test
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:4443/storage/v1/b"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Form.io Server (test configuration)
+  formio-server:
+    build:
+      context: ./formio
+      dockerfile: Dockerfile
+      target: production
+      args:
+        - NODE_ENV=test
+    container_name: formio-server-test
+    ports:
+      - "3001:3001"
+    environment:
+      # Test MongoDB Configuration
+      MONGO: mongodb://mongodb:27017/formioapp_test
+
+      # Test Secrets (DO NOT use in production!)
+      JWT_SECRET: "e2e-test-jwt-secret-12345"
+      DB_SECRET: "e2e-test-db-secret-12345"
+
+      # Test File Storage Configuration
+      FORMIO_FILES_SERVER: gcs
+      FORMIO_S3_SERVER: http://gcs-emulator:4443
+      FORMIO_S3_BUCKET: test-formio-uploads
+      FORMIO_S3_REGION: auto
+      FORMIO_S3_KEY: test-access-key
+      FORMIO_S3_SECRET: test-secret-key
+
+      # Test Admin Credentials
+      ROOT_EMAIL: test-admin@test.local
+      ROOT_PASSWORD: TestPass123!
+
+      # Server Configuration
+      PORT: 3001
+      HOST: 0.0.0.0
+
+      # CORS Configuration (allow test app and Playwright)
+      CORS_ORIGIN: "http://localhost:64849,http://localhost:3000,http://127.0.0.1:64849"
+
+      # Test Logging
+      DEBUG: "formio:*"
+      NODE_ENV: test
+
+      # Disable rate limiting for tests
+      DISABLE_RATE_LIMIT: "true"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      gcs-emulator:
+        condition: service_healthy
+    networks:
+      - formio-test
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3001/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 20s
+    mem_limit: 1g
+    cpus: 1.0
+
+  # TUS Server for resumable uploads (test mode)
+  tus-server:
+    image: tusproject/tusd:latest
+    container_name: formio-tus-test
+    ports:
+      - "1080:1080"
+    command:
+      - "-host=0.0.0.0"
+      - "-port=1080"
+      - "-behind-proxy"
+      - "-hooks-enabled-events=pre-create,post-create,post-receive,post-finish,post-terminate"
+      - "-upload-dir=/data/uploads"
+      - "-max-size=1073741824"  # 1GB max for tests
+      - "-base-path=/files/"
+    tmpfs:
+      - /data/uploads:rw,noexec,nosuid,size=1g
+    networks:
+      - formio-test
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:1080/"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    mem_limit: 512m
+    cpus: 0.5
+
+  # Redis for test caching (optional but improves test speed)
+  redis:
+    image: redis:7-alpine
+    container_name: formio-redis-test
+    ports:
+      - "6379:6379"
+    networks:
+      - formio-test
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    command: redis-server --save "" --appendonly no --maxmemory 128mb --maxmemory-policy allkeys-lru
+    mem_limit: 256m
+    cpus: 0.5
+
+  # Playwright Container (for running tests in CI)
+  playwright:
+    image: mcr.microsoft.com/playwright:v1.40.0-jammy
+    container_name: formio-playwright-test
+    working_dir: /app
+    volumes:
+      - ./test-app:/app:cached
+    networks:
+      - formio-test
+    environment:
+      CI: "true"
+      FORMIO_URL: http://formio-server:3001
+      TEST_APP_URL: http://localhost:64849
+      PWDEBUG: "0"
+    depends_on:
+      formio-server:
+        condition: service_healthy
+    command: tail -f /dev/null  # Keep container running
+    profiles:
+      - test-runner
+
+networks:
+  formio-test:
+    name: formio_test_network
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
+# Note: Using tmpfs for ephemeral test data improves performance
+# and ensures clean state between test runs

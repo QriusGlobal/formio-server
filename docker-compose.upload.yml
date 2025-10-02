@@ -1,0 +1,204 @@
+version: '3.8'
+
+# Extended compose file for file upload feature
+# Usage: docker-compose -f docker-compose.local.yml -f docker-compose.upload.yml up
+
+services:
+  # TUS Server for resumable uploads
+  tus-server:
+    image: tusproject/tusd:latest
+    container_name: formio-tus-server
+    ports:
+      - "1080:1080"
+    command:
+      - "-host=0.0.0.0"
+      - "-port=1080"
+      - "-behind-proxy"
+      - "-hooks-enabled-events=pre-create,post-create,post-receive,post-finish,post-terminate"
+      - "-upload-dir=/data/uploads"
+      - "-max-size=5368709120"
+      # 5GB max
+      - "-base-path=/files/"
+    environment:
+      - TUS_UPLOAD_DIR=/data/uploads
+      - TUS_MAX_SIZE=5368709120
+      - TUS_BASE_PATH=/files/
+    volumes:
+      - tus-uploads:/data/uploads
+    networks:
+      - formio-local
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:1080/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    labels:
+      - "com.formio.service=tus-upload"
+      - "com.formio.feature=file-upload"
+
+  # Upload Processor - processes completed uploads
+  upload-processor:
+    build:
+      context: ./formio
+      dockerfile: Dockerfile.processor
+      target: production
+    container_name: formio-upload-processor
+    environment:
+      # MongoDB Connection
+      MONGO: mongodb://mongodb:27017/formioapp
+
+      # TUS Configuration
+      TUS_UPLOAD_DIR: /data/uploads
+      TUS_SERVER_URL: http://tus-server:1080
+
+      # GCS Configuration
+      FORMIO_FILES_SERVER: gcs
+      FORMIO_S3_SERVER: http://gcs-emulator:4443
+      FORMIO_S3_BUCKET: local-formio-uploads
+      FORMIO_S3_REGION: auto
+      FORMIO_S3_KEY: local-access-key
+      FORMIO_S3_SECRET: local-secret-key
+
+      # Processing Configuration
+      PROCESSOR_CONCURRENCY: 5
+      PROCESSOR_BATCH_SIZE: 10
+      PROCESSOR_POLL_INTERVAL: 5000
+
+      # Logging
+      DEBUG: "formio:processor:*"
+      NODE_ENV: development
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      gcs-emulator:
+        condition: service_healthy
+      tus-server:
+        condition: service_healthy
+    networks:
+      - formio-local
+    volumes:
+      - tus-uploads:/data/uploads:ro
+      - processor-logs:/app/logs
+    restart: unless-stopped
+    labels:
+      - "com.formio.service=upload-processor"
+      - "com.formio.feature=file-upload"
+    healthcheck:
+      test: ["CMD", "node", "-e", "process.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Upload Webhook Handler - handles TUS lifecycle events
+  webhook-handler:
+    build:
+      context: ./formio
+      dockerfile: Dockerfile.webhook
+      target: production
+    container_name: formio-webhook-handler
+    ports:
+      - "3002:3002"
+    environment:
+      # MongoDB Connection
+      MONGO: mongodb://mongodb:27017/formioapp
+
+      # Server Configuration
+      PORT: 3002
+      HOST: 0.0.0.0
+
+      # GCS Configuration
+      FORMIO_S3_SERVER: http://gcs-emulator:4443
+      FORMIO_S3_BUCKET: local-formio-uploads
+      FORMIO_S3_KEY: local-access-key
+      FORMIO_S3_SECRET: local-secret-key
+
+      # Webhook Configuration
+      WEBHOOK_SECRET: local-webhook-secret
+
+      # Logging
+      DEBUG: "formio:webhook:*"
+      NODE_ENV: development
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      tus-server:
+        condition: service_healthy
+    networks:
+      - formio-local
+    restart: unless-stopped
+    labels:
+      - "com.formio.service=webhook-handler"
+      - "com.formio.feature=file-upload"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3002/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for upload coordination and caching (optional but recommended)
+  redis:
+    image: redis:7-alpine
+    container_name: formio-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - formio-local
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    labels:
+      - "com.formio.service=redis"
+      - "com.formio.feature=caching"
+
+  # Nginx for upload routing and load balancing
+  nginx-upload:
+    image: nginx:alpine
+    container_name: formio-nginx-upload
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/upload.conf:/etc/nginx/conf.d/default.conf:ro
+      - nginx-cache:/var/cache/nginx
+      - nginx-logs:/var/log/nginx
+    depends_on:
+      - tus-server
+      - formio-server
+      - webhook-handler
+    networks:
+      - formio-local
+    restart: unless-stopped
+    labels:
+      - "com.formio.service=nginx"
+      - "com.formio.feature=upload-routing"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:80/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  tus-uploads:
+    name: formio_tus_uploads
+    driver: local
+  processor-logs:
+    name: formio_processor_logs
+    driver: local
+  redis-data:
+    name: formio_redis_data
+    driver: local
+  nginx-cache:
+    name: formio_nginx_cache
+    driver: local
+  nginx-logs:
+    name: formio_nginx_logs
+    driver: local
+
+networks:
+  formio-local:
+    external: true
+    name: formio_local_network

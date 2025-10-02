@@ -1,0 +1,67 @@
+{
+  "name": "@formio/file-upload",
+  "version": "1.0.0",
+  "description": "File upload module for Form.io with TUS resumable uploads and Uppy.js integration",
+  "main": "lib/index.js",
+  "module": "lib/index.esm.js",
+  "types": "lib/index.d.ts",
+  "files": [
+    "lib",
+    "dist"
+  ],
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "lint": "eslint src",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "formio",
+    "forms",
+    "file-upload",
+    "tus",
+    "uppy",
+    "resumable-upload"
+  ],
+  "author": "Form.io Community",
+  "license": "MIT",
+  "peerDependencies": {
+    "@formio/js": "^5.0.0",
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
+  },
+  "dependencies": {
+    "@uppy/audio": "^3.0.1",
+    "@uppy/core": "^5.0.2",
+    "@uppy/dashboard": "^5.0.2",
+    "@uppy/golden-retriever": "^5.1.0",
+    "@uppy/image-editor": "^4.0.1",
+    "@uppy/react": "^5.1.0",
+    "@uppy/screen-capture": "^5.0.1",
+    "@uppy/tus": "^5.0.1",
+    "@uppy/url": "^5.0.1",
+    "@uppy/webcam": "^5.0.1",
+    "tus-js-client": "^4.3.1"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^11.1.5",
+    "@testing-library/react": "^14.1.2",
+    "@types/react": "^19.0.0",
+    "jest": "^29.7.0",
+    "rollup": "^4.9.1",
+    "rollup-plugin-css-only": "^4.5.2",
+    "rollup-plugin-postcss": "^4.0.2",
+    "tslib": "^2.6.2",
+    "typescript": "^5.3.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/formio/file-upload.git"
+  }
+}

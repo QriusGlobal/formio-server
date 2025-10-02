@@ -1,0 +1,41 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🔍 Running pre-commit checks..."
+
+# Check if services are running
+echo "Checking if services are running..."
+if ! curl -sf http://localhost:3001/health > /dev/null 2>&1; then
+  echo "⚠️  Warning: Form.io server is not running"
+  echo "   E2E tests will be skipped"
+  echo "   Run 'make upload-dev' to start services"
+  exit 0
+fi
+
+# Run quick smoke tests on E2E test files
+echo "Running E2E smoke tests..."
+cd test-app
+
+# Verify test file naming conventions
+echo "Checking test file naming conventions..."
+find e2e -name "*.spec.ts" -o -name "*.test.ts" | while read -r file; do
+  if [[ ! $file =~ \.spec\.ts$ ]]; then
+    echo "❌ Error: Test file should use .spec.ts extension: $file"
+    exit 1
+  fi
+done
+
+# Verify test structure (check for test.describe blocks)
+echo "Validating test structure..."
+if ! grep -r "test\.describe" e2e/*.spec.ts > /dev/null 2>&1; then
+  echo "⚠️  Warning: No test.describe blocks found in E2E tests"
+fi
+
+# Run a quick smoke test (just one test to verify setup)
+echo "Running quick smoke test..."
+npx playwright test --project=chromium --grep @smoke --max-failures=1 || {
+  echo "❌ Smoke test failed. Please fix the issues before committing."
+  exit 1
+}
+
+echo "✅ Pre-commit checks passed!"

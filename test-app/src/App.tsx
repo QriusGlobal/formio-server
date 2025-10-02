@@ -1,11 +1,17 @@
 import { useState } from 'react'
+import { FileUploadComparison } from './pages/FileUploadComparison'
+import { FileUploadDemo } from './pages/FileUploadDemo'
+import { FormioTusDemo } from './pages/FormioTusDemo'
+import FormioValidationTest from './pages/FormioValidationTest'
+import { LocalFormioDemo } from './pages/LocalFormioDemo'
+import { FormioModuleDemo } from './pages/FormioModuleDemo'
 import './App.css'
 
-// TODO: Will integrate @formio/react once we build the components
-// For now, this is a placeholder to test the local environment
+type ViewMode = 'landing' | 'testing' | 'comparison' | 'demo' | 'formio-tus' | 'validation' | 'local-formio' | 'module-demo';
 
 function App() {
   const [testResult, setTestResult] = useState<string>('')
+  const [viewMode, setViewMode] = useState<ViewMode>('landing')
 
   const testFormioServer = async () => {
     try {
@@ -29,7 +35,6 @@ function App() {
 
   const testMongoDB = async () => {
     try {
-      // MongoDB connection test via formio server
       const response = await fetch('http://localhost:3001/')
       if (response.ok) {
         setTestResult(`✅ MongoDB is accessible via Form.io server`)
@@ -41,68 +46,337 @@ function App() {
     }
   }
 
+  // Landing page with navigation buttons
+  if (viewMode === 'landing') {
+    return (
+      <div className="App">
+        <header className="App-header">
+          <h1>Form.io File Upload Extension</h1>
+          <p>Test Infrastructure & Demo Components</p>
+        </header>
+
+        <main className="container">
+          <div className="demo-links">
+            <h2>Available Demos</h2>
+            <div className="demo-grid">
+              <button
+                className="demo-button primary"
+                onClick={() => setViewMode('demo')}
+                data-testid="nav-file-upload-demo"
+              >
+                📤 Try File Upload Demo
+              </button>
+              <button
+                className="demo-button"
+                onClick={() => setViewMode('comparison')}
+                data-testid="nav-comparison"
+              >
+                🔍 View TUS vs Uppy Comparison
+              </button>
+              <button
+                className="demo-button"
+                onClick={() => setViewMode('module-demo')}
+                data-testid="nav-module-demo"
+              >
+                📦 Form.io Module Demo
+              </button>
+              <button
+                className="demo-button"
+                onClick={() => setViewMode('formio-tus')}
+                data-testid="nav-formio-tus-demo"
+              >
+                🚀 TUS Integration
+              </button>
+              <button
+                className="demo-button"
+                onClick={() => setViewMode('local-formio')}
+                data-testid="nav-local-formio"
+              >
+                🏠 Local Form.io
+              </button>
+              <button
+                className="demo-button"
+                onClick={() => setViewMode('validation')}
+                data-testid="nav-validation"
+              >
+                ✅ Validation Testing
+              </button>
+              <button
+                className="demo-button"
+                onClick={() => setViewMode('testing')}
+                data-testid="nav-testing"
+              >
+                🔧 Infrastructure Testing
+              </button>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Render module demo
+  if (viewMode === 'module-demo') {
+    return (
+      <div className="App">
+        <div style={{ padding: '16px', background: '#f5f7fa', borderBottom: '1px solid #dee2e6' }}>
+          <div className="d-flex justify-content-between align-items-center">
+            <h3 className="mb-0">Form.io File Upload Module</h3>
+            <div>
+              <button
+                onClick={() => setViewMode('landing')}
+                style={{
+                  padding: '8px 16px',
+                  background: '#6c757d',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  marginRight: '8px',
+                }}
+              >
+                ← Home
+              </button>
+              <select
+                className="form-select w-auto"
+                style={{ display: 'inline-block' }}
+                value={viewMode}
+                onChange={(e) => setViewMode(e.target.value as ViewMode)}
+              >
+                <option value="module-demo">Module Demo</option>
+                <option value="testing">Infrastructure Testing</option>
+                <option value="comparison">Component Comparison</option>
+                <option value="demo">File Upload Demo</option>
+                <option value="formio-tus">Form.io TUS Demo</option>
+                <option value="validation">Validation Test</option>
+                <option value="local-formio">Local Form.io</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <FormioModuleDemo />
+      </div>
+    );
+  }
+
+  // Other view modes...
+  if (viewMode === 'comparison') {
+    return (
+      <div className="App">
+        <div style={{ padding: '16px', background: '#f5f7fa', borderBottom: '1px solid #dee2e6' }}>
+          <button
+            onClick={() => setViewMode('landing')}
+            style={{
+              padding: '8px 16px',
+              background: '#6c757d',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontWeight: 600,
+            }}
+          >
+            ← Home
+          </button>
+        </div>
+        <FileUploadComparison />
+      </div>
+    );
+  }
+
+  if (viewMode === 'demo') {
+    return (
+      <div className="App">
+        <div style={{ padding: '16px', background: '#f5f7fa', borderBottom: '1px solid #dee2e6' }}>
+          <button
+            onClick={() => setViewMode('landing')}
+            style={{
+              padding: '8px 16px',
+              background: '#6c757d',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontWeight: 600,
+            }}
+          >
+            ← Home
+          </button>
+        </div>
+        <FileUploadDemo />
+      </div>
+    );
+  }
+
+  if (viewMode === 'formio-tus') {
+    return (
+      <div className="App">
+        <div style={{ padding: '16px', background: '#f5f7fa', borderBottom: '1px solid #dee2e6' }}>
+          <button
+            onClick={() => setViewMode('landing')}
+            style={{
+              padding: '8px 16px',
+              background: '#6c757d',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontWeight: 600,
+            }}
+          >
+            ← Home
+          </button>
+        </div>
+        <FormioTusDemo />
+      </div>
+    );
+  }
+
+  if (viewMode === 'validation') {
+    return (
+      <div className="App">
+        <div style={{ padding: '16px', background: '#f5f7fa', borderBottom: '1px solid #dee2e6' }}>
+          <button
+            onClick={() => setViewMode('landing')}
+            style={{
+              padding: '8px 16px',
+              background: '#6c757d',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontWeight: 600,
+            }}
+          >
+            ← Home
+          </button>
+        </div>
+        <FormioValidationTest />
+      </div>
+    );
+  }
+
+  if (viewMode === 'local-formio') {
+    return (
+      <div className="App">
+        <div style={{ padding: '16px', background: '#f5f7fa', borderBottom: '1px solid #dee2e6' }}>
+          <button
+            onClick={() => setViewMode('landing')}
+            style={{
+              padding: '8px 16px',
+              background: '#6c757d',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontWeight: 600,
+            }}
+          >
+            ← Home
+          </button>
+        </div>
+        <LocalFormioDemo />
+      </div>
+    );
+  }
+
+  // Infrastructure testing view (default fallback for 'testing' mode)
   return (
     <div className="App">
       <header className="App-header">
-        <h1>🧪 Form.io File Upload Test App</h1>
-        <p className="subtitle">Local Development Environment</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', maxWidth: '1200px' }}>
+          <div>
+            <h1>Form.io File Upload Extension</h1>
+            <p>Test Infrastructure Components</p>
+          </div>
+          <button
+            onClick={() => setViewMode('landing')}
+            style={{
+              padding: '8px 16px',
+              background: '#6c757d',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontWeight: 600,
+            }}
+          >
+            ← Home
+          </button>
+        </div>
       </header>
 
-      <main>
-        <div className="info-card">
-          <h2>📡 Service Status</h2>
-          <p>Running on <code>http://localhost:64849</code></p>
-        </div>
-
-        <div className="test-section">
-          <h2>🔧 Test Services</h2>
-          <div className="button-grid">
-            <button onClick={testFormioServer} className="test-button">
-              Test Form.io Server
-            </button>
-            <button onClick={testGCSEmulator} className="test-button">
-              Test GCS Emulator
-            </button>
-            <button onClick={testMongoDB} className="test-button">
-              Test MongoDB
-            </button>
+      <main className="container">
+        <div className="test-grid">
+          <div className="test-card">
+            <h2>Form.io Server</h2>
+            <p>Community Edition with TUS upload support</p>
+            <button onClick={testFormioServer}>Test Connection</button>
           </div>
 
-          {testResult && (
-            <div className="test-result">
-              <h3>Test Result:</h3>
-              <pre>{testResult}</pre>
-            </div>
-          )}
+          <div className="test-card">
+            <h2>GCS Emulator</h2>
+            <p>Local Google Cloud Storage emulation</p>
+            <button onClick={testGCSEmulator}>Test GCS</button>
+          </div>
+
+          <div className="test-card">
+            <h2>MongoDB</h2>
+            <p>Database for Form.io persistence</p>
+            <button onClick={testMongoDB}>Test Database</button>
+          </div>
         </div>
 
-        <div className="info-section">
-          <h2>📋 Next Steps</h2>
-          <ol>
-            <li>All service tests should pass (green checkmarks)</li>
-            <li>Build formio-core with FileUpload component</li>
-            <li>Build formio-react with React wrapper</li>
-            <li>Integrate Form component in this app</li>
-            <li>Test file uploads end-to-end</li>
-          </ol>
-        </div>
+        {testResult && (
+          <div className="result-box">
+            <h3>Test Result:</h3>
+            <pre>{testResult}</pre>
+          </div>
+        )}
 
-        <div className="services-info">
-          <h3>🔗 Service Endpoints</h3>
-          <ul>
-            <li><strong>Test App:</strong> <code>http://localhost:64849</code></li>
-            <li><strong>Form.io Server:</strong> <code>http://localhost:3001</code></li>
-            <li><strong>MongoDB:</strong> <code>mongodb://localhost:27017</code></li>
-            <li><strong>GCS Emulator:</strong> <code>http://localhost:4443</code></li>
-          </ul>
+        <div className="demo-links">
+          <h2>Available Demos</h2>
+          <div className="demo-grid">
+            <button
+              className="demo-button primary"
+              onClick={() => setViewMode('module-demo')}
+            >
+              📦 Form.io Module Demo
+            </button>
+            <button
+              className="demo-button"
+              onClick={() => setViewMode('comparison')}
+            >
+              🔍 Component Comparison
+            </button>
+            <button
+              className="demo-button"
+              onClick={() => setViewMode('demo')}
+            >
+              📤 File Upload Demo
+            </button>
+            <button
+              className="demo-button"
+              onClick={() => setViewMode('formio-tus')}
+            >
+              🚀 TUS Integration
+            </button>
+            <button
+              className="demo-button"
+              onClick={() => setViewMode('validation')}
+            >
+              ✅ Validation Testing
+            </button>
+            <button
+              className="demo-button"
+              onClick={() => setViewMode('local-formio')}
+            >
+              🏠 Local Form.io
+            </button>
+          </div>
         </div>
       </main>
-
-      <footer>
-        <p className="footer-text">
-          💡 Tip: Open browser DevTools to see network requests
-        </p>
-      </footer>
     </div>
   )
 }

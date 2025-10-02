@@ -1,0 +1,1 @@
+export { FormioCore as Formio };

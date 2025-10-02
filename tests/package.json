@@ -1,0 +1,40 @@
+{
+  "name": "@formio/e2e-tests",
+  "version": "1.0.0",
+  "description": "Comprehensive E2E test framework for Form.io with GCS integration",
+  "scripts": {
+    "test": "playwright test",
+    "test:e2e": "playwright test --config playwright.config.ts",
+    "test:visual": "playwright test --config visual/playwright.config.ts",
+    "test:integration": "node integration/test-runner.ts",
+    "test:all": "npm run test:e2e && npm run test:visual && npm run test:integration",
+    "test:debug": "playwright test --debug",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "baseline:generate": "GENERATE_BASELINES=true npm run test:visual",
+    "baseline:update": "npm run test:visual -- --update-snapshots",
+    "report:html": "playwright show-report reports/html",
+    "report:visual": "open reports/visual-diffs/report.html",
+    "report:screenshots": "open reports/screenshots/index.html",
+    "services:start": "concurrently \"npm run gcs:start\" \"npm run formio:start\" \"npm run dev\"",
+    "services:stop": "killall -9 node fake-gcs-server || true",
+    "gcs:start": "docker run -d -p 4443:4443 --name gcs-emulator fsouza/fake-gcs-server -scheme http",
+    "gcs:stop": "docker stop gcs-emulator && docker rm gcs-emulator",
+    "formio:start": "cd ../formio && npm start",
+    "dev": "cd .. && npm run dev",
+    "lint": "eslint . --ext .ts,.tsx",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@faker-js/faker": "^8.4.0",
+    "@playwright/test": "^1.40.0",
+    "@types/node": "^20.10.0",
+    "axios": "^1.6.0",
+    "concurrently": "^8.2.0",
+    "eslint": "^8.55.0",
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

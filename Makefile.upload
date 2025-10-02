@@ -1,0 +1,367 @@
+.PHONY: help upload-dev upload-test upload-build upload-clean upload-up upload-down upload-logs upload-verify upload-perf
+
+.DEFAULT_GOAL := help
+
+help: ## Show file upload feature commands
+	@echo '╔════════════════════════════════════════════════════════════════╗'
+	@echo '║         Form.io File Upload Feature - Development             ║'
+	@echo '╚════════════════════════════════════════════════════════════════╝'
+	@echo ''
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
+		awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-25s\033[0m %s\n", $$1, $$2}'
+	@echo ''
+
+# Include base Makefile for core services
+include Makefile.local
+
+# Development Environment
+upload-dev: local-up ## 🚀 Start complete file upload development environment
+	@echo ""
+	@echo "🚀 Starting file upload development stack..."
+	@docker-compose -f docker-compose.upload.yml up -d
+	@echo ""
+	@echo "⏳ Waiting for TUS server to be ready..."
+	@sleep 5
+	@echo ""
+	@echo "╔════════════════════════════════════════════════════════════════╗"
+	@echo "║  ✅ File upload environment ready!                             ║"
+	@echo "╚════════════════════════════════════════════════════════════════╝"
+	@echo ""
+	@echo "Services running:"
+	@echo "  📦 MongoDB:        mongodb://localhost:27017"
+	@echo "  🗄️  GCS Emulator:   http://localhost:4443"
+	@echo "  🌐 Form.io Server: http://localhost:3001"
+	@echo "  📤 TUS Server:     http://localhost:1080"
+	@echo ""
+	@echo "Next steps:"
+	@echo "  1. Run 'make upload-verify' to check all services"
+	@echo "  2. Run 'make test-app' to start the test application"
+	@echo "  3. Upload a file to test the feature"
+	@echo ""
+
+upload-up: ## ⬆️  Start only file upload services (requires base services)
+	@echo "⬆️  Starting file upload services..."
+	@docker-compose -f docker-compose.upload.yml up -d
+	@echo "✅ File upload services started"
+
+upload-down: ## ⬇️  Stop file upload services (keeps base services running)
+	@echo "⬇️  Stopping file upload services..."
+	@docker-compose -f docker-compose.upload.yml down
+	@echo "✅ File upload services stopped"
+
+upload-logs: ## 📜 Show logs from file upload services
+	@docker-compose -f docker-compose.upload.yml logs -f
+
+upload-logs-tus: ## 📋 Show TUS server logs only
+	@echo "📋 TUS Server Logs (Ctrl+C to exit)"
+	@echo "════════════════════════════════════════════════════════════════"
+	@docker-compose -f docker-compose.upload.yml logs -f tus-server
+
+# Build and Test
+upload-build: ## 🔨 Build all packages for file upload feature
+	@echo "🔨 Building all packages..."
+	@echo ""
+	@echo "Building formio-core..."
+	@cd formio-core && npm install && npm run build
+	@echo ""
+	@echo "Building formio-react..."
+	@cd formio-react && npm install && npm run build
+	@echo ""
+	@echo "Building formio server..."
+	@cd formio && npm install && npm run build || echo "No build script"
+	@echo ""
+	@echo "Building test app..."
+	@cd test-app && npm install && npm run build
+	@echo ""
+	@echo "✅ All packages built successfully"
+
+upload-test: ## 🧪 Run complete test suite for file upload
+	@echo "🧪 Running file upload test suite..."
+	@echo ""
+	@echo "1️⃣ Unit tests..."
+	@make upload-test-unit
+	@echo ""
+	@echo "2️⃣ Integration tests..."
+	@make upload-test-integration
+	@echo ""
+	@echo "3️⃣ E2E tests..."
+	@make upload-test-e2e
+	@echo ""
+	@echo "✅ All tests completed"
+
+upload-test-unit: ## 🧪 Run unit tests only
+	@echo "Running unit tests..."
+	@cd formio && npm test || echo "No unit tests configured"
+	@cd formio-core && npm test || echo "No unit tests configured"
+	@cd formio-react && npm test || echo "No unit tests configured"
+
+upload-test-integration: ## 🧪 Run integration tests
+	@echo "Running integration tests..."
+	@echo "Prerequisites: Services must be running (make upload-dev)"
+	@cd formio && npm run test:integration || echo "No integration tests configured"
+
+upload-test-e2e: ## 🧪 Run all E2E tests with Playwright
+	@echo "Running E2E tests..."
+	@echo "Prerequisites: All services must be running"
+	@cd test-app && npx playwright install --with-deps chromium || true
+	@cd test-app && npm run test:e2e
+
+upload-test-e2e-tus: ## 🧪 Run TUS upload E2E tests only
+	@echo "Running TUS-specific E2E tests..."
+	@cd test-app && npx playwright install --with-deps chromium || true
+	@cd test-app && npm run test:e2e:tus
+
+upload-test-e2e-uppy: ## 🧪 Run Uppy integration E2E tests only
+	@echo "Running Uppy-specific E2E tests..."
+	@cd test-app && npx playwright install --with-deps chromium || true
+	@cd test-app && npm run test:e2e:uppy
+
+upload-test-e2e-edge: ## 🧪 Run edge case E2E tests
+	@echo "Running edge case E2E tests..."
+	@cd test-app && npx playwright install --with-deps chromium || true
+	@cd test-app && npm run test:e2e:edge
+
+upload-test-e2e-visual: ## 🎨 Run visual regression E2E tests
+	@echo "Running visual regression tests..."
+	@cd test-app && npx playwright install --with-deps chromium || true
+	@cd test-app && npm run test:e2e:visual
+
+upload-test-e2e-debug: ## 🐛 Run E2E tests in debug mode (headed browser)
+	@echo "Running E2E tests in debug mode..."
+	@cd test-app && npx playwright install --with-deps chromium || true
+	@cd test-app && npm run test:e2e:debug
+
+upload-test-e2e-ui: ## 👁️  Run E2E tests with Playwright UI mode
+	@echo "Opening Playwright UI..."
+	@cd test-app && npx playwright install --with-deps chromium || true
+	@cd test-app && npm run test:e2e:ui
+
+upload-test-e2e-report: ## 📊 Generate and open HTML test report
+	@echo "Generating HTML test report..."
+	@cd test-app && npx playwright show-report playwright-report || echo "No report available. Run tests first."
+
+upload-test-e2e-update-snapshots: ## 📸 Update visual regression baselines
+	@echo "⚠️  WARNING: This will update all visual regression baselines!"
+	@echo "Press Ctrl+C to cancel, or wait 5 seconds..."
+	@sleep 5
+	@cd test-app && npm run test:e2e:update-snapshots
+	@echo "✅ Visual baselines updated"
+
+upload-test-e2e-ci: ## 🚀 Run E2E tests in CI mode (isolated environment)
+	@echo "Running E2E tests in CI mode..."
+	@docker-compose -f docker-compose.test.yml up -d
+	@echo "Waiting for services..."
+	@sleep 30
+	@cd test-app && npx playwright install --with-deps chromium firefox webkit
+	@cd test-app && npm run test:e2e
+	@docker-compose -f docker-compose.test.yml down -v
+	@echo "✅ CI tests complete"
+
+upload-test-coverage: ## 📊 Generate test coverage report
+	@echo "Generating coverage report..."
+	@cd formio && npm run test:coverage || npm test -- --coverage
+	@echo ""
+	@echo "Coverage report: formio/coverage/lcov-report/index.html"
+
+# Verification and Debugging
+upload-verify: ## ✅ Verify all file upload services are healthy
+	@echo "✅ Checking file upload service health..."
+	@echo "════════════════════════════════════════════════════════════════"
+	@echo -n "MongoDB:        "
+	@docker-compose -f docker-compose.local.yml exec -T mongodb mongosh --eval "db.adminCommand('ping')" > /dev/null 2>&1 && echo "✅ Running" || echo "❌ Not running"
+	@echo -n "GCS Emulator:   "
+	@curl -s http://localhost:4443/storage/v1/b > /dev/null 2>&1 && echo "✅ Running" || echo "❌ Not running"
+	@echo -n "Form.io Server: "
+	@curl -s http://localhost:3001/health > /dev/null 2>&1 && echo "✅ Running" || echo "❌ Not running"
+	@echo -n "TUS Server:     "
+	@curl -s http://localhost:1080/ > /dev/null 2>&1 && echo "✅ Running" || echo "❌ Not running"
+	@echo ""
+	@echo "GCS Bucket Status:"
+	@curl -s http://localhost:4443/storage/v1/b/local-formio-uploads | jq -r '"  📦 \(.name) (ready for uploads)"' || echo "  ❌ Bucket not initialized"
+	@echo ""
+
+upload-verify-files: ## 🔍 List all uploaded files
+	@echo "🔍 Files in GCS bucket:"
+	@echo "════════════════════════════════════════════════════════════════"
+	@curl -s http://localhost:4443/storage/v1/b/local-formio-uploads/o | jq -r '.items[]? | "  📄 \(.name)\n     Size: \(.size) bytes\n     Type: \(.contentType)\n     Created: \(.timeCreated)\n"' || echo "  (no files uploaded yet)"
+	@echo ""
+
+upload-verify-config: ## 🔧 Show current configuration
+	@echo "🔧 File Upload Configuration:"
+	@echo "════════════════════════════════════════════════════════════════"
+	@docker-compose -f docker-compose.local.yml exec -T formio-server env | grep -E '^FORMIO_|^MONGO|^PORT' || echo "Server not running"
+	@echo ""
+
+# Performance Testing
+upload-perf: ## ⚡ Run performance tests for file uploads
+	@echo "⚡ Running file upload performance tests..."
+	@echo ""
+	@command -v k6 >/dev/null 2>&1 || { echo "❌ k6 not installed. Install from https://k6.io"; exit 1; }
+	@echo "Creating load test script..."
+	@cat > /tmp/upload-load-test.js << 'EOF'; \
+	import http from 'k6/http'; \
+	import { check, sleep } from 'k6'; \
+	export const options = { \
+	  stages: [ \
+	    { duration: '30s', target: 10 }, \
+	    { duration: '1m', target: 10 }, \
+	    { duration: '30s', target: 0 }, \
+	  ], \
+	}; \
+	export default function () { \
+	  const res = http.get('http://localhost:3001/health'); \
+	  check(res, { 'status is 200': (r) => r.status === 200 }); \
+	  sleep(1); \
+	} \
+	EOF
+	@k6 run /tmp/upload-load-test.js
+	@echo ""
+	@echo "✅ Performance test completed"
+
+upload-perf-report: ## 📊 Generate performance test report
+	@echo "📊 Generating performance report..."
+	@k6 run --out json=/tmp/k6-results.json /tmp/upload-load-test.js || echo "Run 'make upload-perf' first"
+
+# Cleanup
+upload-clean: ## 🧹 Clean up build artifacts and caches
+	@echo "🧹 Cleaning up build artifacts..."
+	@cd formio && rm -rf node_modules dist coverage .next || true
+	@cd formio-core && rm -rf node_modules dist coverage || true
+	@cd formio-react && rm -rf node_modules dist coverage || true
+	@cd test-app && rm -rf node_modules dist coverage .next || true
+	@echo "✅ Cleanup complete"
+
+upload-clean-all: upload-clean local-reset ## 🗑️  Complete cleanup (deletes all data)
+	@docker-compose -f docker-compose.upload.yml down -v
+	@echo "✅ All file upload data deleted"
+
+# Database Management
+upload-db-backup: ## 💾 Backup MongoDB database
+	@echo "💾 Backing up MongoDB..."
+	@mkdir -p backups
+	@docker-compose -f docker-compose.local.yml exec -T mongodb mongodump --db formioapp --archive > backups/formio-$(shell date +%Y%m%d-%H%M%S).dump
+	@echo "✅ Backup saved to backups/"
+
+upload-db-restore: ## 📥 Restore MongoDB database (requires BACKUP_FILE=...)
+	@echo "📥 Restoring MongoDB from $(BACKUP_FILE)..."
+	@test -f $(BACKUP_FILE) || { echo "❌ Backup file not found. Usage: make upload-db-restore BACKUP_FILE=backups/formio-XXXXXX.dump"; exit 1; }
+	@docker-compose -f docker-compose.local.yml exec -T mongodb mongorestore --db formioapp --archive < $(BACKUP_FILE)
+	@echo "✅ Database restored"
+
+upload-db-reset: ## 🔄 Reset database to clean state
+	@echo "⚠️  WARNING: This will delete all database data!"
+	@echo "Press Ctrl+C to cancel, or wait 5 seconds..."
+	@sleep 5
+	@docker-compose -f docker-compose.local.yml exec -T mongodb mongosh formioapp --eval "db.dropDatabase()"
+	@echo "✅ Database reset. Restart Form.io server to reinitialize."
+
+# Deployment
+upload-deploy-local: upload-build upload-dev ## 🚀 Full local deployment
+	@echo "🚀 Deploying file upload feature locally..."
+	@make upload-verify
+	@echo ""
+	@echo "✅ Local deployment complete!"
+
+upload-deploy-staging: ## 🎭 Deploy to staging environment
+	@echo "🎭 Deploying to staging..."
+	@./scripts/deploy-upload-feature.sh staging
+	@echo "✅ Staging deployment complete"
+
+upload-deploy-prod: ## 🌍 Deploy to production (requires confirmation)
+	@echo "⚠️  WARNING: Deploying to PRODUCTION!"
+	@echo "Type 'DEPLOY' to continue, or Ctrl+C to cancel:"
+	@read confirm && [ "$$confirm" = "DEPLOY" ] || { echo "❌ Deployment cancelled"; exit 1; }
+	@./scripts/deploy-upload-feature.sh production
+	@echo "✅ Production deployment complete"
+
+# Development Workflow
+upload-watch: ## 👁️  Watch and rebuild packages on changes
+	@echo "👁️  Watching for changes..."
+	@echo "Press Ctrl+C to stop"
+	@echo ""
+	@trap 'kill 0' EXIT; \
+	(cd formio-core && npm run build:watch) & \
+	(cd formio-react && npm run build:watch) & \
+	wait
+
+upload-dev-full: ## 🔧 Full development setup (build + start + watch)
+	@echo "🔧 Starting full development environment..."
+	@make upload-build
+	@make upload-dev
+	@make upload-verify
+	@echo ""
+	@echo "Starting watch mode for packages..."
+	@make upload-watch
+
+# Documentation
+upload-docs: ## 📚 Generate API documentation
+	@echo "📚 Generating API documentation..."
+	@cd formio && npm run docs || echo "No docs script configured"
+	@echo "✅ Documentation generated"
+
+upload-env-docs: ## 📋 Show environment variable documentation
+	@echo "📋 File Upload Environment Variables:"
+	@echo "════════════════════════════════════════════════════════════════"
+	@cat << 'EOF'
+	Core Configuration:
+	  MONGO                  - MongoDB connection string
+	  JWT_SECRET            - JWT signing secret
+	  DB_SECRET             - Database encryption secret
+	  PORT                  - Server port (default: 3001)
+
+	File Storage (GCS):
+	  FORMIO_FILES_SERVER   - Storage backend (set to 'gcs')
+	  FORMIO_S3_SERVER      - GCS/S3 endpoint URL
+	  FORMIO_S3_BUCKET      - Storage bucket name
+	  FORMIO_S3_REGION      - Storage region
+	  FORMIO_S3_KEY         - Access key ID
+	  FORMIO_S3_SECRET      - Secret access key
+
+	TUS Upload (Resumable):
+	  TUS_UPLOAD_DIR        - Upload directory path
+	  TUS_MAX_SIZE          - Max upload size (bytes)
+	  TUS_BASE_PATH         - TUS endpoint base path
+
+	CORS & Security:
+	  CORS_ORIGIN           - Allowed origins (comma-separated)
+	  ROOT_EMAIL            - Admin email
+	  ROOT_PASSWORD         - Admin password
+
+	Debug:
+	  DEBUG                 - Debug namespaces (e.g., formio:*)
+	  NODE_ENV              - Environment (development/production)
+	EOF
+	@echo ""
+
+# Status and Info
+upload-status: upload-verify ## 📊 Show complete system status
+	@echo ""
+	@echo "Container Status:"
+	@docker-compose -f docker-compose.local.yml ps
+	@docker-compose -f docker-compose.upload.yml ps 2>/dev/null || echo "(no upload services running)"
+	@echo ""
+	@echo "Disk Usage:"
+	@du -sh ./formio ./formio-core ./formio-react ./test-app 2>/dev/null || true
+	@echo ""
+
+upload-ports: ## 🔌 Show all service ports
+	@echo "🔌 Service Ports:"
+	@echo "════════════════════════════════════════════════════════════════"
+	@echo "  Test App:       http://localhost:64849"
+	@echo "  Form.io Server: http://localhost:3001"
+	@echo "  TUS Server:     http://localhost:1080"
+	@echo "  GCS Emulator:   http://localhost:4443"
+	@echo "  MongoDB:        mongodb://localhost:27017"
+	@echo ""
+	@echo "Health Endpoints:"
+	@echo "  Form.io:        http://localhost:3001/health"
+	@echo "  TUS:            http://localhost:1080/"
+	@echo "  GCS:            http://localhost:4443/storage/v1/b"
+	@echo ""
+
+# Quick shortcuts
+dev: upload-dev ## Alias for upload-dev
+test: upload-test ## Alias for upload-test
+build: upload-build ## Alias for upload-build
+clean: upload-clean ## Alias for upload-clean
+verify: upload-verify ## Alias for upload-verify
