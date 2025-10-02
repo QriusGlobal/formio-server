@@ -276,6 +276,30 @@ export default class TusFileUploadComponent extends FileComponent {
           uploadFile.status = UploadStatus.COMPLETED;
           uploadFile.url = upload.url;
           uploadFile.uploadId = upload.url?.split('/').pop();
+
+          // Create Form.io compatible file data
+          const fileData = {
+            name: uploadFile.name,
+            size: uploadFile.size,
+            type: uploadFile.type,
+            url: uploadFile.url,
+            storage: 'tus',
+            originalName: file.name,
+            uploadId: uploadFile.uploadId
+          };
+
+          // Update Form.io component value (handle single vs multiple files)
+          if (this.component.multiple) {
+            const currentValue = this.dataValue || [];
+            this.dataValue = Array.isArray(currentValue) ? [...currentValue, fileData] : [fileData];
+          } else {
+            this.dataValue = fileData;
+          }
+
+          // Trigger Form.io updates to propagate value to form submission
+          this.updateValue();
+          this.triggerChange();
+
           this.updateProgress(uploadFile);
           resolve(uploadFile);
         }
@@ -336,8 +360,13 @@ export default class TusFileUploadComponent extends FileComponent {
     return this.dataValue;
   }
 
-  setValue(value: any) {
-    this.dataValue = value;
+  setValue(value: any, flags: any = {}) {
+    const changed = super.setValue(value, flags);
+    if (changed) {
+      this.redraw();
+      this.triggerChange();
+    }
+    return changed;
   }
 
   getValueAsString(value: any): string {
@@ -345,5 +374,17 @@ export default class TusFileUploadComponent extends FileComponent {
       return value.map(val => val.name || val.url || '').join(', ');
     }
     return value?.name || value?.url || '';
+  }
+
+  getView(value: any): string {
+    if (!value) return '';
+
+    if (Array.isArray(value)) {
+      return value.map(file =>
+        `<a href="${file.url}" target="_blank" rel="noopener noreferrer">${file.name}</a>`
+      ).join('<br>');
+    }
+
+    return `<a href="${value.url}" target="_blank" rel="noopener noreferrer">${value.name}</a>`;
   }
 }

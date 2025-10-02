@@ -5,9 +5,10 @@ import { FormioTusDemo } from './pages/FormioTusDemo'
 import FormioValidationTest from './pages/FormioValidationTest'
 import { LocalFormioDemo } from './pages/LocalFormioDemo'
 import { FormioModuleDemo } from './pages/FormioModuleDemo'
+import FormioSubmissionTest from './pages/FormioSubmissionTest'
 import './App.css'
 
-type ViewMode = 'landing' | 'testing' | 'comparison' | 'demo' | 'formio-tus' | 'validation' | 'local-formio' | 'module-demo';
+type ViewMode = 'landing' | 'testing' | 'comparison' | 'demo' | 'formio-tus' | 'validation' | 'local-formio' | 'module-demo' | 'submission-test';
 
 function App() {
   const [testResult, setTestResult] = useState<string>('')
@@ -102,6 +103,13 @@ function App() {
                 ✅ Validation Testing
               </button>
               <button
+                className="demo-button primary"
+                onClick={() => setViewMode('submission-test')}
+                data-testid="nav-submission-test"
+              >
+                🎯 Submission Integration Test
+              </button>
+              <button
                 className="demo-button"
                 onClick={() => setViewMode('testing')}
                 data-testid="nav-testing"
@@ -111,6 +119,31 @@ function App() {
             </div>
           </div>
         </main>
+      </div>
+    );
+  }
+
+  // Render submission test
+  if (viewMode === 'submission-test') {
+    return (
+      <div className="App">
+        <div style={{ padding: '16px', background: '#f5f7fa', borderBottom: '1px solid #dee2e6' }}>
+          <button
+            onClick={() => setViewMode('landing')}
+            style={{
+              padding: '8px 16px',
+              background: '#6c757d',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontWeight: 600,
+            }}
+          >
+            ← Home
+          </button>
+        </div>
+        <FormioSubmissionTest />
       </div>
     );
   }
