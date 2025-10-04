@@ -1,10 +1,8 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Form } from '@formio/react';
-import { Formio } from '@formio/js';
-import FormioFileUploadModule from '@formio/file-upload';
 
-// Register file upload module once
-Formio.use(FormioFileUploadModule);
+// Note: Form.io file upload module is registered globally in App.tsx
+// No need to register here since this component is lazy-loaded
 
 // Extend Window interface for test ready flag
 declare global {

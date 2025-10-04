@@ -33,7 +33,8 @@ export class TusBulkUploadPage {
     this.maxFilesSelect = page.locator('label:has-text("Max Files")').locator('..').locator('select');
     this.filePatternSelect = page.locator('label:has-text("File Type Filter")').locator('..').locator('select');
 
-    this.fileInput = page.locator('input[type="file"]');
+    // Form.io uses a hidden file input, use the Browse Files link to trigger it
+    this.fileInput = page.locator('input[type="file"]').first();
     this.submitButton = page.locator('button[type="submit"]');
     this.successBanner = page.locator('text=/Bulk Upload Test Successful/i');
     this.statisticsPanel = page.locator('text=/Upload Statistics/i').locator('..');
@@ -122,8 +123,21 @@ export class TusBulkUploadPage {
    * Upload multiple files
    */
   async uploadFiles(files: TestFile[]): Promise<void> {
+    // Wait for Form.io form to render completely
+    await this.page.waitForSelector('text=/Browse Files/i', {
+      state: 'visible',
+      timeout: 15000
+    });
+
+    // Wait a bit for Form.io to fully initialize
+    await this.page.waitForTimeout(1000);
+
+    // The file input exists but is hidden, set files directly
     const filePaths = files.map(f => f.path);
     await this.fileInput.setInputFiles(filePaths);
+
+    // Wait for files to be processed
+    await this.page.waitForTimeout(500);
   }
 
   /**
