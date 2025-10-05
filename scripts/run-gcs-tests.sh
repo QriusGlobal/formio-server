@@ -54,7 +54,7 @@ echo -e "${YELLOW}[Phase 2/6]${NC} Backend Integration Tests (GCS Emulator)"
 cd "$PROJECT_ROOT/formio"
 
 echo "Running 5 integration tests with GCS emulator..."
-bun test src/upload/__tests__/integration.test.js --reporter=verbose || {
+bun test src/upload/__tests__/integration.test.js || {
   echo -e "${RED}✗ Emulator integration tests failed${NC}"
   exit 1
 }
@@ -70,7 +70,7 @@ export GOOGLE_APPLICATION_CREDENTIALS=$HOME/.config/gcloud/keys/dev-mish-key.jso
 export GCS_PROJECT_ID=erlich-dev
 export GCS_BUCKET_NAME=formio-test-uploads-erlich
 
-bun test src/upload/__tests__/integration-real-gcs.test.js --reporter=verbose || {
+bun test src/upload/__tests__/integration-real-gcs.test.js || {
   echo -e "${RED}✗ Real GCS integration tests failed${NC}"
   exit 1
 }

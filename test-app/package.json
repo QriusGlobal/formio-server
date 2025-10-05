@@ -34,9 +34,10 @@
     "playwright:install": "playwright install --with-deps"
   },
   "dependencies": {
-    "@formio/react": "file:../formio-react",
-    "@formio/js": "^5.2.2",
+    "@faker-js/faker": "^10.0.0",
     "@formio/file-upload": "file:../packages/formio-file-upload",
+    "@formio/js": "^5.2.2",
+    "@formio/react": "file:../formio-react",
     "@uppy/core": "^5.0.2",
     "@uppy/dashboard": "^5.0.2",
     "@uppy/react": "^5.1.0",

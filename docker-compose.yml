@@ -1,4 +1,5 @@
-version: '3.8'
+# Docker Compose configuration for Form.io with GCS async upload
+# No version needed for Docker Compose v2.x
 
 # 🎯 Consolidated Docker Compose - Single Source of Truth
 # Replaces: docker-compose.test.yml, docker-compose.local.yml, docker-compose.upload.yml
@@ -61,8 +62,6 @@ services:
       - "-scheme=http"
       - "-port=4443"
       - "-external-url=http://localhost:4443"
-    volumes:
-      - gcs-data:/data
     networks:
       - formio-network
     healthcheck:

@@ -1,7 +1,8 @@
 # Docker Compose Override for Real GCS Testing
 # Usage: docker-compose -f docker-compose.yml -f docker-compose.real-gcs.yml --env-file .env.real-gcs up
 
-version: '3.8'
+# Docker Compose Override for Real GCS Testing
+# No version needed for Docker Compose v2.x
 
 services:
   formio-server:
