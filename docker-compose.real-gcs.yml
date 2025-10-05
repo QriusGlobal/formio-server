@@ -1,0 +1,21 @@
+# Docker Compose Override for Real GCS Testing
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.real-gcs.yml --env-file .env.real-gcs up
+
+version: '3.8'
+
+services:
+  formio-server:
+    volumes:
+      # Mount real GCS service account credentials
+      - ${HOME}/.config/gcloud/keys/dev-mish-key.json:/app/gcs-credentials.json:ro
+    environment:
+      # Override GCS configuration for real Google Cloud Storage
+      GOOGLE_APPLICATION_CREDENTIALS: /app/gcs-credentials.json
+      GCS_PROJECT_ID: ${GCS_PROJECT_ID}
+      GCS_BUCKET_NAME: ${GCS_BUCKET_NAME}
+      FORMIO_S3_SERVER: https://storage.googleapis.com
+      FORMIO_S3_BUCKET: ${GCS_BUCKET_NAME}
+      FORMIO_S3_REGION: us-central1
+
+      # Enable debug logging for GCS
+      DEBUG: formio:*,formio:gcs:*,formio:upload:*
