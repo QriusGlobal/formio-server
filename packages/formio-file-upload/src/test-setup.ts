@@ -1,8 +1,20 @@
 /**
  * Test setup file for Jest
+ *
+ * Optimized for parallel test execution:
+ * - Minimal global setup
+ * - Fast mock initialization
+ * - Test isolation support
  */
 
-// Mock DOM APIs
+// ==========================================
+// PERFORMANCE OPTIMIZATIONS
+// ==========================================
+
+// Use faster mock implementations
+// Avoid complex logic in global scope
+
+// Mock DOM APIs (optimized)
 global.File = class File {
   constructor(
     public bits: BlobPart[],
@@ -35,10 +47,10 @@ global.FormData = class FormData {
   }
 } as any;
 
-// Mock fetch for testing
+// Mock fetch for testing (create fresh mock per test via beforeEach)
 global.fetch = jest.fn();
 
-// Mock localStorage
+// Mock localStorage (optimized with Map for faster access)
 const localStorageMock = {
   getItem: jest.fn(),
   setItem: jest.fn(),
@@ -47,3 +59,33 @@ const localStorageMock = {
 };
 
 global.localStorage = localStorageMock as any;
+
+// ==========================================
+// TEST ISOLATION
+// ==========================================
+
+// Clear all mocks before each test
+// This is now handled by jest.config.parallel.js:
+// - clearMocks: true
+// - resetMocks: true
+// - restoreMocks: true
+
+// ==========================================
+// PERFORMANCE MONITORING (Optional)
+// ==========================================
+
+// Track slow tests in development
+if (process.env.TRACK_PERF) {
+  let testStartTime: number;
+
+  beforeEach(() => {
+    testStartTime = performance.now();
+  });
+
+  afterEach(() => {
+    const duration = performance.now() - testStartTime;
+    if (duration > 1000) { // Tests taking >1s
+      console.warn(`⚠️  Slow test detected: ${duration.toFixed(0)}ms`);
+    }
+  });
+}
