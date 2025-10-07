@@ -5,6 +5,7 @@
 // Export security utilities
 export * from './magicNumbers';
 export * from './sanitizeFilename';
+export * from './fileIntegrity';
 
 export function registerValidators() {
   return {
