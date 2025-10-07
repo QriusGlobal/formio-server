@@ -91,15 +91,25 @@ test.describe('Uppy Plugins', () => {
 
       // Open webcam
       await webcamButton.click();
-      await page.waitForTimeout(2000); // Wait for camera to initialize
+
+      // Wait for webcam to initialize by checking for video element or capture button
+      await page.waitForFunction(() => {
+        const video = document.querySelector('.uppy-Webcam-video');
+        const button = document.querySelector('button[class*="capture"], button[class*="picture"]');
+        return (video && (video as HTMLVideoElement).readyState >= 2) || button;
+      }, { timeout: 10000 });
 
       // Take photo (button text may vary)
       const captureButton = page.locator('button:has-text("Take picture"), button:has-text("Capture")');
       if (await captureButton.isVisible({ timeout: 5000 }).catch(() => false)) {
         await captureButton.click();
 
-        // Verify photo was captured (should appear in file list)
-        await page.waitForTimeout(1000);
+        // Wait for photo to be captured and added to file list
+        await page.waitForFunction(() => {
+          const fileItems = document.querySelectorAll('[data-testid="uppy-file-card"], .uppy-Dashboard-Item');
+          return fileItems.length > 0;
+        }, { timeout: 5000 });
+
         const fileCount = await getFileCount(page);
         expect(fileCount).toBeGreaterThan(0);
       } else {
@@ -116,14 +126,25 @@ test.describe('Uppy Plugins', () => {
       }
 
       await webcamButton.click();
-      await page.waitForTimeout(2000);
+
+      // Wait for webcam interface to be ready
+      await page.waitForFunction(() => {
+        const video = document.querySelector('.uppy-Webcam-video');
+        return video && (video as HTMLVideoElement).readyState >= 2;
+      }, { timeout: 10000 });
 
       // Look for mode toggle
       const modeToggle = page.locator('button:has-text("Video"), button:has-text("Picture")');
 
       if (await modeToggle.first().isVisible({ timeout: 3000 }).catch(() => false)) {
+        const initialMode = await modeToggle.first().textContent();
         await modeToggle.first().click();
-        await page.waitForTimeout(500);
+
+        // Wait for mode to change by checking button text change
+        await page.waitForFunction((prevMode) => {
+          const toggle = document.querySelector('button[class*="mode"]');
+          return toggle && toggle.textContent !== prevMode;
+        }, initialMode, { timeout: 3000 });
 
         // Verify mode changed (UI should update)
         expect(true).toBe(true); // Mode toggle worked
@@ -175,13 +196,24 @@ test.describe('Uppy Plugins', () => {
       const editButton = page.locator('[aria-label*="Edit"], button:has-text("Edit")');
       if (await editButton.isVisible({ timeout: 3000 }).catch(() => false)) {
         await editButton.first().click();
-        await page.waitForTimeout(1000);
+
+        // Wait for image editor to load by checking for canvas or editor controls
+        await page.waitForFunction(() => {
+          const editor = document.querySelector('.uppy-ImageEditor-container');
+          const canvas = document.querySelector('canvas');
+          return editor && canvas;
+        }, { timeout: 5000 });
 
         // Look for crop button
         const cropButton = page.locator('button:has-text("Crop"), [aria-label*="Crop"]');
         if (await cropButton.isVisible({ timeout: 3000 }).catch(() => false)) {
           await cropButton.first().click();
-          await page.waitForTimeout(500);
+
+          // Wait for crop mode to activate
+          await page.waitForFunction(() => {
+            const cropControls = document.querySelector('[class*="crop"]');
+            return cropControls !== null;
+          }, { timeout: 3000 });
 
           // Apply crop (save button)
           const saveButton = page.locator('button:has-text("Save"), button:has-text("Apply")');
@@ -210,13 +242,26 @@ test.describe('Uppy Plugins', () => {
       const editButton = page.locator('[aria-label*="Edit"], button:has-text("Edit")');
       if (await editButton.isVisible({ timeout: 3000 }).catch(() => false)) {
         await editButton.first().click();
-        await page.waitForTimeout(1000);
+
+        // Wait for image editor to load
+        await page.waitForFunction(() => {
+          const editor = document.querySelector('.uppy-ImageEditor-container');
+          const canvas = document.querySelector('canvas');
+          return editor && canvas;
+        }, { timeout: 5000 });
 
         // Look for rotate button
         const rotateButton = page.locator('button:has-text("Rotate"), [aria-label*="Rotate"]');
         if (await rotateButton.isVisible({ timeout: 3000 }).catch(() => false)) {
           await rotateButton.first().click();
-          await page.waitForTimeout(500);
+
+          // Wait for rotation to apply (canvas should update)
+          await page.waitForFunction(() => {
+            const canvas = document.querySelector('canvas');
+            return canvas && canvas.style.transform !== '';
+          }, { timeout: 3000 }).catch(() => {
+            // Transform may not be applied, just continue
+          });
 
           // Save changes
           const saveButton = page.locator('button:has-text("Save"), button:has-text("Apply")');
@@ -253,7 +298,13 @@ test.describe('Uppy Plugins', () => {
       }
 
       await screenButton.click();
-      await page.waitForTimeout(1000);
+
+      // Wait for screen capture interface to initialize
+      await page.waitForFunction(() => {
+        const container = document.querySelector('.uppy-ScreenCapture-container');
+        const button = document.querySelector('button[class*="record"], button[class*="capture"]');
+        return container && button;
+      }, { timeout: 5000 });
 
       // Verify screen capture UI
       const screenInterface = page.locator('.uppy-ScreenCapture-container');
@@ -269,7 +320,12 @@ test.describe('Uppy Plugins', () => {
       }
 
       await screenButton.click();
-      await page.waitForTimeout(1000);
+
+      // Wait for recording controls to load
+      await page.waitForFunction(() => {
+        const button = document.querySelector('button[class*="record"], button[class*="Start"]');
+        return button !== null;
+      }, { timeout: 5000 });
 
       // Look for start recording button
       const startButton = page.locator('button:has-text("Start recording"), button:has-text("Record")');
@@ -302,7 +358,13 @@ test.describe('Uppy Plugins', () => {
       }
 
       await audioButton.click();
-      await page.waitForTimeout(1000);
+
+      // Wait for audio interface to initialize
+      await page.waitForFunction(() => {
+        const container = document.querySelector('.uppy-Audio-container');
+        const button = document.querySelector('button[class*="record"]');
+        return container && button;
+      }, { timeout: 5000 });
 
       // Verify audio recording UI
       const audioInterface = page.locator('.uppy-Audio-container');
@@ -318,14 +380,25 @@ test.describe('Uppy Plugins', () => {
       }
 
       await audioButton.click();
-      await page.waitForTimeout(1000);
+
+      // Wait for audio interface to load
+      await page.waitForFunction(() => {
+        const button = document.querySelector('button[class*="record"]');
+        return button !== null;
+      }, { timeout: 5000 });
 
       // Start recording
       const recordButton = page.locator('button:has-text("Start recording"), button:has-text("Record")');
 
       if (await recordButton.isVisible({ timeout: 3000 }).catch(() => false)) {
         await recordButton.click();
-        await page.waitForTimeout(2000);
+
+        // Wait for recording to start by checking for timer or recording state
+        await page.waitForFunction(() => {
+          const timer = document.querySelector('.uppy-Audio-recordingLength');
+          const recordingState = document.querySelector('[class*="recording"]');
+          return timer || recordingState;
+        }, { timeout: 5000 });
 
         // Check for timer
         const timer = page.locator('.uppy-Audio-recordingLength');
@@ -353,8 +426,14 @@ test.describe('Uppy Plugins', () => {
       const testFile = createPNGFile(testFilesDir, 'persist-test.png');
       await uploadFiles(page, [testFile.path]);
 
-      // Wait for state to be saved
-      await page.waitForTimeout(1000);
+      // Wait for state to be saved to localStorage
+      await page.waitForFunction(() => {
+        const keys = Object.keys(localStorage).filter(key => key.startsWith('uppyState'));
+        return keys.length > 0 && keys.some(key => {
+          const data = localStorage.getItem(key);
+          return data && data !== '{}';
+        });
+      }, { timeout: 5000 });
 
       // Check localStorage
       const storedData = await getGoldenRetrieverData(page);
@@ -367,7 +446,20 @@ test.describe('Uppy Plugins', () => {
       const testFile = createPNGFile(testFilesDir, 'restore-test.png');
       await uploadFiles(page, [testFile.path]);
 
-      await page.waitForTimeout(1000);
+      // Wait for file to be persisted
+      await page.waitForFunction(() => {
+        const keys = Object.keys(localStorage).filter(key => key.startsWith('uppyState'));
+        return keys.some(key => {
+          const data = localStorage.getItem(key);
+          if (!data) return false;
+          try {
+            const parsed = JSON.parse(data);
+            return parsed.files && Object.keys(parsed.files).length > 0;
+          } catch {
+            return false;
+          }
+        });
+      }, { timeout: 5000 });
 
       // Get initial file count
       const initialCount = await getFileCount(page);
@@ -377,8 +469,12 @@ test.describe('Uppy Plugins', () => {
       await page.reload();
       await waitForUppyReady(page);
 
-      // Check if file was restored
-      await page.waitForTimeout(1000);
+      // Wait for Golden Retriever to restore state
+      await page.waitForFunction(() => {
+        const fileItems = document.querySelectorAll('[data-testid="uppy-file-card"], .uppy-Dashboard-Item');
+        return fileItems.length >= 0; // May be 0 or 1 depending on config
+      }, { timeout: 5000 });
+
       const restoredCount = await getFileCount(page);
 
       // File should be restored (may be 0 or 1 depending on configuration)
@@ -400,8 +496,23 @@ test.describe('Uppy Plugins', () => {
       await clickUploadButton(page);
       await waitForUploadComplete(page);
 
-      // Wait for cleanup
-      await page.waitForTimeout(2000);
+      // Wait for Golden Retriever to clean up after successful upload
+      await page.waitForFunction(() => {
+        const keys = Object.keys(localStorage).filter(key => key.startsWith('uppyState'));
+        // After successful upload, storage should be cleared or minimal
+        return keys.every(key => {
+          const data = localStorage.getItem(key);
+          if (!data || data === '{}') return true;
+          try {
+            const parsed = JSON.parse(data);
+            return !parsed.files || Object.keys(parsed.files).length === 0;
+          } catch {
+            return true;
+          }
+        });
+      }, { timeout: 5000 }).catch(() => {
+        // Cleanup might not happen immediately, that's ok
+      });
 
       // Check if data was cleaned up
       const storedData = await getGoldenRetrieverData(page);

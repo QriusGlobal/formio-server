@@ -20,6 +20,11 @@ import {
   verifyValidationError,
   verifyFileInList,
   getFileCount,
+  waitForValidationError,
+  waitForFileError,
+  waitForSizeError,
+  waitForTypeError,
+  monitorValidationState,
 } from '../utils/uppy-helpers';
 import {
   setupTestFilesDir,
@@ -113,52 +118,54 @@ test.describe('Uppy File Validation', () => {
   test.describe('Invalid File Types', () => {
     test('should reject text files', async ({ page }) => {
       const testFile = createInvalidFile(testFilesDir, 'invalid.txt');
+      const initialCount = await getFileCount(page);
       await uploadFiles(page, [testFile.path]);
 
-      // Wait for error message
-      await page.waitForTimeout(1000);
-
-      // Should show error or file should not be added
-      const fileCount = await getFileCount(page);
-      const error = await getErrorMessage(page);
+      // Wait for validation error or rejection
+      const validation = await monitorValidationState(page, {
+        initialFileCount: initialCount,
+        timeout: 2000
+      });
 
       // Either file is not added OR error is shown
-      expect(fileCount === 0 || error !== null).toBe(true);
+      expect(validation.wasRejected || validation.hasError).toBe(true);
     });
 
     test('should reject PDF files', async ({ page }) => {
       // Create a fake PDF (just header)
       const pdfFile = createInvalidFile(testFilesDir, 'document.pdf');
+      const initialCount = await getFileCount(page);
       await uploadFiles(page, [pdfFile.path]);
 
-      await page.waitForTimeout(1000);
+      // Wait for validation error or rejection
+      const validation = await monitorValidationState(page, {
+        initialFileCount: initialCount,
+        timeout: 2000
+      });
 
-      // Should be rejected if image-only restriction
-      const fileCount = await getFileCount(page);
-      const error = await getErrorMessage(page);
-
-      expect(fileCount === 0 || error !== null).toBe(true);
+      expect(validation.wasRejected || validation.hasError).toBe(true);
     });
 
     test('should reject video files if not allowed', async ({ page }) => {
       const videoFile = createInvalidFile(testFilesDir, 'video.mp4');
+      const initialCount = await getFileCount(page);
       await uploadFiles(page, [videoFile.path]);
 
-      await page.waitForTimeout(1000);
+      // Wait for validation error or rejection
+      const validation = await monitorValidationState(page, {
+        initialFileCount: initialCount,
+        timeout: 2000
+      });
 
-      const fileCount = await getFileCount(page);
-      const error = await getErrorMessage(page);
-
-      expect(fileCount === 0 || error !== null).toBe(true);
+      expect(validation.wasRejected || validation.hasError).toBe(true);
     });
 
     test('should show appropriate error message for invalid type', async ({ page }) => {
       const testFile = createInvalidFile(testFilesDir, 'invalid.txt');
       await uploadFiles(page, [testFile.path]);
 
-      await page.waitForTimeout(1000);
-
-      const error = await getErrorMessage(page);
+      // Wait for type-specific validation error
+      const error = await waitForTypeError(page, 2000);
 
       if (error) {
         // Error message should mention file type or restriction
@@ -189,10 +196,8 @@ test.describe('Uppy File Validation', () => {
       const testFile = createLargeFile(testFilesDir, 100, 'toolarge.png');
       await uploadFiles(page, [testFile.path]);
 
-      await page.waitForTimeout(2000);
-
-      // Should show error or not add file
-      const error = await getErrorMessage(page);
+      // Wait for size-specific validation error
+      const error = await waitForSizeError(page, 3000);
 
       if (error) {
         expect(error.toLowerCase()).toMatch(/size|large|limit|exceeds/);
@@ -212,17 +217,20 @@ test.describe('Uppy File Validation', () => {
       ];
 
       for (const { size, name, shouldAccept } of sizes) {
+        const initialCount = await getFileCount(page);
         const testFile = createFileWithSize(testFilesDir, size, name);
         await uploadFiles(page, [testFile.path]);
-        await page.waitForTimeout(1000);
 
-        const fileCount = await getFileCount(page);
-        const error = await getErrorMessage(page);
+        // Monitor validation state for size checks
+        const validation = await monitorValidationState(page, {
+          initialFileCount: initialCount,
+          timeout: 2000
+        });
 
         if (shouldAccept) {
-          expect(fileCount).toBeGreaterThan(0);
+          expect(validation.finalFileCount).toBeGreaterThan(initialCount);
         } else {
-          expect(fileCount === 0 || error !== null).toBe(true);
+          expect(validation.wasRejected || validation.hasError).toBe(true);
         }
 
         // Clear for next iteration
@@ -235,9 +243,8 @@ test.describe('Uppy File Validation', () => {
       const testFile = createLargeFile(testFilesDir, 100, 'oversized.png');
       await uploadFiles(page, [testFile.path]);
 
-      await page.waitForTimeout(2000);
-
-      const error = await getErrorMessage(page);
+      // Wait for size-specific error message
+      const error = await waitForSizeError(page, 3000);
 
       if (error) {
         // Should mention size limit (e.g., "Maximum file size: 50MB")
@@ -260,17 +267,17 @@ test.describe('Uppy File Validation', () => {
     test('should reject file with spoofed extension', async ({ page }) => {
       // Create text file with image extension
       const fakeImage = createInvalidFile(testFilesDir, 'fake.png');
+      const initialCount = await getFileCount(page);
       await uploadFiles(page, [fakeImage.path]);
 
-      await page.waitForTimeout(1000);
-
-      // Should be validated by MIME type, not extension
-      // Result depends on implementation
-      const error = await getErrorMessage(page);
-      const fileCount = await getFileCount(page);
+      // Monitor validation - result depends on MIME vs extension checking
+      const validation = await monitorValidationState(page, {
+        initialFileCount: initialCount,
+        timeout: 2000
+      });
 
       // Either accepted (if extension-based) or rejected (if MIME-based)
-      expect(fileCount >= 0).toBe(true);
+      expect(validation.finalFileCount >= 0).toBe(true);
     });
   });
 
@@ -316,13 +323,17 @@ test.describe('Uppy File Validation', () => {
         createJPEGFile(testFilesDir, 'valid2.jpg'),
       ];
 
+      const initialCount = await getFileCount(page);
       await uploadFiles(page, files.map(f => f.path));
-      await page.waitForTimeout(1000);
 
-      const fileCount = await getFileCount(page);
+      // Wait for batch validation to complete
+      const validation = await monitorValidationState(page, {
+        initialFileCount: initialCount,
+        timeout: 2000
+      });
 
       // Should have 2 valid files (invalid one rejected)
-      expect(fileCount).toBeGreaterThanOrEqual(2);
+      expect(validation.finalFileCount).toBeGreaterThanOrEqual(2);
     });
 
     test('should enforce maximum number of files', async ({ page }) => {
@@ -331,17 +342,20 @@ test.describe('Uppy File Validation', () => {
         createPNGFile(testFilesDir, `file${i + 1}.png`)
       );
 
+      const initialCount = await getFileCount(page);
       await uploadFiles(page, files.map(f => f.path));
-      await page.waitForTimeout(1000);
 
-      const fileCount = await getFileCount(page);
-      const error = await getErrorMessage(page);
+      // Wait for batch validation (may hit file count limit)
+      const validation = await monitorValidationState(page, {
+        initialFileCount: initialCount,
+        timeout: 2000
+      });
 
       // Either all files accepted or error shown about limit
-      expect(fileCount <= 20).toBe(true);
+      expect(validation.finalFileCount <= 20).toBe(true);
 
-      if (fileCount < files.length && error) {
-        expect(error.toLowerCase()).toMatch(/limit|maximum|too many/);
+      if (validation.finalFileCount < files.length && validation.errorMessage) {
+        expect(validation.errorMessage.toLowerCase()).toMatch(/limit|maximum|too many/);
       }
     });
   });
@@ -351,12 +365,11 @@ test.describe('Uppy File Validation', () => {
       const testFile = createInvalidFile(testFilesDir, 'invalid.txt');
       await uploadFiles(page, [testFile.path]);
 
-      await page.waitForTimeout(1000);
+      // Wait for error to appear in informer
+      const error = await waitForValidationError(page, 2000);
 
-      // Check for error notification
-      const informer = page.locator('.uppy-Informer');
-
-      if (await informer.isVisible()) {
+      if (error) {
+        const informer = page.locator('.uppy-Informer');
         await expect(informer).toBeVisible();
       }
     });
@@ -365,14 +378,23 @@ test.describe('Uppy File Validation', () => {
       // Add invalid file
       const invalidFile = createInvalidFile(testFilesDir, 'invalid.txt');
       await uploadFiles(page, [invalidFile.path]);
-      await page.waitForTimeout(1000);
+      await waitForValidationError(page, 2000);
 
       // Add valid file
       const validFile = createPNGFile(testFilesDir, 'valid.png');
       await uploadFiles(page, [validFile.path]);
-      await page.waitForTimeout(1000);
 
-      // Valid file should be added
+      // Wait for valid file to be added
+      await page.waitForFunction(
+        (filename) => {
+          const items = document.querySelectorAll('.uppy-Dashboard-Item, [data-testid="file-card"]');
+          return Array.from(items).some(item => item.textContent?.includes(filename));
+        },
+        validFile.name,
+        { timeout: 2000 }
+      );
+
+      // Valid file should be visible
       const fileVisible = await verifyFileInList(page, validFile.name);
       expect(fileVisible).toBe(true);
     });
@@ -381,12 +403,12 @@ test.describe('Uppy File Validation', () => {
       // Some implementations show error icon on invalid files
       const testFile = createLargeFile(testFilesDir, 100, 'toolarge.png');
       await uploadFiles(page, [testFile.path]);
-      await page.waitForTimeout(1000);
 
-      // Look for error indicator
-      const errorIcon = page.locator('.uppy-Dashboard-Item--error, [data-uppy-file-error]');
+      // Wait for file error icon to appear
+      const hasFileError = await waitForFileError(page, 'toolarge.png', 2000);
 
-      if (await errorIcon.isVisible({ timeout: 2000 }).catch(() => false)) {
+      if (hasFileError) {
+        const errorIcon = page.locator('.uppy-Dashboard-Item--error, [data-uppy-file-error]');
         await expect(errorIcon).toBeVisible();
       }
     });
@@ -396,13 +418,17 @@ test.describe('Uppy File Validation', () => {
     test('should enforce minimum file size if configured', async ({ page }) => {
       // Very small file (1 byte)
       const tinyFile = createFileWithSize(testFilesDir, 1, 'tiny.png');
+      const initialCount = await getFileCount(page);
       await uploadFiles(page, [tinyFile.path]);
 
-      await page.waitForTimeout(1000);
+      // Monitor validation for potential minimum size check
+      const validation = await monitorValidationState(page, {
+        initialFileCount: initialCount,
+        timeout: 2000
+      });
 
       // May or may not have minimum size restriction
-      const fileCount = await getFileCount(page);
-      expect(fileCount >= 0).toBe(true);
+      expect(validation.finalFileCount >= 0).toBe(true);
     });
 
     test('should validate file dimensions for images', async ({ page }) => {

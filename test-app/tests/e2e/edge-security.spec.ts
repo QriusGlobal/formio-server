@@ -78,7 +78,11 @@ test.describe('Security Tests - TUS Upload', () => {
       }
     }, xssFileName);
 
-    await page.waitForTimeout(2000);
+    // Wait for file name to be displayed or error to appear
+    await Promise.race([
+      page.locator('.tus-file-name').waitFor({ state: 'visible', timeout: 3000 }),
+      page.locator('.upload-error').waitFor({ state: 'visible', timeout: 3000 })
+    ]).catch(() => {}); // Allow both to timeout gracefully
 
     // Check if file name is displayed (should be sanitized)
     const fileNameElement = page.locator('.tus-file-name');
@@ -95,8 +99,12 @@ test.describe('Security Tests - TUS Upload', () => {
       console.log(`Sanitized name: ${displayedName}`);
     }
 
-    // Verify no script execution
-    await page.waitForTimeout(1000);
+    // Verify no script execution by checking DOM is settled
+    await page.waitForFunction(() => {
+      const body = document.body;
+      return !body.innerHTML.includes('<script>') &&
+             !body.innerHTML.includes('alert(');
+    }, { timeout: 3000 });
 
     // Check for alerts
     page.on('dialog', dialog => {
@@ -128,7 +136,11 @@ test.describe('Security Tests - TUS Upload', () => {
       }
     }, pathTraversalName);
 
-    await page.waitForTimeout(2000);
+    // Wait for file processing to complete (error or display)
+    await Promise.race([
+      page.locator('.upload-error').waitFor({ state: 'visible', timeout: 3000 }),
+      page.locator('.tus-file-name').waitFor({ state: 'visible', timeout: 3000 })
+    ]).catch(() => {}); // Allow both to timeout gracefully
 
     // Should either reject or sanitize the path
     const hasError = await page.locator('.upload-error').isVisible();
@@ -170,7 +182,8 @@ test.describe('Security Tests - TUS Upload', () => {
       }
     }, oversizedName);
 
-    await page.waitForTimeout(2000);
+    // Wait for file name processing to complete
+    await page.locator('.tus-file-name').waitFor({ state: 'visible', timeout: 3000 }).catch(() => {});
 
     // Should handle gracefully
     const fileNameElement = page.locator('.tus-file-name');
@@ -210,7 +223,8 @@ test.describe('Security Tests - TUS Upload', () => {
       }
     }, specialCharsName);
 
-    await page.waitForTimeout(2000);
+    // Wait for file name sanitization to complete
+    await page.locator('.tus-file-name').waitFor({ state: 'visible', timeout: 3000 }).catch(() => {});
 
     // Check if displayed name is sanitized
     const fileNameElement = page.locator('.tus-file-name');
@@ -250,7 +264,12 @@ test.describe('Security Tests - TUS Upload', () => {
       }
     });
 
-    await page.waitForTimeout(2000);
+    // Wait for file processing and metadata handling
+    await page.waitForFunction(() => {
+      const content = document.body.innerHTML;
+      return !content.includes('<script>alert') &&
+             !content.includes('onerror=alert');
+    }, { timeout: 3000 });
 
     // Check no script execution
     page.on('dialog', dialog => {
@@ -290,7 +309,8 @@ test.describe('Security Tests - TUS Upload', () => {
         }
       }, fileName);
 
-      await page.waitForTimeout(1000);
+      // Wait for CSV injection name to be processed
+      await page.locator('.tus-file-name').waitFor({ state: 'visible', timeout: 2000 }).catch(() => {});
 
       // Check displayed name is safe
       const fileNameElement = page.locator('.tus-file-name');
@@ -326,7 +346,8 @@ test.describe('Security Tests - TUS Upload', () => {
       }
     }, nullByteName);
 
-    await page.waitForTimeout(2000);
+    // Wait for null byte sanitization to complete
+    await page.locator('.tus-file-name').waitFor({ state: 'visible', timeout: 3000 }).catch(() => {});
 
     // Should strip null bytes
     const fileNameElement = page.locator('.tus-file-name');
@@ -364,8 +385,11 @@ test.describe('Security Tests - Uppy Upload', () => {
       }
     });
 
-    // Should show restriction message
-    await page.waitForTimeout(2000);
+    // Wait for Uppy to process and show restriction message or file item
+    await Promise.race([
+      page.locator('.uppy-Informer').waitFor({ state: 'visible', timeout: 3000 }),
+      page.locator('.uppy-Dashboard-Item').waitFor({ state: 'visible', timeout: 3000 })
+    ]).catch(() => {}); // Allow both to timeout gracefully
 
     const hasError = await page.locator('.uppy-Informer').count() > 0;
     if (hasError) {
@@ -392,7 +416,11 @@ test.describe('Security Tests - Uppy Upload', () => {
       }
     }, xssFileName);
 
-    await page.waitForTimeout(2000);
+    // Wait for Uppy to process the file and display it
+    await Promise.race([
+      page.locator('.uppy-Dashboard-Item-name').waitFor({ state: 'visible', timeout: 3000 }),
+      page.locator('.uppy-Informer').waitFor({ state: 'visible', timeout: 3000 })
+    ]).catch(() => {}); // Allow both to timeout gracefully
 
     // Verify no script execution
     page.on('dialog', dialog => {
@@ -433,7 +461,11 @@ test.describe('Security Tests - Uppy Upload', () => {
       }
     });
 
-    await page.waitForTimeout(2000);
+    // Wait for Uppy to process metadata and render the file
+    await page.waitForFunction(() => {
+      const content = document.body.innerHTML;
+      return !content.includes('<script>alert(1)</script>');
+    }, { timeout: 3000 });
 
     // Should not execute or display unsanitized
     const pageContent = await page.content();

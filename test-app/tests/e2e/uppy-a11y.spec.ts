@@ -29,6 +29,15 @@ import {
   createPNGFile,
   createJPEGFile,
 } from '../fixtures/test-files';
+import {
+  waitForAriaBusyFalse,
+  waitForFocusChange,
+  waitForAlertRole,
+  waitForModalClose,
+  waitForUploadCompleteAria,
+  waitForFileCountUpdate,
+  hasFocusIndicator,
+} from '../utils/a11y-helpers';
 
 test.describe('Uppy Accessibility', () => {
   let testFilesDir: string;
@@ -76,7 +85,8 @@ test.describe('Uppy Accessibility', () => {
       await uploadFiles(page, [testFile.path]);
       await clickUploadButton(page);
 
-      await page.waitForTimeout(1000);
+      // Wait for upload to start via ARIA state
+      await page.waitForSelector('[aria-busy="true"]', { timeout: 3000 }).catch(() => {});
 
       const accessibilityScanResults = await new AxeBuilder({ page })
         .withTags(['wcag2a', 'wcag2aa'])
@@ -97,7 +107,11 @@ test.describe('Uppy Accessibility', () => {
       await uploadFiles(page, [testFile.path]);
       await clickUploadButton(page);
 
-      await page.waitForTimeout(2000);
+      // Wait for error state via role=alert or aria-busy=false
+      await Promise.race([
+        waitForAlertRole(page, undefined, 3000),
+        waitForAriaBusyFalse(page, undefined, 3000)
+      ]).catch(() => {});
 
       const accessibilityScanResults = await new AxeBuilder({ page })
         .withTags(['wcag2a', 'wcag2aa'])
@@ -111,7 +125,9 @@ test.describe('Uppy Accessibility', () => {
     test('should tab through all interactive elements', async ({ page }) => {
       // Start from beginning
       await page.keyboard.press('Tab');
-      await page.waitForTimeout(200);
+
+      // Wait for focus to move
+      await waitForFocusChange(page, 1000);
 
       // Get focused element
       let focusedElement = await page.evaluate(() => {
@@ -123,7 +139,8 @@ test.describe('Uppy Accessibility', () => {
       // Tab through all elements
       for (let i = 0; i < 10; i++) {
         await page.keyboard.press('Tab');
-        await page.waitForTimeout(100);
+        // Wait for focus to change after each tab
+        await waitForFocusChange(page, 500);
       }
 
       // Should have navigated through multiple elements
@@ -144,12 +161,12 @@ test.describe('Uppy Accessibility', () => {
       const firstFile = page.locator('.uppy-Dashboard-Item').first();
       await firstFile.focus();
 
-      // Navigate with arrow keys
+      // Navigate with arrow keys - wait for focus changes
       await page.keyboard.press('ArrowDown');
-      await page.waitForTimeout(200);
+      await waitForFocusChange(page, 1000);
 
       await page.keyboard.press('ArrowUp');
-      await page.waitForTimeout(200);
+      await waitForFocusChange(page, 1000);
 
       // Verify keyboard navigation works
       expect(true).toBe(true);
@@ -175,7 +192,9 @@ test.describe('Uppy Accessibility', () => {
 
         // Activate with Enter
         await page.keyboard.press('Enter');
-        await page.waitForTimeout(1000);
+
+        // Wait for upload to start via ARIA state
+        await page.waitForSelector('[aria-busy="true"]', { timeout: 2000 }).catch(() => {});
 
         // Upload should have started
         expect(true).toBe(true);
@@ -188,11 +207,16 @@ test.describe('Uppy Accessibility', () => {
 
       if (await webcamButton.isVisible({ timeout: 2000 }).catch(() => false)) {
         await webcamButton.click();
-        await page.waitForTimeout(500);
+
+        // Wait for modal to open via ARIA or visibility
+        await page.waitForSelector('.uppy-Dashboard-overlay[aria-hidden="false"]', { timeout: 2000 })
+          .catch(() => page.waitForSelector('.uppy-Dashboard-overlay:visible', { timeout: 1000 }));
 
         // Press Escape
         await page.keyboard.press('Escape');
-        await page.waitForTimeout(300);
+
+        // Wait for modal to close via ARIA state
+        await waitForModalClose(page, '.uppy-Dashboard-overlay', 2000);
 
         // Modal should close
         const modal = page.locator('.uppy-Dashboard-overlay');
@@ -234,7 +258,9 @@ test.describe('Uppy Accessibility', () => {
 
       // Add file
       await uploadFiles(page, [testFile.path]);
-      await page.waitForTimeout(500);
+
+      // Wait for file to be processed and focus to potentially change
+      await waitForFileCountUpdate(page, 1, 2000).catch(() => {});
 
       // Focus should be managed appropriately
       const newFocus = await page.evaluate(() => document.activeElement?.className);
@@ -294,7 +320,8 @@ test.describe('Uppy Accessibility', () => {
       await uploadFiles(page, [testFile.path]);
       await clickUploadButton(page);
 
-      await page.waitForTimeout(2000);
+      // Wait for error alert via ARIA role
+      await waitForAlertRole(page, 'failed', 5000).catch(() => {});
 
       // Should have alert role
       const alert = page.locator('[role="alert"]');
@@ -339,7 +366,8 @@ test.describe('Uppy Accessibility', () => {
       const testFile = createPNGFile(testFilesDir, 'count-announce.png');
       await uploadFiles(page, [testFile.path]);
 
-      await page.waitForTimeout(500);
+      // Wait for file count to update via ARIA live region
+      await waitForFileCountUpdate(page, 1, 3000).catch(() => {});
 
       // Status should update (checked via live region)
       expect(true).toBe(true);
@@ -353,11 +381,16 @@ test.describe('Uppy Accessibility', () => {
 
       if (await modalTrigger.isVisible({ timeout: 2000 }).catch(() => false)) {
         await modalTrigger.click();
-        await page.waitForTimeout(500);
+
+        // Wait for modal to open
+        await page.waitForSelector('.uppy-Dashboard-overlay[aria-hidden="false"]', { timeout: 2000 })
+          .catch(() => page.waitForSelector('.uppy-Dashboard-overlay:visible', { timeout: 1000 }));
 
         // Tab through modal
         await page.keyboard.press('Tab');
-        await page.waitForTimeout(200);
+
+        // Wait for focus to move
+        await waitForFocusChange(page, 1000);
 
         // Focus should stay within modal
         const focusedElement = await page.evaluate(() => {
@@ -376,11 +409,16 @@ test.describe('Uppy Accessibility', () => {
         // Remember trigger element
         await modalTrigger.focus();
         await modalTrigger.click();
-        await page.waitForTimeout(500);
+
+        // Wait for modal to open
+        await page.waitForSelector('.uppy-Dashboard-overlay[aria-hidden="false"]', { timeout: 2000 })
+          .catch(() => page.waitForSelector('.uppy-Dashboard-overlay:visible', { timeout: 1000 }));
 
         // Close modal
         await page.keyboard.press('Escape');
-        await page.waitForTimeout(300);
+
+        // Wait for modal to close
+        await waitForModalClose(page, '.uppy-Dashboard-overlay', 2000);
 
         // Focus should return to trigger
         const focusedElement = await page.evaluate(() => {
@@ -398,7 +436,9 @@ test.describe('Uppy Accessibility', () => {
 
       if (await submitButton.isVisible({ timeout: 2000 }).catch(() => false)) {
         await submitButton.click();
-        await page.waitForTimeout(500);
+
+        // Wait for focus to change to error field
+        await waitForFocusChange(page, 2000).catch(() => {});
 
         // Focus should move to error
         const focusedElement = await page.evaluate(() => {
@@ -451,7 +491,8 @@ test.describe('Uppy Accessibility', () => {
       await uploadFiles(page, [testFile.path]);
       await clickUploadButton(page);
 
-      await page.waitForTimeout(500);
+      // Wait for aria-busy to be set to true
+      await page.waitForSelector('[aria-busy="true"]', { timeout: 3000 }).catch(() => {});
 
       // Check for aria-busy
       const busyElement = page.locator('[aria-busy="true"]');
@@ -460,7 +501,7 @@ test.describe('Uppy Accessibility', () => {
         await expect(busyElement).toBeVisible();
       }
 
-      await waitForUploadComplete(page);
+      await waitForUploadCompleteAria(page);
     });
 
     test('should have proper listbox roles for file list', async ({ page }) => {
@@ -536,7 +577,11 @@ test.describe('Uppy Accessibility', () => {
       await uploadFiles(page, [testFile.path]);
       await clickUploadButton(page);
 
-      await page.waitForTimeout(2000);
+      // Wait for error state via ARIA
+      await Promise.race([
+        waitForAlertRole(page, 'failed', 5000),
+        waitForAriaBusyFalse(page, undefined, 5000)
+      ]).catch(() => {});
 
       const accessibilityScanResults = await new AxeBuilder({ page })
         .withTags(['wcag2aa'])

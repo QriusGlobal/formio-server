@@ -31,6 +31,18 @@ import {
   createJPEGFile,
   createGIFFile,
 } from '../fixtures/test-files';
+import {
+  waitForProgressStart,
+  waitForCompletionCounter,
+  waitForSpeedIndicator,
+  waitForETA,
+  waitForBatchClear,
+  waitForBatchSelection,
+  waitForPauseState,
+  waitForResumeState,
+  waitForBatchError,
+  waitForRetryAvailable,
+} from '../utils/multi-file-helpers';
 
 test.describe('Uppy Multi-file Upload', () => {
   let testFilesDir: string;
@@ -250,8 +262,8 @@ test.describe('Uppy Multi-file Upload', () => {
       // Wait for progress to start
       await page.waitForSelector('.uppy-StatusBar-percentage', { timeout: 5000 });
 
-      // Check progress updates
-      await page.waitForTimeout(2000);
+      // Wait for progress to actually update (event-driven)
+      await waitForProgressStart(page);
       const progress = await getUploadProgress(page);
       expect(progress).toBeGreaterThan(0);
 
@@ -271,8 +283,8 @@ test.describe('Uppy Multi-file Upload', () => {
       await uploadFiles(page, files.map(f => f.path));
       await clickUploadButton(page);
 
-      // Look for completion counter (e.g., "2 of 3 files")
-      await page.waitForTimeout(2000);
+      // Wait for completion counter to appear (event-driven)
+      await waitForCompletionCounter(page);
 
       const statusBar = page.locator('.uppy-StatusBar');
       const statusText = await statusBar.textContent();
@@ -296,15 +308,17 @@ test.describe('Uppy Multi-file Upload', () => {
       await uploadFiles(page, files.map(f => f.path));
       await clickUploadButton(page);
 
-      // Check for speed indicator
-      const speedIndicator = page.locator('.uppy-upload-stats, .uppy-StatusBar-content');
-
-      await page.waitForTimeout(2000);
-
-      if (await speedIndicator.isVisible()) {
-        const text = await speedIndicator.textContent();
-        // May show speed (KB/s, MB/s)
-        expect(text).toBeTruthy();
+      // Wait for speed indicator to appear (event-driven)
+      try {
+        await waitForSpeedIndicator(page);
+        const speedIndicator = page.locator('.uppy-upload-stats, .uppy-StatusBar-content');
+        if (await speedIndicator.isVisible()) {
+          const text = await speedIndicator.textContent();
+          // May show speed (KB/s, MB/s)
+          expect(text).toBeTruthy();
+        }
+      } catch {
+        // Speed indicator may not always be shown
       }
 
       await waitForUploadComplete(page, 15000);
@@ -323,13 +337,13 @@ test.describe('Uppy Multi-file Upload', () => {
       await uploadFiles(page, files.map(f => f.path));
       await clickUploadButton(page);
 
-      await page.waitForTimeout(2000);
-
-      // Some implementations show ETA
-      const eta = page.locator('[data-cy="eta"], .uppy-StatusBar-eta');
-
-      if (await eta.isVisible({ timeout: 2000 }).catch(() => false)) {
+      // Wait for ETA to appear (event-driven)
+      try {
+        await waitForETA(page);
+        const eta = page.locator('[data-cy="eta"], .uppy-StatusBar-eta');
         await expect(eta).toBeVisible();
+      } catch {
+        // ETA may not always be shown
       }
 
       await waitForUploadComplete(page, 20000);
@@ -349,7 +363,9 @@ test.describe('Uppy Multi-file Upload', () => {
 
       if (await clearButton.isVisible({ timeout: 2000 }).catch(() => false)) {
         await clearButton.click();
-        await page.waitForTimeout(500);
+
+        // Wait for batch clear to complete (event-driven)
+        await waitForBatchClear(page);
 
         fileCount = await getFileCount(page);
         expect(fileCount).toBe(0);
@@ -365,7 +381,9 @@ test.describe('Uppy Multi-file Upload', () => {
 
       if (await selectAll.isVisible({ timeout: 2000 }).catch(() => false)) {
         await selectAll.click();
-        await page.waitForTimeout(300);
+
+        // Wait for batch selection to complete (event-driven)
+        await waitForBatchSelection(page, 5);
 
         // All files should be selected
         const selectedFiles = page.locator('.uppy-Dashboard-Item--selected');
@@ -388,14 +406,17 @@ test.describe('Uppy Multi-file Upload', () => {
       await uploadFiles(page, files.map(f => f.path));
       await clickUploadButton(page);
 
-      await page.waitForTimeout(1000);
+      // Wait for upload to start
+      await page.waitForSelector('.uppy-Dashboard-Item--uploading', { timeout: 3000 }).catch(() => {});
 
       // Look for pause button
       const pauseButton = page.locator('button:has-text("Pause"), [aria-label*="Pause"]');
 
       if (await pauseButton.isVisible({ timeout: 3000 }).catch(() => false)) {
         await pauseButton.click();
-        await page.waitForTimeout(500);
+
+        // Wait for pause state to be applied (event-driven)
+        await waitForPauseState(page);
 
         // Verify paused state
         const pausedItem = page.locator('.uppy-Dashboard-Item--paused');
@@ -418,19 +439,24 @@ test.describe('Uppy Multi-file Upload', () => {
       await uploadFiles(page, files.map(f => f.path));
       await clickUploadButton(page);
 
-      await page.waitForTimeout(500);
+      // Wait for upload to start
+      await page.waitForSelector('.uppy-Dashboard-Item--uploading', { timeout: 2000 }).catch(() => {});
 
       // Pause
       const pauseButton = page.locator('button:has-text("Pause")');
       if (await pauseButton.isVisible({ timeout: 2000 }).catch(() => false)) {
         await pauseButton.click();
-        await page.waitForTimeout(500);
+
+        // Wait for pause state (event-driven)
+        await waitForPauseState(page);
 
         // Resume
         const resumeButton = page.locator('button:has-text("Resume")');
         if (await resumeButton.isVisible()) {
           await resumeButton.click();
-          await page.waitForTimeout(500);
+
+          // Wait for resume state (event-driven)
+          await waitForResumeState(page);
         }
       }
 
@@ -481,7 +507,8 @@ test.describe('Uppy Multi-file Upload', () => {
       await uploadFiles(page, files.map(f => f.path));
       await clickUploadButton(page);
 
-      await page.waitForTimeout(3000);
+      // Wait for error state to appear (event-driven)
+      await waitForBatchError(page, 5000);
 
       // Look for error indicator
       const errorItem = page.locator('.uppy-Dashboard-Item--error');
@@ -515,12 +542,13 @@ test.describe('Uppy Multi-file Upload', () => {
       await uploadFiles(page, files.map(f => f.path));
       await clickUploadButton(page);
 
-      await page.waitForTimeout(2000);
+      // Wait for error and retry button to appear (event-driven)
+      await waitForRetryAvailable(page, 5000);
 
       // Look for retry button
       const retryButton = page.locator('button:has-text("Retry"), [aria-label*="Retry"]');
 
-      if (await retryButton.isVisible({ timeout: 3000 }).catch(() => false)) {
+      if (await retryButton.isVisible({ timeout: 1000 }).catch(() => false)) {
         await retryButton.click();
         await waitForUploadComplete(page, 10000);
 

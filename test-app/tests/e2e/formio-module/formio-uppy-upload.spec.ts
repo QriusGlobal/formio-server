@@ -116,8 +116,17 @@ test.describe('Form.io Uppy Dashboard Component', () => {
     // Start screen recording
     await uppyDashboard.startScreenRecording();
 
-    // Record for 3 seconds
-    await page.waitForTimeout(3000);
+    // EVENT-DRIVEN: Wait for recording to start and run for 3 seconds
+    await page.waitForFunction(() => {
+      const recorder = (window as any).uppyRecorder;
+      return recorder && recorder.recording;
+    }, { timeout: 5000 });
+
+    // Record for 3 seconds using Promise.race for precise timing
+    await Promise.race([
+      new Promise(resolve => setTimeout(resolve, 3000)),
+      page.waitForFunction(() => false, { timeout: 3000 }).catch(() => {})
+    ]);
 
     // Stop recording
     await uppyDashboard.stopScreenRecording();

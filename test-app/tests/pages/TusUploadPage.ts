@@ -59,6 +59,18 @@ export class TusUploadPage extends FileUploadPage {
       await this.configureTusOptions(options);
     }
 
+    // Wait for Form.io to render the form
+    await this.page.waitForSelector('.formio-form', {
+      state: 'visible',
+      timeout: 15000
+    });
+
+    // Wait for file input specifically (from parent class)
+    await this.uploadInput.waitFor({
+      state: 'visible',
+      timeout: 10000
+    });
+
     await this.uploadFile(filePath);
   }
 
@@ -95,11 +107,17 @@ export class TusUploadPage extends FileUploadPage {
     // Go offline
     await this.page.context().setOffline(true);
 
+    // Wait for network state to propagate
+    await this.page.waitForFunction(() => !navigator.onLine, { timeout: 3000 }).catch(() => {});
+
     // Wait for specified duration
     await this.page.waitForTimeout(durationMs);
 
     // Go back online
     await this.page.context().setOffline(false);
+
+    // Wait for network to come back online
+    await this.page.waitForFunction(() => navigator.onLine, { timeout: 3000 }).catch(() => {});
   }
 
   /**
@@ -165,8 +183,11 @@ export class TusUploadPage extends FileUploadPage {
     // Start upload
     await this.uploadFileWithTus(filePath);
 
-    // Wait for some chunks to upload
-    await this.page.waitForTimeout(2000);
+    // Wait for upload to start and progress (some chunks uploaded)
+    await this.page.waitForFunction(() => {
+      const tus = (window as any).__tusUpload;
+      return tus && (tus.offset || 0) > 0;
+    }, { timeout: 5000 });
 
     // Get current progress
     const bytesBeforePause = await this.getBytesUploaded();

@@ -27,6 +27,9 @@ export default class TusFileUploadComponent extends FileComponent {
     private getMetadata;
     attach(element: HTMLElement): any;
     upload(files: File[]): Promise<any[]>;
+    private validateFile;
+    private parseFileSize;
+    private parseFilePattern;
     private uploadFile;
     private updateProgress;
     pauseUpload(): void;
@@ -34,8 +37,9 @@ export default class TusFileUploadComponent extends FileComponent {
     cancelUpload(): void;
     private generateFileId;
     getValue(): any;
-    setValue(value: any): void;
+    setValue(value: any, flags?: any): any;
     getValueAsString(value: any): string;
+    getView(value: any): string;
 }
 export {};
 //# sourceMappingURL=Component.d.ts.map

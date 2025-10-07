@@ -159,8 +159,17 @@ test.describe('Server Storage Verification', () => {
     // Delete submission
     await formio.formioAPI.deleteSubmission(submissionId);
 
-    // Verify file is cleaned up (eventually)
-    await page.waitForTimeout(2000); // Allow time for cleanup
+    // EVENT-DRIVEN: Wait for deletion to propagate and cleanup to complete
+    await page.waitForFunction(async (url, token) => {
+      try {
+        const response = await fetch(url, {
+          headers: { 'x-jwt-token': token }
+        });
+        return response.status >= 404;
+      } catch {
+        return true;
+      }
+    }, fileUrl, await formio.formioAuth.getToken() || '', { timeout: 10000 });
 
     const fileDeletedResponse = await page.request.get(fileUrl, {
       headers: {

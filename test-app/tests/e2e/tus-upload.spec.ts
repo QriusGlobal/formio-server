@@ -84,8 +84,14 @@ test.describe('TUS File Upload @tus', () => {
     const fileInput = page.locator(UPPY_FILE_INPUT_SELECTOR);
     await fileInput.setInputFiles(testFilePath);
 
-    // Wait for at least some progress
-    await page.waitForTimeout(2000);
+    // EVENT-DRIVEN: Wait for upload progress to begin
+    await page.waitForFunction(() => {
+      const progressElements = document.querySelectorAll('[data-progress]');
+      return Array.from(progressElements).some(el => {
+        const progress = parseInt(el.getAttribute('data-progress') || '0');
+        return progress > 0;
+      });
+    }, { timeout: 10000 });
 
     // Verify progress is increasing
     expect(progressValues.length).toBeGreaterThan(0);
@@ -185,7 +191,8 @@ test.describe('TUS File Upload @tus', () => {
     expect(fs.existsSync(harPath)).toBeTruthy();
 
     // Read and verify HAR contents
-    const harContent = JSON.parse(fs.readFileSync(harPath, 'utf-8'));
+    const fsPromises = await import('fs/promises');
+    const harContent = JSON.parse(await fsPromises.readFile(harPath, 'utf-8'));
     const entries = harContent.log.entries;
 
     // Should have POST request to create upload

@@ -84,24 +84,28 @@ export class FormioEventMonitor {
   }
 
   /**
-   * Wait for specific event
+   * Wait for specific event (event-driven)
+   * Replaces polling loop with page.waitForFunction()
    */
   async waitForEvent(
     eventType: string,
     timeoutMs = 30000
   ): Promise<FormioEvent | null> {
-    const startTime = Date.now();
+    try {
+      await this.page.waitForFunction(
+        (evtType) => {
+          const events = (window as any).__formioEvents || [];
+          return events.some((e: any) => e.type === evtType);
+        },
+        eventType,
+        { timeout: timeoutMs }
+      );
 
-    while (Date.now() - startTime < timeoutMs) {
       const events = await this.getEventsByType(eventType);
-      if (events.length > 0) {
-        return events[events.length - 1]; // Return latest
-      }
-
-      await this.page.waitForTimeout(100);
+      return events.length > 0 ? events[events.length - 1] : null;
+    } catch {
+      return null;
     }
-
-    return null;
   }
 
   /**
@@ -290,8 +294,8 @@ export async function dragAndDropFile(
   filePath: string
 ): Promise<void> {
   // Read file as buffer
-  const fs = require('fs');
-  const buffer = fs.readFileSync(filePath);
+  const fs = await import('fs/promises');
+  const buffer = await fs.readFile(filePath);
   const filename = filePath.split('/').pop();
 
   // Create DataTransfer with file

@@ -1,6 +1,8 @@
 /**
  * Custom validators for file upload components
  */
+export * from './magicNumbers';
+export * from './sanitizeFilename';
 export declare function registerValidators(): {
     fileSize: typeof fileSizeValidator;
     fileType: typeof fileTypeValidator;
@@ -23,5 +25,4 @@ declare function virusScanValidator(context: any): Promise<boolean>;
  * Validate image resolution
  */
 declare function imageResolutionValidator(context: any): boolean;
-export {};
 //# sourceMappingURL=index.d.ts.map

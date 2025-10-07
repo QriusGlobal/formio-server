@@ -215,7 +215,12 @@ test.describe('TUS Bulk Upload Stress Tests', () => {
         });
 
         await uploadPage.resetTest();
-        await page.waitForTimeout(1000); // Brief pause between tests
+
+        // EVENT-DRIVEN: Wait for reset to complete
+        await page.waitForFunction(() => {
+          const fileItems = document.querySelectorAll('[data-upload-status]');
+          return fileItems.length === 0;
+        }, { timeout: 5000 });
       }
 
       const report = generateBenchmarkReport(results);

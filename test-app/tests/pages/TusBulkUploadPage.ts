@@ -90,7 +90,7 @@ export class TusBulkUploadPage {
   }
 
   /**
-   * Configure test settings
+   * Configure test settings with proper visibility checks
    */
   async configureTest(config: {
     chunkSizeMB?: number;
@@ -98,39 +98,51 @@ export class TusBulkUploadPage {
     maxFiles?: number;
     filePattern?: 'images' | 'documents' | 'all';
   }): Promise<void> {
+    // Ensure configuration panel is fully visible before interacting
+    await this.configPanel.waitFor({ state: 'visible', timeout: 15000 });
+
     if (config.chunkSizeMB !== undefined) {
+      await this.chunkSizeSelect.waitFor({ state: 'visible', timeout: 10000 });
       await this.chunkSizeSelect.selectOption(String(config.chunkSizeMB));
       await this.page.waitForTimeout(200); // Allow re-render
     }
 
     if (config.parallelUploads !== undefined) {
+      await this.parallelUploadsSelect.waitFor({ state: 'visible', timeout: 10000 });
       await this.parallelUploadsSelect.selectOption(String(config.parallelUploads));
       await this.page.waitForTimeout(200);
     }
 
     if (config.maxFiles !== undefined) {
+      await this.maxFilesSelect.waitFor({ state: 'visible', timeout: 10000 });
       await this.maxFilesSelect.selectOption(String(config.maxFiles));
       await this.page.waitForTimeout(200);
     }
 
     if (config.filePattern) {
+      await this.filePatternSelect.waitFor({ state: 'visible', timeout: 10000 });
       await this.filePatternSelect.selectOption(config.filePattern);
       await this.page.waitForTimeout(200);
     }
+
+    console.log('✅ Test configuration applied successfully');
   }
 
   /**
    * Upload multiple files
    */
   async uploadFiles(files: TestFile[]): Promise<void> {
-    // Wait for Form.io form to render completely
-    await this.page.waitForSelector('text=/Browse Files/i', {
+    // Wait for Form.io to render the form
+    await this.page.waitForSelector('.formio-form', {
       state: 'visible',
       timeout: 15000
     });
 
-    // Wait a bit for Form.io to fully initialize
-    await this.page.waitForTimeout(1000);
+    // Wait for file input specifically
+    await this.fileInput.waitFor({
+      state: 'visible',
+      timeout: 10000
+    });
 
     // The file input exists but is hidden, set files directly
     const filePaths = files.map(f => f.path);

@@ -141,33 +141,43 @@ export async function getMemoryUsage(page: Page): Promise<number> {
 }
 
 /**
- * Track concurrent upload count over time
+ * Track concurrent upload count over time (event-driven)
+ * Replaces setInterval with page.waitForFunction and mutation observers
  */
 export async function trackConcurrentUploads(
   page: Page,
   intervalMs = 100
 ): Promise<number[]> {
-  const concurrentCounts: number[] = [];
+  // Set up tracking in browser context
+  await page.evaluate((interval) => {
+    (window as any).__concurrentCounts = [];
+    (window as any).__trackingActive = true;
 
-  const tracker = setInterval(async () => {
-    const activeCount = await page.evaluate(() => {
+    const trackUploads = () => {
+      if (!(window as any).__trackingActive) return;
+
       const uploadingElements = document.querySelectorAll('[data-upload-status="uploading"]');
-      return uploadingElements.length;
-    });
-    concurrentCounts.push(activeCount);
+      (window as any).__concurrentCounts.push(uploadingElements.length);
+
+      setTimeout(trackUploads, interval);
+    };
+
+    trackUploads();
   }, intervalMs);
 
-  // Return cleanup function
-  return new Promise((resolve) => {
-    const checkCompletion = setInterval(async () => {
-      const isComplete = await page.locator('text=/Submission Successful/i').isVisible();
-      if (isComplete) {
-        clearInterval(tracker);
-        clearInterval(checkCompletion);
-        resolve(concurrentCounts);
-      }
-    }, 500);
+  // Wait for completion using event-driven approach
+  await page.waitForFunction(() => {
+    const successText = document.body.textContent?.toLowerCase() || '';
+    return successText.includes('submission successful');
+  }, { timeout: 300000 });
+
+  // Stop tracking and retrieve results
+  const concurrentCounts = await page.evaluate(() => {
+    (window as any).__trackingActive = false;
+    return (window as any).__concurrentCounts || [];
   });
+
+  return concurrentCounts;
 }
 
 /**

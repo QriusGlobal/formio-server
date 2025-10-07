@@ -14,6 +14,9 @@ import { registerValidators } from './validators';
 // Export individual components for direct use
 export { TusFileUploadComponent, UppyFileUploadComponent, FileStorageProvider };
 
+// Export utility functions
+export { registerTemplates, registerValidators };
+
 // Module definition following Form.io module specification
 // Form.io only supports 'components' property in modules
 const FormioFileUploadModule = {

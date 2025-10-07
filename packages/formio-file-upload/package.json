@@ -2,9 +2,16 @@
   "name": "@formio/file-upload",
   "version": "1.0.0",
   "description": "File upload module for Form.io with TUS resumable uploads and Uppy.js integration",
-  "main": "lib/index.js",
+  "type": "module",
   "module": "lib/index.esm.js",
   "types": "lib/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./lib/index.esm.js",
+      "types": "./lib/index.d.ts"
+    },
+    "./package.json": "./package.json"
+  },
   "files": [
     "lib",
     "dist"
@@ -14,8 +21,10 @@
     "dev": "rollup -c -w",
     "test": "jest",
     "test:watch": "jest --watch",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint src",
-    "prepublishOnly": "npm run build"
+    "benchmark": "bun scripts/benchmark.js",
+    "prepublishOnly": "bun run build"
   },
   "keywords": [
     "formio",
@@ -52,11 +61,15 @@
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^11.1.5",
     "@testing-library/react": "^14.1.2",
+    "@types/jest": "^30.0.0",
     "@types/react": "^19.0.0",
+    "identity-obj-proxy": "^3.0.0",
     "jest": "^29.7.0",
+    "jest-environment-jsdom": "^30.2.0",
     "rollup": "^4.9.1",
     "rollup-plugin-css-only": "^4.5.2",
     "rollup-plugin-postcss": "^4.0.2",
+    "ts-jest": "^29.4.4",
     "tslib": "^2.6.2",
     "typescript": "^5.3.3"
   },

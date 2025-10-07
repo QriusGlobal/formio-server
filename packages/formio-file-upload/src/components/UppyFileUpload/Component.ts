@@ -15,6 +15,7 @@ import ImageEditor from '@uppy/image-editor';
 import Audio from '@uppy/audio';
 import Url from '@uppy/url';
 import { ComponentSchema, UppyConfig, UploadFile, UploadStatus } from '../../types';
+import { verifyFileType, sanitizeFilename } from '../../validators';
 
 // Import Uppy styles
 // NOTE: Uppy CSS imports removed - consuming apps must import Uppy styles
@@ -186,10 +187,10 @@ export default class UppyFileUploadComponent extends FileComponent {
       autoProceed: this.component.uppyOptions?.autoProceed || false,
       allowMultipleUploadBatches: this.component.uppyOptions?.allowMultipleUploadBatches !== false,
       restrictions: {
-        maxFileSize: this.parseFileSize(this.component.fileMaxSize),
-        minFileSize: this.parseFileSize(this.component.fileMinSize),
+        maxFileSize: this.parseFileSize(this.component.fileMaxSize) ?? undefined,
+        minFileSize: this.parseFileSize(this.component.fileMinSize) ?? undefined,
         maxNumberOfFiles: this.component.multiple ? 10 : 1,
-        allowedFileTypes: this.parseFilePattern(this.component.filePattern)
+        allowedFileTypes: this.parseFilePattern(this.component.filePattern) ?? undefined
       },
       meta: {
         formId: this.root?.formId || '',
@@ -278,8 +279,34 @@ export default class UppyFileUploadComponent extends FileComponent {
   private setupUppyEventHandlers() {
     if (!this.uppy) return;
 
-    this.uppy.on('file-added', (file: any) => {
+    this.uppy.on('file-added', async (file: any) => {
       console.log('[Uppy] File added:', file.name);
+
+      // Security: Sanitize filename
+      const safeName = sanitizeFilename(file.name, {
+        addTimestamp: true,
+        preserveExtension: false
+      });
+
+      // Security: Verify file type
+      const isValidType = await verifyFileType(file.data, file.type);
+      if (!isValidType) {
+        console.error('[Uppy Security] File type verification failed:', file.name);
+        this.uppy?.info(
+          `Security: File "${file.name}" content does not match declared type`,
+          'error',
+          5000
+        );
+        this.uppy?.removeFile(file.id);
+        return;
+      }
+
+      // Update file with sanitized name
+      this.uppy?.setFileMeta(file.id, {
+        name: safeName,
+        originalName: file.name
+      });
+
       this.emit('fileAdded', file);
     });
 
@@ -326,6 +353,18 @@ export default class UppyFileUploadComponent extends FileComponent {
 
     this.uppy.on('complete', (result: any) => {
       console.log('[Uppy] All uploads complete:', result);
+
+      // P3-T2: Clean up GoldenRetriever localStorage to prevent QuotaExceededError (critical for Safari 5MB limit)
+      if (result.successful.length > 0 && result.failed.length === 0) {
+        const uppyId = this.uppy!.getID();
+        try {
+          localStorage.removeItem(`uppy/${uppyId}`);
+          console.log('[Uppy] Cleaned GoldenRetriever recovery state');
+        } catch (error) {
+          console.warn('[Uppy] Failed to clean recovery state:', error);
+        }
+      }
+
       this.emit('uploadComplete', result);
     });
 
@@ -388,6 +427,16 @@ export default class UppyFileUploadComponent extends FileComponent {
 
   detach() {
     if (this.uppy) {
+      // P1-T2: Remove all event listeners to prevent memory leaks
+      this.uppy.off('file-added');
+      this.uppy.off('upload');
+      this.uppy.off('upload-progress');
+      this.uppy.off('upload-success');
+      this.uppy.off('upload-error');
+      this.uppy.off('complete');
+      this.uppy.off('error');
+      this.uppy.off('cancel-all');
+
       this.uppy.cancelAll(); // Cancel all uploads (close() removed in Uppy v3+)
       this.uppy = null;
     }
@@ -396,6 +445,16 @@ export default class UppyFileUploadComponent extends FileComponent {
 
   destroy() {
     if (this.uppy) {
+      // P1-T2: Remove all event listeners to prevent memory leaks
+      this.uppy.off('file-added');
+      this.uppy.off('upload');
+      this.uppy.off('upload-progress');
+      this.uppy.off('upload-success');
+      this.uppy.off('upload-error');
+      this.uppy.off('complete');
+      this.uppy.off('error');
+      this.uppy.off('cancel-all');
+
       this.uppy.cancelAll(); // Cancel all uploads (close() removed in Uppy v3+)
       this.uppy = null;
     }

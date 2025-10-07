@@ -25,8 +25,8 @@ test.describe('GCS Upload E2E', () => {
     // Authenticate with Form.io
     const loginResponse = await page.request.post(`${FORMIO_URL}/user/login`, {
       data: {
-        email: 'admin@formio.local',
-        password: 'admin123'
+        email: process.env.TEST_ADMIN_EMAIL || 'admin@formio.local',
+        password: process.env.TEST_ADMIN_PASSWORD || 'CHANGEME'
       }
     });
 

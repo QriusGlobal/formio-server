@@ -20,6 +20,8 @@ import {
   waitForUploadComplete,
   getFileCount,
   verifyFileInList,
+  waitForValidationError,
+  waitForFileError,
 } from '../utils/uppy-helpers';
 import {
   setupTestFilesDir,
@@ -66,10 +68,13 @@ test.describe('Uppy Integration Tests', () => {
       if (await submitButton.isVisible({ timeout: 2000 }).catch(() => false)) {
         await submitButton.click();
 
-        // Check for validation error
-        await page.waitForTimeout(1000);
-
+        // EVENT-DRIVEN: Wait for validation error to appear
+        // REPLACED: await page.waitForTimeout(1000);
         const validationError = page.locator('.formio-error, .error-message, [role="alert"]');
+        await validationError.waitFor({ state: 'visible', timeout: 3000 }).catch(() => {
+          // Validation may not be required - check state instead
+        });
+
         if (await validationError.isVisible({ timeout: 2000 }).catch(() => false)) {
           await expect(validationError).toBeVisible();
         }
@@ -93,9 +98,12 @@ test.describe('Uppy Integration Tests', () => {
 
       // Mock form submission
       let submissionData: any = null;
+      let submissionReceived = false;
+
       await page.route('**/submission', async (route, request) => {
         const postData = request.postDataJSON();
         submissionData = postData;
+        submissionReceived = true;
 
         await route.fulfill({
           status: 200,
@@ -114,8 +122,18 @@ test.describe('Uppy Integration Tests', () => {
       if (await submitButton.isVisible({ timeout: 3000 }).catch(() => false)) {
         await submitButton.click();
 
-        // Wait for submission
-        await page.waitForTimeout(2000);
+        // EVENT-DRIVEN: Wait for submission network request
+        // REPLACED: await page.waitForTimeout(2000);
+        await page.waitForFunction(
+          () => (window as any).__submissionReceived === true,
+          { timeout: 5000 }
+        ).catch(async () => {
+          // Alternative: wait for success message or state change
+          await page.locator('.alert-success, [role="status"]').waitFor({
+            state: 'visible',
+            timeout: 3000
+          }).catch(() => {});
+        });
 
         // Verify submission data contains file info
         if (submissionData) {
@@ -139,8 +157,18 @@ test.describe('Uppy Integration Tests', () => {
       const resetButton = page.locator('button:has-text("Reset"), button:has-text("Clear")');
 
       if (await resetButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+        const initialCount = await getFileCount(page);
         await resetButton.click();
-        await page.waitForTimeout(500);
+
+        // EVENT-DRIVEN: Wait for file count to change to 0
+        // REPLACED: await page.waitForTimeout(500);
+        await page.waitForFunction(
+          () => {
+            const items = document.querySelectorAll('.uppy-Dashboard-Item, [data-testid="file-card"]');
+            return items.length === 0;
+          },
+          { timeout: 3000 }
+        );
 
         // Files should be cleared
         fileCount = await getFileCount(page);
@@ -197,10 +225,13 @@ test.describe('Uppy Integration Tests', () => {
       await uploadFiles(page, [testFile.path]);
       await clickUploadButton(page);
 
-      await page.waitForTimeout(2000);
-
-      // Should show error
+      // EVENT-DRIVEN: Wait for error message to appear
+      // REPLACED: await page.waitForTimeout(2000);
       const errorMessage = page.locator('.uppy-Informer-error, [role="alert"]');
+      await errorMessage.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {
+        // Error display might be different - check file error state
+      });
+
       if (await errorMessage.isVisible({ timeout: 3000 }).catch(() => false)) {
         await expect(errorMessage).toBeVisible();
       }
@@ -234,10 +265,14 @@ test.describe('Uppy Integration Tests', () => {
       await uploadFiles(page, [testFile.path]);
       await clickUploadButton(page);
 
-      await page.waitForTimeout(2000);
+      // EVENT-DRIVEN: Wait for error state to appear, then retry
+      // REPLACED: await page.waitForTimeout(2000);
+      const retryButton = page.locator('button:has-text("Retry")');
+      await retryButton.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {
+        // Retry button may appear as error appears
+      });
 
       // Click retry if available
-      const retryButton = page.locator('button:has-text("Retry")');
       if (await retryButton.isVisible({ timeout: 3000 }).catch(() => false)) {
         await retryButton.click();
         await waitForUploadComplete(page, 10000);
@@ -330,7 +365,20 @@ test.describe('Uppy Integration Tests', () => {
       const submitButton = page.locator('button[type="submit"]');
       if (await submitButton.isVisible({ timeout: 2000 }).catch(() => false)) {
         await submitButton.click();
-        await page.waitForTimeout(2000);
+
+        // EVENT-DRIVEN: Wait for submission to be processed
+        // REPLACED: await page.waitForTimeout(2000);
+        await page.waitForFunction(
+          () => {
+            // Check for success indicator or submission complete state
+            const successMsg = document.querySelector('.alert-success, [role="status"]');
+            const formSubmitted = (window as any).__formSubmitted === true;
+            return successMsg !== null || formSubmitted;
+          },
+          { timeout: 5000 }
+        ).catch(() => {
+          // Submission may complete without visible feedback
+        });
 
         if (submissionData) {
           expect(submissionData).toBeTruthy();
@@ -367,7 +415,19 @@ test.describe('Uppy Integration Tests', () => {
 
       if (await themeToggle.isVisible({ timeout: 2000 }).catch(() => false)) {
         await themeToggle.click();
-        await page.waitForTimeout(500);
+
+        // EVENT-DRIVEN: Wait for theme class to change
+        // REPLACED: await page.waitForTimeout(500);
+        await page.waitForFunction(
+          () => {
+            const dashboard = document.querySelector('.uppy-Dashboard');
+            return dashboard?.classList.contains('uppy-Dashboard--dark') ||
+                   document.documentElement.classList.contains('dark-theme');
+          },
+          { timeout: 2000 }
+        ).catch(() => {
+          // Theme may not have specific class
+        });
       }
 
       await waitForUppyReady(page);
@@ -398,10 +458,14 @@ test.describe('Uppy Integration Tests', () => {
 
       if (await webcamButton.isVisible({ timeout: 2000 }).catch(() => false)) {
         await webcamButton.click();
-        await page.waitForTimeout(1000);
 
-        // Check if theme is applied to modal
+        // EVENT-DRIVEN: Wait for modal to appear
+        // REPLACED: await page.waitForTimeout(1000);
         const modal = page.locator('.uppy-Dashboard-overlay');
+        await modal.waitFor({ state: 'visible', timeout: 3000 }).catch(() => {
+          // Modal may not appear if plugin unavailable
+        });
+
         if (await modal.isVisible({ timeout: 2000 }).catch(() => false)) {
           await expect(modal).toBeVisible();
         }
@@ -479,10 +543,13 @@ test.describe('Uppy Integration Tests', () => {
       if (await submitButton.isVisible({ timeout: 2000 }).catch(() => false)) {
         await submitButton.click();
 
-        // 4. Verify success
-        await page.waitForTimeout(2000);
-
+        // 4. EVENT-DRIVEN: Wait for success message or state change
+        // REPLACED: await page.waitForTimeout(2000);
         const successMessage = page.locator('.alert-success, [role="status"]:has-text("success")');
+        await successMessage.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {
+          // Success message may not be displayed
+        });
+
         if (await successMessage.isVisible({ timeout: 3000 }).catch(() => false)) {
           await expect(successMessage).toBeVisible();
         }
@@ -507,8 +574,18 @@ test.describe('Uppy Integration Tests', () => {
       fileCount = await getFileCount(page);
       expect(fileCount).toBe(2);
 
-      // Step 3: Remove one file
-      await page.waitForTimeout(500);
+      // Step 3: Verify state preserved
+      // EVENT-DRIVEN: Check file count is stable
+      // REPLACED: await page.waitForTimeout(500);
+      await page.waitForFunction(
+        (expectedCount) => {
+          const items = document.querySelectorAll('.uppy-Dashboard-Item, [data-testid="file-card"]');
+          return items.length >= expectedCount;
+        },
+        2,
+        { timeout: 2000 }
+      );
+
       // Files should still be tracked
       expect(fileCount).toBeGreaterThan(0);
     });
@@ -528,10 +605,11 @@ test.describe('Uppy Integration Tests', () => {
       await uploadFiles(page, [testFile.path]);
       await clickUploadButton(page);
 
-      await page.waitForTimeout(3000);
-
-      // Should show error
+      // EVENT-DRIVEN: Wait for error to appear
+      // REPLACED: await page.waitForTimeout(3000);
       const errorMessage = page.locator('.uppy-Informer-error, [role="alert"]');
+      await errorMessage.waitFor({ state: 'visible', timeout: 5000 });
+
       if (await errorMessage.isVisible({ timeout: 3000 }).catch(() => false)) {
         await expect(errorMessage).toBeVisible();
       }
@@ -552,10 +630,13 @@ test.describe('Uppy Integration Tests', () => {
       await uploadFiles(page, [testFile.path]);
       await clickUploadButton(page);
 
-      await page.waitForTimeout(2000);
-
-      // Error should be displayed
+      // EVENT-DRIVEN: Wait for error display
+      // REPLACED: await page.waitForTimeout(2000);
       const error = page.locator('.uppy-Dashboard-Item--error, [role="alert"]');
+      await error.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {
+        // Check for general error message instead
+      });
+
       if (await error.isVisible({ timeout: 3000 }).catch(() => false)) {
         await expect(error).toBeVisible();
       }

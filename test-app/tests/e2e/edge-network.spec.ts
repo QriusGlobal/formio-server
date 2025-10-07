@@ -93,14 +93,33 @@ test.describe('Network Failure Scenarios - TUS Upload', () => {
     const progressUpdates: number[] = [];
     const progressText = page.locator('.progress-text');
 
-    // Poll for progress updates
+    // Poll for progress updates using event-driven state monitoring
     for (let i = 0; i < 10; i++) {
       const text = await progressText.textContent();
       const match = text?.match(/(\d+)%/);
       if (match) {
         progressUpdates.push(parseInt(match[1]));
       }
-      await page.waitForTimeout(2000);
+
+      // Wait for progress state change or completion instead of timeout
+      try {
+        await Promise.race([
+          page.waitForFunction(
+            (lastProgress) => {
+              const progressEl = document.querySelector('.progress-text');
+              const currentText = progressEl?.textContent || '';
+              const currentMatch = currentText.match(/(\d+)%/);
+              const currentProgress = currentMatch ? parseInt(currentMatch[1]) : 0;
+              return currentProgress !== lastProgress;
+            },
+            progressUpdates[progressUpdates.length - 1] || 0,
+            { timeout: 3000 }
+          ),
+          page.locator('.upload-complete').waitFor({ state: 'visible', timeout: 3000 })
+        ]);
+      } catch {
+        // Continue if no change detected
+      }
 
       // Check if completed
       if (await page.locator('.upload-complete').isVisible()) {
@@ -231,8 +250,17 @@ test.describe('Network Failure Scenarios - TUS Upload', () => {
       const fileInput = page.locator(UPPY_FILE_INPUT_SELECTOR);
       await fileInput.setInputFiles(files);
 
-      // Wait for all uploads to complete or fail
-      await page.waitForTimeout(30000);
+      // Wait for all uploads to complete or fail using event-driven monitoring
+      const uploadCount = files.length;
+      await page.waitForFunction(
+        (expectedCount) => {
+          const completed = document.querySelectorAll('.upload-complete').length;
+          const failed = document.querySelectorAll('.upload-error').length;
+          return (completed + failed) >= expectedCount;
+        },
+        uploadCount,
+        { timeout: 30000 }
+      );
 
       // At least some should succeed despite intermittent failures
       const completedCount = await page.locator('.upload-complete').count();
@@ -256,9 +284,19 @@ test.describe('Network Failure Scenarios - TUS Upload', () => {
       buffer,
     });
 
-    // Wait for upload to start
+    // Wait for upload to start and progress to be actively updating
     await expect(page.locator('.progress-bar')).toBeVisible({ timeout: 5000 });
-    await page.waitForTimeout(2000);
+
+    // Wait for progress to actually start changing (upload is active)
+    await page.waitForFunction(
+      () => {
+        const progressEl = document.querySelector('.progress-text');
+        const text = progressEl?.textContent || '';
+        const match = text.match(/(\d+)%/);
+        return match && parseInt(match[1]) > 0;
+      },
+      { timeout: 5000 }
+    );
 
     // Pause upload
     await page.click('button[title="Pause"]');
@@ -266,7 +304,12 @@ test.describe('Network Failure Scenarios - TUS Upload', () => {
 
     // Go offline
     await page.context().setOffline(true);
-    await page.waitForTimeout(1000);
+
+    // Wait for offline state to be detected by application
+    await page.waitForFunction(
+      () => !navigator.onLine,
+      { timeout: 2000 }
+    );
 
     // Try to resume (should fail gracefully)
     await page.click('button[title="Resume"]');
@@ -295,11 +338,40 @@ test.describe('Network Failure Scenarios - TUS Upload', () => {
     });
 
     await expect(page.locator('.progress-bar')).toBeVisible({ timeout: 5000 });
-    await page.waitForTimeout(1000);
+
+    // Wait for initial upload progress
+    let initialProgress = 0;
+    await page.waitForFunction(
+      () => {
+        const progressEl = document.querySelector('.progress-text');
+        const text = progressEl?.textContent || '';
+        const match = text.match(/(\d+)%/);
+        return match && parseInt(match[1]) > 0;
+      },
+      { timeout: 3000 }
+    );
+    initialProgress = await page.evaluate(() => {
+      const progressEl = document.querySelector('.progress-text');
+      const text = progressEl?.textContent || '';
+      const match = text.match(/(\d+)%/);
+      return match ? parseInt(match[1]) : 0;
+    });
 
     // Switch to 3G
     await applyNetworkCondition(page, NETWORK_PRESETS.SLOW_3G);
-    await page.waitForTimeout(2000);
+
+    // Wait for network condition to affect upload (progress should slow down or stall briefly)
+    await page.waitForFunction(
+      (prevProgress) => {
+        const progressEl = document.querySelector('.progress-text');
+        const text = progressEl?.textContent || '';
+        const match = text.match(/(\d+)%/);
+        const currentProgress = match ? parseInt(match[1]) : 0;
+        return currentProgress > prevProgress; // Still progressing despite network change
+      },
+      initialProgress,
+      { timeout: 5000 }
+    );
 
     // Switch back to WiFi
     await applyNetworkCondition(page, NETWORK_PRESETS.WIFI);
@@ -331,11 +403,20 @@ test.describe('Network Failure Scenarios - Uppy Upload', () => {
       buffer: Buffer.from('Test content'),
     });
 
-    await page.waitForTimeout(1000);
+    // Wait for upload to initiate (network request started)
+    await page.waitForEvent('request', {
+      predicate: (req) => req.url().includes('upload'),
+      timeout: 5000
+    });
 
     // Go offline mid-upload
     await page.context().setOffline(true);
-    await page.waitForTimeout(2000);
+
+    // Wait for offline state to be detected
+    await page.waitForFunction(
+      () => !navigator.onLine,
+      { timeout: 3000 }
+    );
 
     // Should show retry indicator
     await expect(page.locator('.uppy-StatusBar-statusPrimary:has-text("Retry")')).toBeVisible();
@@ -343,8 +424,16 @@ test.describe('Network Failure Scenarios - Uppy Upload', () => {
     // Go back online
     await page.context().setOffline(false);
 
-    // Golden Retriever should auto-resume
-    await page.waitForTimeout(3000);
+    // Golden Retriever should auto-resume - wait for retry/resume indicator
+    await page.waitForFunction(
+      () => {
+        const retryBtn = document.querySelector('.uppy-StatusBar-statusPrimary:has-text("Retry")');
+        const uploadProgress = document.querySelector('.uppy-StatusBar-progress');
+        // Either retry is gone (resumed) or progress is visible (uploading)
+        return !retryBtn || uploadProgress !== null;
+      },
+      { timeout: 5000 }
+    );
 
     // Should complete
     const result = await waitForUploadCompletion(page, 30000);
@@ -385,8 +474,19 @@ test.describe('Network Failure Scenarios - Uppy Upload', () => {
         buffer,
       });
 
-      // Should show retry attempts
-      await page.waitForTimeout(10000);
+      // Wait for retry attempts by monitoring network request count
+      const initialRequestCount = networkMonitor.getRequests(/upload/).length;
+      await page.waitForFunction(
+        (initial) => {
+          // Network monitor is in Node.js context, so we need to wait for DOM changes instead
+          const statusBar = document.querySelector('.uppy-StatusBar-statusPrimary');
+          const hasRetryIndicator = statusBar?.textContent?.includes('Retry') || false;
+          const uploadProgress = document.querySelector('.uppy-StatusBar-progress');
+          return hasRetryIndicator || uploadProgress !== null;
+        },
+        initialRequestCount,
+        { timeout: 15000 }
+      );
 
       // Check network monitor for retries
       const requests = networkMonitor.getRequests(/upload/);

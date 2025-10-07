@@ -23,36 +23,6 @@ export default [
     output: {
       file: 'lib/index.esm.js',
       format: 'esm',
-      sourcemap: true
-    },
-    external: isExternal,
-    plugins: [
-      resolve({
-        extensions: ['.js', '.jsx', '.ts', '.tsx'],
-        preferBuiltins: false,
-        browser: true
-      }),
-      commonjs(),
-      json(),
-      typescript({
-        tsconfig: './tsconfig.json',
-        declaration: true,
-        declarationDir: './lib'
-      }),
-      postcss({
-        extract: 'styles.css',
-        modules: false,
-        sourceMap: true,
-        minimize: true
-      })
-    ]
-  },
-  // CommonJS build
-  {
-    input: 'src/index.ts',
-    output: {
-      file: 'lib/index.js',
-      format: 'cjs',
       sourcemap: true,
       exports: 'named'
     },
@@ -67,15 +37,20 @@ export default [
       json(),
       typescript({
         tsconfig: './tsconfig.json',
-        declaration: false
+        declaration: true,
+        declarationDir: './lib',
+        exclude: ['src/test-setup.ts', '**/*.test.ts', '**/*.spec.ts']
       }),
       postcss({
-        extract: false,
-        inject: true,
-        modules: false
+        extract: 'styles.css',
+        modules: false,
+        sourceMap: true,
+        minimize: true
       })
     ]
   },
+  // P3-T3: CommonJS build removed (853KB unused, browser-only module)
+  // Keeping UMD build for CDN users
   // UMD build (minified)
   {
     input: 'src/index.ts',
@@ -84,6 +59,7 @@ export default [
       format: 'umd',
       name: 'FormioFileUpload',
       sourcemap: true,
+      exports: 'named',
       globals: {
         '@formio/js': 'Formio',
         'react': 'React',
@@ -101,7 +77,9 @@ export default [
       json(),
       typescript({
         tsconfig: './tsconfig.json',
-        declaration: false
+        declaration: false,
+        declarationMap: false,
+        exclude: ['src/test-setup.ts', '**/*.test.ts', '**/*.spec.ts']
       }),
       postcss({
         extract: 'formio-file-upload.min.css',

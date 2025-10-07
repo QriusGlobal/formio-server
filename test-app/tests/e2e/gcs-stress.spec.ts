@@ -28,8 +28,8 @@ test.describe('GCS Stress Test', () => {
     // Authenticate
     const loginResponse = await page.request.post(`${FORMIO_URL}/user/login`, {
       data: {
-        email: 'admin@gcs-test.local',
-        password: 'admin123'
+        email: process.env.TEST_ADMIN_EMAIL || 'admin@gcs-test.local',
+        password: process.env.TEST_ADMIN_PASSWORD || 'CHANGEME'
       }
     });
 

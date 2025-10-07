@@ -320,7 +320,12 @@ test.describe('Uppy Dashboard UI', () => {
     // Add files rapidly
     for (const file of files) {
       await uploadFiles(page, [file.path]);
-      await page.waitForTimeout(100); // Small delay between additions
+      // EVENT-DRIVEN: Wait for file to appear in list before adding next
+      await page.waitForFunction((filename) => {
+        return Array.from(document.querySelectorAll('.uppy-Dashboard-Item-name')).some(
+          (el) => el.textContent?.includes(filename)
+        );
+      }, file.name, { timeout: 2000 });
     }
 
     // Verify all files are present

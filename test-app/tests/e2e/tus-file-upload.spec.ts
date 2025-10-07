@@ -48,12 +48,18 @@ test.describe('TUS File Upload E2E Tests', () => {
       // Create test file
       const testFile = createPNGFile(testFilesDir, 'upload-test.png');
 
+      // Monitor TUS POST request (file creation)
+      const tusPostPromise = page.waitForResponse(
+        response => response.url().includes('/files') && response.request().method() === 'POST',
+        { timeout: 5000 }
+      );
+
       // Select file
       const fileInput = page.locator(UPPY_FILE_INPUT_SELECTOR);
       await fileInput.setInputFiles(testFile.path);
 
-      // Verify file was selected
-      await page.waitForTimeout(500);
+      // Wait for TUS file creation to complete
+      await tusPostPromise;
 
       // Check for upload status
       const statusDiv = page.locator('[data-testid="upload-status"], div:has-text("Uploading")');
@@ -67,6 +73,19 @@ test.describe('TUS File Upload E2E Tests', () => {
       if (await tusButton.isVisible({ timeout: 2000 }).catch(() => false)) {
         await tusButton.click();
       }
+
+      // Track TUS requests
+      let patchReceived = false;
+      const tusPatchPromise = page.waitForResponse(
+        response => {
+          if (response.url().includes('/files/') && response.request().method() === 'PATCH') {
+            patchReceived = true;
+            return true;
+          }
+          return false;
+        },
+        { timeout: 5000 }
+      );
 
       // Mock TUS endpoint
       await page.route('**/files/', async (route) => {
@@ -95,8 +114,8 @@ test.describe('TUS File Upload E2E Tests', () => {
       const fileInput = page.locator(UPPY_FILE_INPUT_SELECTOR);
       await fileInput.setInputFiles(testFile.path);
 
-      // Wait for upload to start
-      await page.waitForTimeout(1000);
+      // Wait for chunk upload (PATCH request)
+      await tusPatchPromise;
 
       // Verify upload status appears
       const statusText = await page.textContent('body');
@@ -111,11 +130,21 @@ test.describe('TUS File Upload E2E Tests', () => {
 
       const testFile = createPNGFile(testFilesDir, 'drag-drop.png');
 
+      // Monitor file addition to Uppy
+      const fileAddedPromise = page.waitForFunction(
+        () => {
+          const uppy = (window as any).uppy;
+          return uppy && Object.keys(uppy.getState().files).length > 0;
+        },
+        { timeout: 3000 }
+      ).catch(() => null);
+
       // Simulate drag and drop (Playwright doesn't support real drag-drop, use file input)
       const fileInput = page.locator(UPPY_FILE_INPUT_SELECTOR);
       await fileInput.setInputFiles(testFile.path);
 
-      await page.waitForTimeout(500);
+      // Wait for file to be added to Uppy state
+      await fileAddedPromise;
       expect(true).toBeTruthy(); // File selected
     });
   });
@@ -160,8 +189,15 @@ test.describe('TUS File Upload E2E Tests', () => {
       const fileInput = page.locator(UPPY_FILE_INPUT_SELECTOR);
       await fileInput.setInputFiles(testFile.path);
 
-      // Wait for progress updates
-      await page.waitForTimeout(2000);
+      // Wait for multiple chunk uploads (at least 2 PATCH requests)
+      await page.waitForResponse(
+        response => response.url().includes('/files/') && response.request().method() === 'PATCH',
+        { timeout: 3000 }
+      );
+      await page.waitForResponse(
+        response => response.url().includes('/files/') && response.request().method() === 'PATCH',
+        { timeout: 3000 }
+      );
 
       // Check for progress indicators
       const statusDiv = page.locator('body');
@@ -209,8 +245,17 @@ test.describe('TUS File Upload E2E Tests', () => {
       const fileInput = page.locator(UPPY_FILE_INPUT_SELECTOR);
       await fileInput.setInputFiles(testFile.path);
 
-      // Wait for upload to progress
-      await page.waitForTimeout(1500);
+      // Wait for Upload-Offset to reach at least 50% (5MB)
+      await page.waitForResponse(
+        response => {
+          if (response.url().includes('/files/') && response.request().method() === 'PATCH') {
+            const offset = response.headers()['upload-offset'];
+            return offset && parseInt(offset) >= fileSize / 2;
+          }
+          return false;
+        },
+        { timeout: 5000 }
+      );
 
       const bodyText = await page.textContent('body');
       expect(bodyText).toMatch(/\d+/); // Should contain numbers (percentage or status)
@@ -224,6 +269,7 @@ test.describe('TUS File Upload E2E Tests', () => {
         await tusButton.click();
       }
 
+      const fileSize = 1024;
       await page.route('**/files/**', async (route) => {
         const method = route.request().method();
 
@@ -239,7 +285,7 @@ test.describe('TUS File Upload E2E Tests', () => {
           await route.fulfill({
             status: 204,
             headers: {
-              'Upload-Offset': '1024',
+              'Upload-Offset': fileSize.toString(),
               'Tus-Resumable': '1.0.0'
             }
           });
@@ -250,8 +296,17 @@ test.describe('TUS File Upload E2E Tests', () => {
       const fileInput = page.locator(UPPY_FILE_INPUT_SELECTOR);
       await fileInput.setInputFiles(testFile.path);
 
-      // Wait for completion
-      await page.waitForTimeout(2000);
+      // Wait for Upload-Offset to match file size (100% complete)
+      await page.waitForResponse(
+        response => {
+          if (response.url().includes('/files/') && response.request().method() === 'PATCH') {
+            const offset = response.headers()['upload-offset'];
+            return offset && parseInt(offset) >= fileSize;
+          }
+          return false;
+        },
+        { timeout: 5000 }
+      );
 
       const bodyText = await page.textContent('body');
       expect(bodyText).toMatch(/Success|Complete|uploaded/i);
@@ -264,6 +319,7 @@ test.describe('TUS File Upload E2E Tests', () => {
       }
 
       const uploadUrl = 'http://localhost:1080/files/url-display-test';
+      const fileSize = 1024;
 
       await page.route('**/files/**', async (route) => {
         const method = route.request().method();
@@ -280,7 +336,7 @@ test.describe('TUS File Upload E2E Tests', () => {
           await route.fulfill({
             status: 204,
             headers: {
-              'Upload-Offset': '1024',
+              'Upload-Offset': fileSize.toString(),
               'Tus-Resumable': '1.0.0'
             }
           });
@@ -291,8 +347,17 @@ test.describe('TUS File Upload E2E Tests', () => {
       const fileInput = page.locator(UPPY_FILE_INPUT_SELECTOR);
       await fileInput.setInputFiles(testFile.path);
 
-      // Wait for completion
-      await page.waitForTimeout(2000);
+      // Wait for upload completion (Upload-Offset === file size)
+      await page.waitForResponse(
+        response => {
+          if (response.url().includes('/files/') && response.request().method() === 'PATCH') {
+            const offset = response.headers()['upload-offset'];
+            return offset && parseInt(offset) >= fileSize;
+          }
+          return false;
+        },
+        { timeout: 5000 }
+      );
 
       const bodyText = await page.textContent('body');
       const hasUrl = bodyText?.includes('localhost:1080') || bodyText?.includes('files/');
@@ -318,8 +383,11 @@ test.describe('TUS File Upload E2E Tests', () => {
       const fileInput = page.locator(UPPY_FILE_INPUT_SELECTOR);
       await fileInput.setInputFiles(testFile.path);
 
-      // Wait for error
-      await page.waitForTimeout(2000);
+      // Wait for error response (500 status)
+      await page.waitForResponse(
+        response => response.url().includes('/files/') && response.status() === 500,
+        { timeout: 5000 }
+      );
 
       const bodyText = await page.textContent('body');
       expect(bodyText).toMatch(/Error|Failed|error/i);
@@ -332,8 +400,7 @@ test.describe('TUS File Upload E2E Tests', () => {
       }
 
       await page.route('**/files/**', async (route) => {
-        // Simulate timeout by delaying indefinitely
-        await new Promise(resolve => setTimeout(resolve, 10000));
+        // Abort immediately to simulate network failure
         await route.abort('timedout');
       });
 
@@ -341,8 +408,11 @@ test.describe('TUS File Upload E2E Tests', () => {
       const fileInput = page.locator(UPPY_FILE_INPUT_SELECTOR);
       await fileInput.setInputFiles(testFile.path);
 
-      // Wait for timeout
-      await page.waitForTimeout(3000);
+      // Wait for request failure event
+      await page.waitForEvent('requestfailed', {
+        predicate: request => request.url().includes('/files/'),
+        timeout: 5000
+      });
 
       // Should show some error state
       const bodyText = await page.textContent('body');
@@ -356,6 +426,7 @@ test.describe('TUS File Upload E2E Tests', () => {
       }
 
       let attemptCount = 0;
+      const fileSize = 1024;
 
       await page.route('**/files/**', async (route) => {
         const method = route.request().method();
@@ -380,7 +451,7 @@ test.describe('TUS File Upload E2E Tests', () => {
           await route.fulfill({
             status: 204,
             headers: {
-              'Upload-Offset': '1024',
+              'Upload-Offset': fileSize.toString(),
               'Tus-Resumable': '1.0.0'
             }
           });
@@ -391,8 +462,17 @@ test.describe('TUS File Upload E2E Tests', () => {
       const fileInput = page.locator(UPPY_FILE_INPUT_SELECTOR);
       await fileInput.setInputFiles(testFile.path);
 
-      // Wait for retry
-      await page.waitForTimeout(5000);
+      // Wait for first failure (503 response)
+      await page.waitForResponse(
+        response => response.url().includes('/files/') && response.status() === 503,
+        { timeout: 3000 }
+      );
+
+      // Wait for successful retry (201 response)
+      await page.waitForResponse(
+        response => response.url().includes('/files/') && response.status() === 201,
+        { timeout: 5000 }
+      );
 
       // Should eventually succeed
       const bodyText = await page.textContent('body');
@@ -425,7 +505,11 @@ test.describe('TUS File Upload E2E Tests', () => {
       const fileInput = page.locator(UPPY_FILE_INPUT_SELECTOR);
       await fileInput.setInputFiles(testFile.path);
 
-      await page.waitForTimeout(1000);
+      // Wait for TUS POST request to confirm upload initiation
+      await page.waitForResponse(
+        response => response.url().includes('/files/') && response.request().method() === 'POST',
+        { timeout: 3000 }
+      );
       expect(true).toBeTruthy();
     });
 
@@ -453,7 +537,11 @@ test.describe('TUS File Upload E2E Tests', () => {
       const fileInput = page.locator(UPPY_FILE_INPUT_SELECTOR);
       await fileInput.setInputFiles(testFile.path);
 
-      await page.waitForTimeout(1000);
+      // Wait for TUS POST request to confirm upload initiation
+      await page.waitForResponse(
+        response => response.url().includes('/files/') && response.request().method() === 'POST',
+        { timeout: 3000 }
+      );
       expect(true).toBeTruthy();
     });
 
@@ -481,7 +569,11 @@ test.describe('TUS File Upload E2E Tests', () => {
       const fileInput = page.locator(UPPY_FILE_INPUT_SELECTOR);
       await fileInput.setInputFiles(testFile.path);
 
-      await page.waitForTimeout(1000);
+      // Wait for TUS POST request to confirm upload initiation
+      await page.waitForResponse(
+        response => response.url().includes('/files/') && response.request().method() === 'POST',
+        { timeout: 3000 }
+      );
       expect(true).toBeTruthy();
     });
   });
@@ -494,6 +586,7 @@ test.describe('TUS File Upload E2E Tests', () => {
       }
 
       let chunksReceived = 0;
+      const targetChunks = 3; // Wait for at least 3 chunks
 
       await page.route('**/files/**', async (route) => {
         const method = route.request().method();
@@ -524,10 +617,15 @@ test.describe('TUS File Upload E2E Tests', () => {
       const fileInput = page.locator(UPPY_FILE_INPUT_SELECTOR);
       await fileInput.setInputFiles(largeFile.path);
 
-      // Wait for chunked upload
-      await page.waitForTimeout(3000);
+      // Wait for multiple chunk uploads to verify chunking is working
+      for (let i = 0; i < targetChunks; i++) {
+        await page.waitForResponse(
+          response => response.url().includes('/files/') && response.request().method() === 'PATCH',
+          { timeout: 3000 }
+        );
+      }
 
-      expect(chunksReceived).toBeGreaterThan(0);
+      expect(chunksReceived).toBeGreaterThanOrEqual(targetChunks);
     });
   });
 });

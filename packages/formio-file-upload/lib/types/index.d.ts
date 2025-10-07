@@ -22,6 +22,7 @@ export interface ImageProcessingConfig {
 export interface UploadFile {
     id: string;
     name: string;
+    originalName?: string;
     size: number;
     type: string;
     uploadId?: string;

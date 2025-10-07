@@ -56,8 +56,12 @@ test.describe('Resource Exhaustion Tests - TUS Upload', () => {
     // Should start processing
     await expect(page.locator('.tus-file-item').first()).toBeVisible({ timeout: 5000 });
 
-    // Wait for processing
-    await page.waitForTimeout(60000); // 1 minute
+    // EVENT-DRIVEN: Wait for upload completion state
+    await page.waitForFunction(() => {
+      const completeCount = document.querySelectorAll('.upload-complete').length;
+      const errorCount = document.querySelectorAll('.upload-error').length;
+      return (completeCount + errorCount) > 0;
+    }, { timeout: 60000 })
 
     // Check how many completed
     const completed = await page.locator('.upload-complete').count();
@@ -125,11 +129,12 @@ test.describe('Resource Exhaustion Tests - TUS Upload', () => {
     const fileInput = page.locator(UPPY_FILE_INPUT_SELECTOR);
     await fileInput.setInputFiles(files);
 
-    // Should either:
-    // 1. Show error message
-    // 2. Only accept first 10 files
-
-    await page.waitForTimeout(2000);
+    // EVENT-DRIVEN: Wait for file processing to complete
+    await page.waitForFunction(() => {
+      const fileItems = document.querySelectorAll('.tus-file-item');
+      const errors = document.querySelectorAll('.upload-error');
+      return fileItems.length > 0 || errors.length > 0;
+    }, { timeout: 5000 });
 
     const errorVisible = await page.locator('.upload-error').isVisible();
     const fileCount = await page.locator('.tus-file-item').count();
@@ -172,8 +177,12 @@ test.describe('Resource Exhaustion Tests - TUS Upload', () => {
       }
     });
 
-    // Should handle gracefully
-    await page.waitForTimeout(5000);
+    // EVENT-DRIVEN: Wait for error or upload state
+    await page.waitForFunction(() => {
+      const hasError = document.querySelectorAll('.upload-error').length > 0;
+      const isUploading = document.querySelectorAll('.progress-bar').length > 0;
+      return hasError || isUploading;
+    }, { timeout: 5000 });
 
     // Should either show error or work (with reduced functionality)
     const hasError = await page.locator('.upload-error').count() > 0;
@@ -204,22 +213,35 @@ test.describe('Resource Exhaustion Tests - TUS Upload', () => {
     const fileInput = page.locator(UPPY_FILE_INPUT_SELECTOR);
     await fileInput.setInputFiles(largeFiles);
 
-    await page.waitForTimeout(5000);
+    // EVENT-DRIVEN: Wait for files to be added to UI
+    await page.waitForSelector('.tus-file-item', { state: 'attached', timeout: 10000 });
 
     // Should handle the load
     const fileItems = await page.locator('.tus-file-item').count();
     expect(fileItems).toBeGreaterThan(0);
 
-    // Monitor memory over 30 seconds
-    for (let i = 0; i < 6; i++) {
-      await page.waitForTimeout(5000);
+    // EVENT-DRIVEN: Sample memory at completion milestones using requestAnimationFrame
+    await page.evaluate(() => {
+      return new Promise<void>((resolve) => {
+        let samples = 0;
+        const maxSamples = 6;
 
-      const currentMemory = await page.evaluate(() => {
-        return performance.memory ? performance.memory.usedJSHeapSize : 0;
+        const sample = () => {
+          if (samples >= maxSamples) {
+            resolve();
+            return;
+          }
+
+          const currentMemory = performance.memory ? (performance as any).memory.usedJSHeapSize : 0;
+          console.log(`Memory sample ${samples}: ${(currentMemory / 1024 / 1024).toFixed(2)} MB`);
+          samples++;
+
+          setTimeout(() => requestAnimationFrame(sample), 5000);
+        };
+
+        requestAnimationFrame(sample);
       });
-
-      console.log(`Memory at ${i * 5}s: ${(currentMemory / 1024 / 1024).toFixed(2)} MB`);
-    }
+    });
 
     // Check peak memory
     const peakMemoryMB = memoryMonitor.getPeakUsage() / (1024 * 1024);
@@ -255,7 +277,10 @@ test.describe('Resource Exhaustion Tests - TUS Upload', () => {
     const fileInput = page.locator(UPPY_FILE_INPUT_SELECTOR);
     await fileInput.setInputFiles(files);
 
-    await page.waitForTimeout(2000);
+    // EVENT-DRIVEN: Wait for files to appear in UI
+    await page.waitForFunction((count) => {
+      return document.querySelectorAll('.tus-file-item').length >= count;
+    }, files.length, { timeout: 5000 });
 
     // Check how many are actively uploading
     const uploadingCount = await page.locator('.status-uploading').count();
@@ -287,8 +312,13 @@ test.describe('Resource Exhaustion Tests - TUS Upload', () => {
     const fileInput = page.locator(UPPY_FILE_INPUT_SELECTOR);
     await fileInput.setInputFiles(files);
 
-    // Wait for processing
-    await page.waitForTimeout(30000);
+    // EVENT-DRIVEN: Wait for uploads to complete or fail
+    await page.waitForFunction(() => {
+      const completed = document.querySelectorAll('.upload-complete').length;
+      const failed = document.querySelectorAll('.upload-error').length;
+      const total = document.querySelectorAll('.tus-file-item').length;
+      return (completed + failed) === total && total > 0;
+    }, { timeout: 45000 });
 
     // Check request patterns
     const requests = networkMonitor.getRequests(/upload/);
@@ -338,8 +368,11 @@ test.describe('Resource Exhaustion Tests - Uppy Upload', () => {
     // Should show in dashboard
     await expect(page.locator('.uppy-Dashboard-Item').first()).toBeVisible({ timeout: 5000 });
 
-    // Wait for processing
-    await page.waitForTimeout(30000);
+    // EVENT-DRIVEN: Wait for dashboard to finish processing files
+    await page.waitForFunction(() => {
+      const statusBar = document.querySelector('.uppy-StatusBar-statusPrimary');
+      return statusBar && (statusBar.textContent?.includes('Upload') || statusBar.textContent?.includes('complete'));
+    }, { timeout: 45000 });
 
     // Check memory
     const peakMemoryMB = memoryMonitor.getPeakUsage() / (1024 * 1024);
@@ -367,8 +400,10 @@ test.describe('Resource Exhaustion Tests - Uppy Upload', () => {
       }
     });
 
-    // Should show restriction error
-    await page.waitForTimeout(2000);
+    // EVENT-DRIVEN: Wait for error informer to appear
+    await page.waitForSelector('.uppy-Informer', { state: 'visible', timeout: 5000 }).catch(() =>
+      page.waitForSelector('.uppy-Dashboard-Item', { state: 'attached', timeout: 5000 })
+    );
 
     // Check for error in UI
     const hasError = await page.locator('.uppy-Informer').count() > 0;
@@ -392,7 +427,12 @@ test.describe('Resource Exhaustion Tests - Uppy Upload', () => {
     const fileInput = page.locator(UPPY_FILE_INPUT_SELECTOR);
     await fileInput.setInputFiles(files);
 
-    await page.waitForTimeout(2000);
+    // EVENT-DRIVEN: Wait for dashboard to process files or show error
+    await page.waitForFunction(() => {
+      const items = document.querySelectorAll('.uppy-Dashboard-Item');
+      const informer = document.querySelector('.uppy-Informer');
+      return items.length > 0 || informer !== null;
+    }, { timeout: 5000 });
 
     // Should show informer about limits or restrict additions
     const fileCount = await page.locator('.uppy-Dashboard-Item').count();

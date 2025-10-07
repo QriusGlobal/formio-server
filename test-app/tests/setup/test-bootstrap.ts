@@ -21,7 +21,7 @@ async function testBootstrap() {
     const config = loadFormioConfig();
     console.log('  ✅ Configuration loaded:');
     console.log(`     - Base URL: ${config.baseURL}`);
-    console.log(`     - Has Token: ${config.token ? 'Yes (' + config.token.substring(0, 20) + '...)' : 'No'}`);
+    console.log(`     - Has Token: ${config.token ? `Yes (${config.token.length} chars)` : 'No'}`);
     console.log(`     - Form ID: ${config.formId || 'Not set'}`);
     console.log(`     - Project ID: ${config.projectId || 'Not set'}`);
 
@@ -60,7 +60,7 @@ async function testBootstrap() {
       try {
         const auth = await api.login(email, password);
         console.log('  ✅ Login successful');
-        console.log(`     - Token: ${auth.token.substring(0, 30)}...`);
+        console.log(`     - Token length: ${auth.token.length} chars`);
         console.log(`     - User: ${auth.user.email || 'Unknown'}`);
       } catch (error) {
         console.log('  ❌ Login failed - check credentials');

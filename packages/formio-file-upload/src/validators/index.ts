@@ -2,6 +2,10 @@
  * Custom validators for file upload components
  */
 
+// Export security utilities
+export * from './magicNumbers';
+export * from './sanitizeFilename';
+
 export function registerValidators() {
   return {
     fileSize: fileSizeValidator,

@@ -2756,6 +2756,504 @@ exports.UploadStatus = void 0;
 })(exports.UploadStatus || (exports.UploadStatus = {}));
 
 /**
+ * Magic Number (File Signature) Verification
+ *
+ * Validates file types by inspecting actual file content (magic numbers)
+ * to prevent MIME type spoofing attacks.
+ *
+ * Security: Prevents attackers from uploading malicious files by changing
+ * the MIME type or file extension.
+ */
+/**
+ * File type signatures (magic numbers)
+ * Each signature is an array of byte values at the start of the file
+ */
+const FILE_SIGNATURES = {
+    // Images
+    'image/jpeg': {
+        mime: 'image/jpeg',
+        signatures: [
+            [0xFF, 0xD8, 0xFF, 0xDB], // JPEG raw
+            [0xFF, 0xD8, 0xFF, 0xE0], // JPEG JFIF
+            [0xFF, 0xD8, 0xFF, 0xE1], // JPEG EXIF
+            [0xFF, 0xD8, 0xFF, 0xE2], // JPEG still
+            [0xFF, 0xD8, 0xFF, 0xE3], // JPEG Samsung
+        ],
+        description: 'JPEG Image'
+    },
+    'image/png': {
+        mime: 'image/png',
+        signatures: [
+            [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]
+        ],
+        description: 'PNG Image'
+    },
+    'image/gif': {
+        mime: 'image/gif',
+        signatures: [
+            [0x47, 0x49, 0x46, 0x38, 0x37, 0x61], // GIF87a
+            [0x47, 0x49, 0x46, 0x38, 0x39, 0x61], // GIF89a
+        ],
+        description: 'GIF Image'
+    },
+    'image/webp': {
+        mime: 'image/webp',
+        signatures: [
+            [0x52, 0x49, 0x46, 0x46, null, null, null, null, 0x57, 0x45, 0x42, 0x50]
+        ],
+        description: 'WebP Image'
+    },
+    'image/bmp': {
+        mime: 'image/bmp',
+        signatures: [
+            [0x42, 0x4D]
+        ],
+        description: 'BMP Image'
+    },
+    'image/tiff': {
+        mime: 'image/tiff',
+        signatures: [
+            [0x49, 0x49, 0x2A, 0x00], // Little-endian
+            [0x4D, 0x4D, 0x00, 0x2A], // Big-endian
+        ],
+        description: 'TIFF Image'
+    },
+    // Documents
+    'application/pdf': {
+        mime: 'application/pdf',
+        signatures: [
+            [0x25, 0x50, 0x44, 0x46, 0x2D] // %PDF-
+        ],
+        description: 'PDF Document'
+    },
+    // Archives
+    'application/zip': {
+        mime: 'application/zip',
+        signatures: [
+            [0x50, 0x4B, 0x03, 0x04], // ZIP local file header
+            [0x50, 0x4B, 0x05, 0x06], // ZIP empty archive
+            [0x50, 0x4B, 0x07, 0x08], // ZIP spanned archive
+        ],
+        description: 'ZIP Archive'
+    },
+    'application/x-rar-compressed': {
+        mime: 'application/x-rar-compressed',
+        signatures: [
+            [0x52, 0x61, 0x72, 0x21, 0x1A, 0x07, 0x00], // RAR v1.5+
+            [0x52, 0x61, 0x72, 0x21, 0x1A, 0x07, 0x01, 0x00], // RAR v5.0+
+        ],
+        description: 'RAR Archive'
+    },
+    'application/x-7z-compressed': {
+        mime: 'application/x-7z-compressed',
+        signatures: [
+            [0x37, 0x7A, 0xBC, 0xAF, 0x27, 0x1C]
+        ],
+        description: '7-Zip Archive'
+    },
+    // Microsoft Office (ZIP-based)
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': {
+        mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        signatures: [
+            [0x50, 0x4B, 0x03, 0x04] // ZIP (needs content inspection)
+        ],
+        description: 'Microsoft Word Document (DOCX)'
+    },
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': {
+        mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        signatures: [
+            [0x50, 0x4B, 0x03, 0x04] // ZIP (needs content inspection)
+        ],
+        description: 'Microsoft Excel Spreadsheet (XLSX)'
+    },
+    // Video
+    'video/mp4': {
+        mime: 'video/mp4',
+        signatures: [
+            [0x00, 0x00, 0x00, null, 0x66, 0x74, 0x79, 0x70] // ftyp
+        ],
+        description: 'MP4 Video'
+    },
+    'video/webm': {
+        mime: 'video/webm',
+        signatures: [
+            [0x1A, 0x45, 0xDF, 0xA3]
+        ],
+        description: 'WebM Video'
+    },
+    // Audio
+    'audio/mpeg': {
+        mime: 'audio/mpeg',
+        signatures: [
+            [0xFF, 0xFB], // MP3 with MPEG-1 Layer 3
+            [0xFF, 0xF3], // MP3 with MPEG-2 Layer 3
+            [0xFF, 0xF2], // MP3 with MPEG-2.5 Layer 3
+            [0x49, 0x44, 0x33], // MP3 with ID3v2
+        ],
+        description: 'MP3 Audio'
+    },
+    'audio/wav': {
+        mime: 'audio/wav',
+        signatures: [
+            [0x52, 0x49, 0x46, 0x46, null, null, null, null, 0x57, 0x41, 0x56, 0x45]
+        ],
+        description: 'WAV Audio'
+    },
+};
+/**
+ * Verify file type by checking magic numbers
+ *
+ * @param file - File to verify
+ * @param expectedType - Expected MIME type
+ * @returns Promise<boolean> - True if file matches expected type
+ */
+async function verifyFileType(file, expectedType) {
+    try {
+        // Get file signature from database
+        const signature = FILE_SIGNATURES[expectedType];
+        // If no signature defined, allow the file (fallback to MIME check only)
+        if (!signature) {
+            console.warn(`[Security] No signature defined for MIME type: ${expectedType}`);
+            return true;
+        }
+        // Read enough bytes to check signature (12 bytes covers most formats)
+        const buffer = await file.slice(0, 12).arrayBuffer();
+        const bytes = new Uint8Array(buffer);
+        // Check if file matches any of the valid signatures
+        const isValid = signature.signatures.some(sig => matchesSignature(bytes, sig));
+        if (!isValid) {
+            console.warn(`[Security] File signature mismatch for ${file.name}`, {
+                declaredType: expectedType,
+                fileBytes: Array.from(bytes.slice(0, 8)).map(b => `0x${b.toString(16).toUpperCase().padStart(2, '0')}`).join(' '),
+                expectedSignatures: signature.signatures.map(s => s.map(b => b === null ? 'XX' : `0x${b.toString(16).toUpperCase().padStart(2, '0')}`).join(' '))
+            });
+        }
+        return isValid;
+    }
+    catch (error) {
+        console.error('[Security] Error verifying file type:', error);
+        // Fail securely: reject file if verification fails
+        return false;
+    }
+}
+/**
+ * Check if file bytes match a signature pattern
+ *
+ * @param bytes - File bytes to check
+ * @param signature - Expected signature (null = any byte)
+ * @returns boolean - True if matches
+ */
+function matchesSignature(bytes, signature) {
+    return signature.every((expectedByte, index) => {
+        // null means "any byte" (wildcard)
+        if (expectedByte === null) {
+            return true;
+        }
+        // Check if byte matches
+        return bytes[index] === expectedByte;
+    });
+}
+
+/**
+ * Filename Sanitization Utilities
+ *
+ * Prevents security vulnerabilities related to malicious filenames:
+ * - Path traversal attacks (../../etc/passwd)
+ * - Double extension attacks (.jpg.php)
+ * - Special character exploits
+ * - Null byte injection
+ * - XSS in filenames
+ */
+/**
+ * Dangerous file extensions that should never be allowed
+ */
+const DANGEROUS_EXTENSIONS = [
+    // Executables
+    '.exe', '.com', '.bat', '.cmd', '.sh', '.bash', '.zsh',
+    // Scripts
+    '.js', '.mjs', '.cjs', '.vbs', '.vbe', '.ps1', '.psm1',
+    // Server-side code
+    '.php', '.php3', '.php4', '.php5', '.phtml', '.phps',
+    '.asp', '.aspx', '.jsp', '.jspx',
+    '.cgi', '.pl', '.py', '.rb',
+    // Configuration files
+    '.htaccess', '.htpasswd', '.ini', '.conf',
+    // Compressed executables
+    '.scr', '.pif', '.application', '.gadget', '.msi', '.msp',
+    '.jar', '.war', '.ear',
+    // Links and shortcuts
+    '.lnk', '.url', '.desktop',
+    // Web archives that can execute
+    '.hta', '.htr',
+];
+/**
+ * Characters that are dangerous in filenames
+ */
+const DANGEROUS_CHARS = /[<>:"/\\|?*\x00-\x1f\x7f]/g;
+/**
+ * Path traversal patterns
+ */
+const PATH_TRAVERSAL = /\.\.[/\\]/g;
+/**
+ * Maximum safe filename length (POSIX standard is 255 bytes)
+ */
+const MAX_FILENAME_LENGTH = 255;
+/**
+ * Reserved Windows filenames
+ */
+const RESERVED_NAMES = [
+    'CON', 'PRN', 'AUX', 'NUL',
+    'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9',
+    'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9',
+];
+/**
+ * Sanitize filename to prevent security vulnerabilities
+ *
+ * @param filename - Original filename
+ * @param options - Sanitization options
+ * @returns Sanitized filename
+ */
+function sanitizeFilename(filename, options = {}) {
+    const { replacement = '_', maxLength = 200, preserveExtension = false, addTimestamp = true, lowercase = false, allowUnicode = true, } = options;
+    if (!filename || typeof filename !== 'string') {
+        return generateSafeFallbackName();
+    }
+    let safe = filename;
+    // Remove null bytes (security risk)
+    safe = safe.replace(/\0/g, '');
+    // Remove any path components (path traversal prevention)
+    safe = safe.replace(/^.*[/\\]/, '');
+    // Remove path traversal patterns
+    safe = safe.replace(PATH_TRAVERSAL, replacement);
+    // Split into name and extension
+    const lastDotIndex = safe.lastIndexOf('.');
+    let name = lastDotIndex > 0 ? safe.substring(0, lastDotIndex) : safe;
+    let ext = lastDotIndex > 0 ? safe.substring(lastDotIndex) : '';
+    // Convert to lowercase if requested
+    if (lowercase) {
+        name = name.toLowerCase();
+        ext = ext.toLowerCase();
+    }
+    // Check for dangerous double extensions
+    if (!preserveExtension) {
+        const dangerousExtFound = DANGEROUS_EXTENSIONS.some(dangerousExt => {
+            const extLower = ext.toLowerCase();
+            const nameLower = name.toLowerCase();
+            // Check if extension is dangerous
+            if (extLower === dangerousExt) {
+                return true;
+            }
+            // Check for double extension (.jpg.php)
+            if (nameLower.endsWith(dangerousExt)) {
+                return true;
+            }
+            return false;
+        });
+        if (dangerousExtFound) {
+            console.warn(`[Security] Dangerous extension detected in: ${filename}`);
+            // Replace dangerous extension with safe marker
+            ext = ext.replace(/\./g, '_') + '.safe';
+            name = name.replace(/\./g, '_');
+        }
+    }
+    // Replace dangerous characters in name
+    name = name.replace(DANGEROUS_CHARS, replacement);
+    // Replace dangerous characters in extension
+    ext = ext.replace(DANGEROUS_CHARS, replacement);
+    // Remove non-ASCII characters if not allowed
+    if (!allowUnicode) {
+        name = name.replace(/[^\x00-\x7F]/g, replacement);
+        ext = ext.replace(/[^\x00-\x7F]/g, replacement);
+    }
+    // Remove leading/trailing dots and spaces (Windows compatibility)
+    name = name.replace(/^[.\s]+|[.\s]+$/g, '');
+    ext = ext.replace(/^[.\s]+|[.\s]+$/g, '');
+    // Check for reserved Windows names
+    const nameUpper = name.toUpperCase();
+    if (RESERVED_NAMES.includes(nameUpper)) {
+        console.warn(`[Security] Reserved Windows filename detected: ${name}`);
+        name = `file_${name}`;
+    }
+    // Collapse multiple replacements
+    const multipleReplacement = new RegExp(`${escapeRegex(replacement)}{2,}`, 'g');
+    name = name.replace(multipleReplacement, replacement);
+    // Ensure name is not empty
+    if (!name || name === replacement) {
+        name = 'unnamed';
+    }
+    // Add timestamp to prevent collisions
+    if (addTimestamp) {
+        const timestamp = Date.now();
+        name = `${name}_${timestamp}`;
+    }
+    // Enforce length limit (leave room for extension)
+    const maxNameLength = Math.min(maxLength, MAX_FILENAME_LENGTH - ext.length - 1);
+    if (name.length > maxNameLength) {
+        name = name.substring(0, maxNameLength);
+        // Remove trailing replacement character
+        name = name.replace(new RegExp(`${escapeRegex(replacement)}+$`), '');
+    }
+    // Ensure extension starts with dot
+    if (ext && !ext.startsWith('.')) {
+        ext = '.' + ext;
+    }
+    // Combine name and extension
+    const sanitized = name + ext;
+    // Final validation
+    if (sanitized.length > MAX_FILENAME_LENGTH) {
+        console.warn(`[Security] Filename too long after sanitization: ${sanitized.length} bytes`);
+        return generateSafeFallbackName();
+    }
+    // Log if filename was changed significantly
+    if (sanitized !== filename) {
+        console.info(`[Security] Filename sanitized: "${filename}" -> "${sanitized}"`);
+    }
+    return sanitized;
+}
+/**
+ * Generate a safe fallback filename
+ *
+ * @returns Safe filename with timestamp
+ */
+function generateSafeFallbackName() {
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).substring(2, 8);
+    return `file_${timestamp}_${random}`;
+}
+/**
+ * Escape special regex characters
+ *
+ * @param str - String to escape
+ * @returns Escaped string
+ */
+function escapeRegex(str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Custom validators for file upload components
+ */
+// Export security utilities
+function registerValidators() {
+    return {
+        fileSize: fileSizeValidator,
+        fileType: fileTypeValidator,
+        virusScan: virusScanValidator,
+        imageResolution: imageResolutionValidator
+    };
+}
+/**
+ * Validate file size
+ */
+function fileSizeValidator(context) {
+    const { component, value } = context;
+    if (!value)
+        return true;
+    const files = Array.isArray(value) ? value : [value];
+    const maxSize = parseFileSize(component.fileMaxSize);
+    const minSize = parseFileSize(component.fileMinSize);
+    for (const file of files) {
+        if (maxSize && file.size > maxSize) {
+            return `File ${file.name} exceeds maximum size of ${component.fileMaxSize}`;
+        }
+        if (minSize && file.size < minSize) {
+            return `File ${file.name} is smaller than minimum size of ${component.fileMinSize}`;
+        }
+    }
+    return true;
+}
+/**
+ * Validate file type
+ */
+function fileTypeValidator(context) {
+    const { component, value } = context;
+    if (!value || !component.filePattern || component.filePattern === '*') {
+        return true;
+    }
+    const files = Array.isArray(value) ? value : [value];
+    const allowedTypes = parseFilePattern(component.filePattern);
+    for (const file of files) {
+        const fileExt = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+        const fileMime = file.type;
+        let isAllowed = false;
+        for (const pattern of allowedTypes) {
+            if (pattern.startsWith('.') && fileExt === pattern) {
+                isAllowed = true;
+                break;
+            }
+            if (pattern.includes('/') && fileMime.match(new RegExp(pattern.replace('*', '.*')))) {
+                isAllowed = true;
+                break;
+            }
+        }
+        if (!isAllowed) {
+            return `File type ${fileExt} is not allowed. Allowed types: ${component.filePattern}`;
+        }
+    }
+    return true;
+}
+/**
+ * Validate virus scan (placeholder - requires server-side implementation)
+ */
+async function virusScanValidator(context) {
+    const { component, value } = context;
+    if (!value || !component.virusScan) {
+        return true;
+    }
+    // This would need to call a server-side virus scanning API
+    // For now, we'll just return true
+    console.log('Virus scan validation would be performed server-side');
+    return true;
+}
+/**
+ * Validate image resolution
+ */
+function imageResolutionValidator(context) {
+    const { component, value } = context;
+    if (!value || !component.imageMinResolution && !component.imageMaxResolution) {
+        return true;
+    }
+    const files = Array.isArray(value) ? value : [value];
+    for (const file of files) {
+        if (!file.type.startsWith('image/')) {
+            continue;
+        }
+        // This would need to load the image and check dimensions
+        // For now, we'll skip this validation
+        console.log('Image resolution validation would be performed client-side');
+    }
+    return true;
+}
+/**
+ * Helper function to parse file size strings
+ */
+function parseFileSize(size) {
+    if (!size)
+        return null;
+    const units = {
+        'B': 1,
+        'KB': 1024,
+        'MB': 1024 * 1024,
+        'GB': 1024 * 1024 * 1024,
+        'TB': 1024 * 1024 * 1024 * 1024
+    };
+    const match = size.match(/^(\d+(?:\.\d+)?)\s*([KMGT]?B)$/i);
+    if (!match)
+        return null;
+    const value = parseFloat(match[1]);
+    const unit = match[2].toUpperCase();
+    return value * (units[unit] || 1);
+}
+/**
+ * Helper function to parse file patterns
+ */
+function parseFilePattern(pattern) {
+    if (!pattern || pattern === '*')
+        return ['*'];
+    return pattern.split(',').map(p => p.trim());
+}
+
+/**
  * TUS File Upload Component for Form.io
  *
  * Extends Form.io's base File component to provide TUS resumable upload capabilities
@@ -2949,6 +3447,11 @@ class TusFileUploadComponent extends FileComponent$1 {
         for (const file of files) {
             this.isUploading = true;
             try {
+                // Security: Validate file before upload
+                const validationResult = await this.validateFile(file);
+                if (!validationResult.valid) {
+                    throw new Error(validationResult.error || 'File validation failed');
+                }
                 const result = await this.uploadFile(file);
                 results.push(result);
                 this.emit('fileUploadComplete', result);
@@ -2962,11 +3465,95 @@ class TusFileUploadComponent extends FileComponent$1 {
         this.isUploading = false;
         return results;
     }
-    uploadFile(file) {
-        return new Promise((resolve, reject) => {
+    async validateFile(file) {
+        // File size validation
+        const maxSize = this.parseFileSize(this.component.fileMaxSize);
+        const minSize = this.parseFileSize(this.component.fileMinSize);
+        if (maxSize && file.size > maxSize) {
+            return {
+                valid: false,
+                error: `File size exceeds maximum allowed (${this.component.fileMaxSize})`
+            };
+        }
+        if (minSize && file.size < minSize) {
+            return {
+                valid: false,
+                error: `File size is below minimum required (${this.component.fileMinSize})`
+            };
+        }
+        // File type validation
+        if (this.component.filePattern && this.component.filePattern !== '*') {
+            const allowedTypes = this.parseFilePattern(this.component.filePattern);
+            const fileExt = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+            const isAllowed = allowedTypes.some(pattern => {
+                if (pattern.startsWith('.')) {
+                    return fileExt === pattern;
+                }
+                if (pattern.includes('/')) {
+                    return file.type.match(new RegExp(pattern.replace('*', '.*')));
+                }
+                return false;
+            });
+            if (!isAllowed) {
+                return {
+                    valid: false,
+                    error: `File type not allowed. Allowed: ${this.component.filePattern}`
+                };
+            }
+        }
+        return { valid: true };
+    }
+    parseFileSize(size) {
+        if (!size)
+            return null;
+        const units = {
+            'B': 1,
+            'KB': 1024,
+            'MB': 1024 * 1024,
+            'GB': 1024 * 1024 * 1024
+        };
+        const match = size.match(/^(\d+(?:\.\d+)?)\s*([KMGT]?B)$/i);
+        if (!match)
+            return null;
+        const value = parseFloat(match[1]);
+        const unit = match[2].toUpperCase();
+        return value * (units[unit] || 1);
+    }
+    parseFilePattern(pattern) {
+        if (!pattern || pattern === '*')
+            return ['*'];
+        return pattern.split(',').map(p => p.trim());
+    }
+    async uploadFile(file) {
+        return new Promise(async (resolve, reject) => {
+            // Security: Sanitize filename to prevent path traversal and XSS
+            const safeName = sanitizeFilename(file.name, {
+                addTimestamp: true,
+                preserveExtension: false
+            });
+            // Security: Verify file type matches content (magic number check)
+            const isValidType = await verifyFileType(file, file.type);
+            if (!isValidType) {
+                reject({
+                    id: this.generateFileId(),
+                    name: safeName,
+                    size: file.size,
+                    type: file.type,
+                    storage: 'tus',
+                    status: exports.UploadStatus.FAILED,
+                    error: {
+                        code: 'INVALID_FILE_TYPE',
+                        message: 'File content does not match declared type. This file may be dangerous.'
+                    },
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                });
+                return;
+            }
             const uploadFile = {
                 id: this.generateFileId(),
-                name: file.name,
+                name: safeName,
+                originalName: file.name,
                 size: file.size,
                 type: file.type,
                 storage: 'tus',
@@ -2981,7 +3568,8 @@ class TusFileUploadComponent extends FileComponent$1 {
                 headers: this.getHeaders(),
                 metadata: {
                     ...this.getMetadata(),
-                    filename: file.name,
+                    filename: safeName,
+                    originalFilename: file.name,
                     filetype: file.type || 'application/octet-stream'
                 },
                 onError: (error) => {
@@ -3001,8 +3589,29 @@ class TusFileUploadComponent extends FileComponent$1 {
                 },
                 onSuccess: () => {
                     uploadFile.status = exports.UploadStatus.COMPLETED;
-                    uploadFile.url = upload.url;
+                    uploadFile.url = upload.url ?? undefined;
                     uploadFile.uploadId = upload.url?.split('/').pop();
+                    // Create Form.io compatible file data
+                    const fileData = {
+                        name: uploadFile.name,
+                        size: uploadFile.size,
+                        type: uploadFile.type,
+                        url: uploadFile.url,
+                        storage: 'tus',
+                        originalName: file.name,
+                        uploadId: uploadFile.uploadId
+                    };
+                    // Update Form.io component value (handle single vs multiple files)
+                    if (this.component.multiple) {
+                        const currentValue = this.dataValue || [];
+                        this.dataValue = Array.isArray(currentValue) ? [...currentValue, fileData] : [fileData];
+                    }
+                    else {
+                        this.dataValue = fileData;
+                    }
+                    // Trigger Form.io updates to propagate value to form submission
+                    this.updateValue();
+                    this.triggerChange();
                     this.updateProgress(uploadFile);
                     resolve(uploadFile);
                 }
@@ -3053,14 +3662,27 @@ class TusFileUploadComponent extends FileComponent$1 {
     getValue() {
         return this.dataValue;
     }
-    setValue(value) {
-        this.dataValue = value;
+    setValue(value, flags = {}) {
+        const changed = super.setValue(value, flags);
+        if (changed) {
+            this.redraw();
+            this.triggerChange();
+        }
+        return changed;
     }
     getValueAsString(value) {
         if (Array.isArray(value)) {
             return value.map(val => val.name || val.url || '').join(', ');
         }
         return value?.name || value?.url || '';
+    }
+    getView(value) {
+        if (!value)
+            return '';
+        if (Array.isArray(value)) {
+            return value.map(file => `<a href="${file.url}" target="_blank" rel="noopener noreferrer">${file.name}</a>`).join('<br>');
+        }
+        return `<a href="${value.url}" target="_blank" rel="noopener noreferrer">${value.name}</a>`;
     }
 }
 
@@ -18422,10 +19044,10 @@ class UppyFileUploadComponent extends FileComponent {
             autoProceed: this.component.uppyOptions?.autoProceed || false,
             allowMultipleUploadBatches: this.component.uppyOptions?.allowMultipleUploadBatches !== false,
             restrictions: {
-                maxFileSize: this.parseFileSize(this.component.fileMaxSize),
-                minFileSize: this.parseFileSize(this.component.fileMinSize),
+                maxFileSize: this.parseFileSize(this.component.fileMaxSize) ?? undefined,
+                minFileSize: this.parseFileSize(this.component.fileMinSize) ?? undefined,
                 maxNumberOfFiles: this.component.multiple ? 10 : 1,
-                allowedFileTypes: this.parseFilePattern(this.component.filePattern)
+                allowedFileTypes: this.parseFilePattern(this.component.filePattern) ?? undefined
             },
             meta: {
                 formId: this.root?.formId || '',
@@ -18502,8 +19124,26 @@ class UppyFileUploadComponent extends FileComponent {
     setupUppyEventHandlers() {
         if (!this.uppy)
             return;
-        this.uppy.on('file-added', (file) => {
+        this.uppy.on('file-added', async (file) => {
             console.log('[Uppy] File added:', file.name);
+            // Security: Sanitize filename
+            const safeName = sanitizeFilename(file.name, {
+                addTimestamp: true,
+                preserveExtension: false
+            });
+            // Security: Verify file type
+            const isValidType = await verifyFileType(file.data, file.type);
+            if (!isValidType) {
+                console.error('[Uppy Security] File type verification failed:', file.name);
+                this.uppy?.info(`Security: File "${file.name}" content does not match declared type`, 'error', 5000);
+                this.uppy?.removeFile(file.id);
+                return;
+            }
+            // Update file with sanitized name
+            this.uppy?.setFileMeta(file.id, {
+                name: safeName,
+                originalName: file.name
+            });
             this.emit('fileAdded', file);
         });
         this.uppy.on('upload', () => {
@@ -18595,14 +19235,14 @@ class UppyFileUploadComponent extends FileComponent {
     }
     detach() {
         if (this.uppy) {
-            this.uppy.close();
+            this.uppy.cancelAll(); // Cancel all uploads (close() removed in Uppy v3+)
             this.uppy = null;
         }
         return super.detach();
     }
     destroy() {
         if (this.uppy) {
-            this.uppy.close();
+            this.uppy.cancelAll(); // Cancel all uploads (close() removed in Uppy v3+)
             this.uppy = null;
         }
         super.destroy();
@@ -18854,175 +19494,17 @@ function getUppyTemplate() {
 }
 
 /**
- * Custom validators for file upload components
- */
-function registerValidators() {
-    return {
-        fileSize: fileSizeValidator,
-        fileType: fileTypeValidator,
-        virusScan: virusScanValidator,
-        imageResolution: imageResolutionValidator
-    };
-}
-/**
- * Validate file size
- */
-function fileSizeValidator(context) {
-    const { component, value } = context;
-    if (!value)
-        return true;
-    const files = Array.isArray(value) ? value : [value];
-    const maxSize = parseFileSize(component.fileMaxSize);
-    const minSize = parseFileSize(component.fileMinSize);
-    for (const file of files) {
-        if (maxSize && file.size > maxSize) {
-            return `File ${file.name} exceeds maximum size of ${component.fileMaxSize}`;
-        }
-        if (minSize && file.size < minSize) {
-            return `File ${file.name} is smaller than minimum size of ${component.fileMinSize}`;
-        }
-    }
-    return true;
-}
-/**
- * Validate file type
- */
-function fileTypeValidator(context) {
-    const { component, value } = context;
-    if (!value || !component.filePattern || component.filePattern === '*') {
-        return true;
-    }
-    const files = Array.isArray(value) ? value : [value];
-    const allowedTypes = parseFilePattern(component.filePattern);
-    for (const file of files) {
-        const fileExt = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
-        const fileMime = file.type;
-        let isAllowed = false;
-        for (const pattern of allowedTypes) {
-            if (pattern.startsWith('.') && fileExt === pattern) {
-                isAllowed = true;
-                break;
-            }
-            if (pattern.includes('/') && fileMime.match(new RegExp(pattern.replace('*', '.*')))) {
-                isAllowed = true;
-                break;
-            }
-        }
-        if (!isAllowed) {
-            return `File type ${fileExt} is not allowed. Allowed types: ${component.filePattern}`;
-        }
-    }
-    return true;
-}
-/**
- * Validate virus scan (placeholder - requires server-side implementation)
- */
-async function virusScanValidator(context) {
-    const { component, value } = context;
-    if (!value || !component.virusScan) {
-        return true;
-    }
-    // This would need to call a server-side virus scanning API
-    // For now, we'll just return true
-    console.log('Virus scan validation would be performed server-side');
-    return true;
-}
-/**
- * Validate image resolution
- */
-function imageResolutionValidator(context) {
-    const { component, value } = context;
-    if (!value || !component.imageMinResolution && !component.imageMaxResolution) {
-        return true;
-    }
-    const files = Array.isArray(value) ? value : [value];
-    for (const file of files) {
-        if (!file.type.startsWith('image/')) {
-            continue;
-        }
-        // This would need to load the image and check dimensions
-        // For now, we'll skip this validation
-        console.log('Image resolution validation would be performed client-side');
-    }
-    return true;
-}
-/**
- * Helper function to parse file size strings
- */
-function parseFileSize(size) {
-    if (!size)
-        return null;
-    const units = {
-        'B': 1,
-        'KB': 1024,
-        'MB': 1024 * 1024,
-        'GB': 1024 * 1024 * 1024,
-        'TB': 1024 * 1024 * 1024 * 1024
-    };
-    const match = size.match(/^(\d+(?:\.\d+)?)\s*([KMGT]?B)$/i);
-    if (!match)
-        return null;
-    const value = parseFloat(match[1]);
-    const unit = match[2].toUpperCase();
-    return value * (units[unit] || 1);
-}
-/**
- * Helper function to parse file patterns
- */
-function parseFilePattern(pattern) {
-    if (!pattern || pattern === '*')
-        return ['*'];
-    return pattern.split(',').map(p => p.trim());
-}
-
-/**
  * Form.io File Upload Module
  *
  * Provides enterprise-grade file upload capabilities for Form.io
  * using TUS resumable upload protocol and Uppy.js UI
  */
 // Module definition following Form.io module specification
+// Form.io only supports 'components' property in modules
 const FormioFileUploadModule = {
-    // Module name for identification
-    name: 'file-upload',
-    // Custom components registration
     components: {
         tusupload: TusFileUploadComponent,
         uppyupload: UppyFileUploadComponent
-    },
-    // Storage providers
-    providers: {
-        storage: {
-            file: FileStorageProvider
-        }
-    },
-    // Template registration hook
-    templates: {
-        default: registerTemplates('default')
-    },
-    // Validation rules
-    validators: registerValidators(),
-    // Module initialization
-    init: (Formio) => {
-        console.log('[FormioFileUpload] Module initialized');
-        // Register global configuration if needed
-        if (Formio.config) {
-            Formio.config.fileUpload = {
-                tusEndpoint: '/files',
-                maxFileSize: 5 * 1024 * 1024 * 1024, // 5GB
-                chunkSize: 8 * 1024 * 1024, // 8MB
-                allowedTypes: '*',
-                ...Formio.config.fileUpload
-            };
-        }
-        // Add global event handlers
-        Formio.events.on('fileUploadStart', (data) => {
-            console.log('[FormioFileUpload] Upload started:', data);
-        });
-        Formio.events.on('fileUploadComplete', (data) => {
-            console.log('[FormioFileUpload] Upload completed:', data);
-        });
-        return Promise.resolve();
     }
 };
 
@@ -19030,4 +19512,6 @@ exports.FileStorageProvider = FileStorageProvider;
 exports.TusFileUploadComponent = TusFileUploadComponent;
 exports.UppyFileUploadComponent = UppyFileUploadComponent;
 exports.default = FormioFileUploadModule;
+exports.registerTemplates = registerTemplates;
+exports.registerValidators = registerValidators;
 //# sourceMappingURL=index.js.map

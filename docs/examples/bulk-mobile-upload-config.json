@@ -1,0 +1,242 @@
+{
+  "_comment": "Form.io TUS Bulk Mobile Upload Configuration Example",
+  "_description": "Ready-to-use configuration for bulk photo uploads with mobile camera access",
+  "_documentation": "See /docs/TUS_BULK_MOBILE_UPLOAD_GUIDE.md for complete documentation",
+
+  "type": "tusupload",
+  "key": "bulkMobilePhotoUpload",
+  "label": "Upload Photos",
+
+  "_section": "=== BULK UPLOAD CONFIGURATION ===",
+  "multiple": true,
+  "_comment_multiple": "Enables selecting 10-15+ files at once from any device",
+
+  "_section": "=== TUS RESUMABLE UPLOAD ===",
+  "storage": "tus",
+  "tusEndpoint": "http://localhost:1080/files/",
+  "_comment_tusEndpoint": "Replace with your TUS server endpoint URL",
+
+  "chunkSize": 5,
+  "_comment_chunkSize": "5MB chunks - mobile-optimized (use 3MB for 3G/4G, 8MB for WiFi/5G)",
+
+  "resumable": true,
+  "_comment_resumable": "Auto-resume uploads on network reconnection",
+
+  "parallelUploads": 3,
+  "_comment_parallelUploads": "Upload 3 files simultaneously (range: 1-10, use 2 for mobile networks)",
+
+  "retryDelays": [0, 3000, 5000, 10000, 20000],
+  "_comment_retryDelays": "Auto-retry with exponential backoff (milliseconds)",
+
+  "_section": "=== MOBILE CAMERA & FILE SELECTION ===",
+  "filePattern": "image/*",
+  "_comment_filePattern": "Accepts all image types; triggers camera option on mobile devices",
+
+  "capture": "environment",
+  "_comment_capture": "Hints for rear camera on mobile (use 'user' for front/selfie camera)",
+  "_note_capture": "Desktop browsers ignore this gracefully - they show webcam option if available",
+
+  "_section": "=== FILE SIZE LIMITS ===",
+  "fileMinSize": "10KB",
+  "_comment_fileMinSize": "Minimum file size per file",
+
+  "fileMaxSize": "50MB",
+  "_comment_fileMaxSize": "Maximum size per individual file",
+
+  "_section": "=== VALIDATION RULES ===",
+  "validate": {
+    "required": false,
+    "_comment_required": "Set to true if at least one file must be uploaded",
+
+    "minFiles": 1,
+    "_comment_minFiles": "Minimum number of files required",
+
+    "maxFiles": 15,
+    "_comment_maxFiles": "Maximum number of files allowed (10-20 recommended for bulk uploads)",
+
+    "maxTotalSize": 750000000,
+    "_comment_maxTotalSize": "750MB total (15 files × 50MB) in bytes",
+
+    "custom": "",
+    "_comment_custom": "Optional: JavaScript validation function name"
+  },
+
+  "_section": "=== USER INTERFACE ===",
+  "placeholder": "Tap to select up to 15 photos from camera or photo library",
+  "_comment_placeholder": "Instructional text shown before file selection",
+
+  "description": "Select photos from your camera, photo library, or file browser. Uploads will auto-resume if connection is lost.",
+  "_comment_description": "Help text displayed below the upload field",
+
+  "tableView": false,
+  "_comment_tableView": "Hide file URLs in table view (show count instead)",
+
+  "input": true,
+  "_comment_input": "Marks this as an input component (required for Form.io)",
+
+  "_section": "=== FORM.IO STANDARD PROPERTIES ===",
+  "persistent": true,
+  "_comment_persistent": "Save uploaded file data to submission",
+
+  "protected": false,
+  "_comment_protected": "Set true to encrypt file URLs in database",
+
+  "hidden": false,
+  "disabled": false,
+  "conditional": {
+    "show": null,
+    "when": null,
+    "eq": ""
+  },
+
+  "_section": "=== DEVICE COMPATIBILITY NOTES ===",
+  "_devices": {
+    "iOS_iPhone": {
+      "camera_access": true,
+      "multi_select": true,
+      "options": ["Take Photo", "Photo Library", "Browse"]
+    },
+    "iOS_iPad": {
+      "camera_access": true,
+      "cameras": ["Front", "Rear"],
+      "multi_select": true,
+      "notes": "Full camera access - do NOT disable for tablets"
+    },
+    "Android_Phone": {
+      "camera_access": true,
+      "multi_select": true,
+      "options": ["Camera", "Gallery", "Files"]
+    },
+    "Android_Tablet": {
+      "camera_access": true,
+      "cameras": ["Front", "Rear"],
+      "multi_select": true
+    },
+    "Laptop_MacBook": {
+      "camera_access": true,
+      "camera_type": "Built-in FaceTime webcam",
+      "multi_select": true,
+      "notes": "95%+ of laptops have webcams - enable camera access"
+    },
+    "Laptop_Windows": {
+      "camera_access": true,
+      "camera_type": "Integrated webcam",
+      "multi_select": true
+    },
+    "Desktop_with_Webcam": {
+      "camera_access": true,
+      "camera_type": "External USB webcam (Logitech, Razer, etc.)",
+      "multi_select": true
+    },
+    "Desktop_NO_Webcam": {
+      "camera_access": false,
+      "fallback": "File picker works normally",
+      "multi_select": true,
+      "notes": "Graceful degradation - no errors, camera option hidden"
+    },
+    "Surface_Pro": {
+      "camera_access": true,
+      "cameras": ["Front", "Rear"],
+      "multi_select": true,
+      "notes": "Hybrid device - full camera support like iPad"
+    }
+  },
+
+  "_section": "=== BROWSER SUPPORT ===",
+  "_browser_support": {
+    "iOS_Safari_12_plus": "Full support",
+    "iOS_Chrome_12_plus": "Full support",
+    "Android_Chrome_8_plus": "Full support",
+    "Android_Samsung_8_plus": "Full support",
+    "Desktop_Chrome_53_plus": "Full support (webcam if available)",
+    "Desktop_Firefox_36_plus": "Full support (webcam if available)",
+    "Desktop_Safari_11_plus": "Full support (webcam if available)",
+    "Desktop_Edge_79_plus": "Full support (webcam if available)",
+    "global_coverage": "95%+ of browsers in use"
+  },
+
+  "_section": "=== USAGE EXAMPLES ===",
+  "_example_1": {
+    "use_case": "Mobile photo upload (iPhone/Android)",
+    "user_flow": [
+      "User taps 'Upload Photos' button",
+      "Native picker shows: Camera | Photo Library | Browse",
+      "User selects 'Photo Library' and picks 12 photos",
+      "TUS uploads 3 files in parallel (configurable)",
+      "If network drops, uploads auto-resume from last chunk",
+      "All 12 photos submitted successfully"
+    ]
+  },
+
+  "_example_2": {
+    "use_case": "Laptop webcam capture (MacBook)",
+    "user_flow": [
+      "User clicks 'Upload Photos' button",
+      "Browser shows: Browse Files | 📷 Take Photo",
+      "User clicks 'Take Photo', webcam opens",
+      "Browser requests camera permission (one-time)",
+      "User captures photo with webcam",
+      "Photo uploads via TUS with resume capability"
+    ]
+  },
+
+  "_example_3": {
+    "use_case": "Tablet camera (iPad Pro)",
+    "user_flow": [
+      "User taps 'Upload Photos' on iPad",
+      "Options: Take Photo (Rear) | Take Photo (Front) | Photo Library",
+      "User selects 'Take Photo (Rear)' for high-quality shot",
+      "Takes 15 photos of documents/site inspection",
+      "Uploads 3 at a time while moving around (network may switch)",
+      "TUS handles network changes, auto-resumes if needed"
+    ]
+  },
+
+  "_section": "=== PERFORMANCE OPTIMIZATION ===",
+  "_performance": {
+    "WiFi_5G": {
+      "chunkSize": 8,
+      "parallelUploads": 5,
+      "notes": "High-speed networks can handle larger chunks and more parallel uploads"
+    },
+    "4G_LTE": {
+      "chunkSize": 5,
+      "parallelUploads": 3,
+      "notes": "Balanced configuration for typical mobile networks"
+    },
+    "4G_3G": {
+      "chunkSize": 3,
+      "parallelUploads": 2,
+      "notes": "Smaller chunks for slower networks, fewer parallel uploads"
+    },
+    "recommendation": "Use default 5MB chunks with 3 parallel uploads - works well across all networks"
+  },
+
+  "_section": "=== TROUBLESHOOTING ===",
+  "_troubleshooting": {
+    "camera_not_appearing_laptop": {
+      "check": ["Browser supports MediaDevices API", "Camera not blocked in settings", "No other app using camera"],
+      "solution": "Check browser console: navigator.mediaDevices.enumerateDevices()"
+    },
+    "uploads_fail_mobile_network": {
+      "cause": "Chunk size too large for cellular speed",
+      "solution": "Reduce chunkSize to 3MB, increase retryDelays"
+    },
+    "multi_select_not_working_ios": {
+      "check": ["'multiple: true' in config", "iOS version >= 12.0"],
+      "solution": "Update iOS or verify multiple attribute is set"
+    },
+    "uploads_pause_never_resume": {
+      "cause": ["Browser tab backgrounded (mobile Safari)", "Upload expired on server (24hr default)"],
+      "solution": "Keep tab in foreground, increase server expirationPeriod to 7 days"
+    }
+  },
+
+  "_section": "=== RELATED DOCUMENTATION ===",
+  "_see_also": [
+    "/docs/TUS_BULK_MOBILE_UPLOAD_GUIDE.md - Complete guide",
+    "/packages/formio-file-upload/README.md - Component documentation",
+    "/docs/INTEGRATION_STATUS.md - Integration status",
+    "/formio/src/upload/README.md - TUS server configuration"
+  ]
+}

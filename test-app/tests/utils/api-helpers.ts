@@ -285,7 +285,8 @@ export class FormioApiHelper {
 }
 
 /**
- * Wait for upload to complete in GCS
+ * Wait for upload to complete in GCS (event-driven)
+ * Replaces polling loop with exponential backoff retry pattern
  */
 export async function waitForGCSUpload(
   request: APIRequestContext,
@@ -294,6 +295,8 @@ export async function waitForGCSUpload(
 ): Promise<boolean> {
   const gcs = new GCSApiHelper();
   const startTime = Date.now();
+  let retryDelay = 100; // Start with 100ms
+  const maxDelay = 2000; // Max 2s between checks
 
   while (Date.now() - startTime < timeoutMs) {
     const verification = await gcs.verifyFileExists(request, filename);
@@ -301,7 +304,9 @@ export async function waitForGCSUpload(
       return true;
     }
 
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Exponential backoff with jitter
+    await new Promise(resolve => setTimeout(resolve, retryDelay));
+    retryDelay = Math.min(retryDelay * 1.5, maxDelay);
   }
 
   return false;

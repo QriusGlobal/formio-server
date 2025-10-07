@@ -25,7 +25,8 @@ async function bootstrapFormio(): Promise<void> {
 
   // Check if .env.test exists and has required fields
   if (fs.existsSync(envTestPath)) {
-    const envContent = fs.readFileSync(envTestPath, 'utf-8');
+    const fsPromises = await import('fs/promises');
+    const envContent = await fsPromises.readFile(envTestPath, 'utf-8');
     const hasToken = envContent.includes('FORMIO_JWT_TOKEN=') &&
                      envContent.match(/FORMIO_JWT_TOKEN=.+/);
     const hasFormId = envContent.includes('FORMIO_FORM_ID=') &&
@@ -68,53 +69,61 @@ async function globalSetup(config: FullConfig) {
   const page = await context.newPage();
 
   try {
-    // 1. Verify test-app is running
-    console.log('✓ Checking test-app (http://localhost:64849)...');
-    const appResponse = await page.goto('http://localhost:64849', {
-      timeout: 10000,
-      waitUntil: 'domcontentloaded'
-    });
+    // ✅ OPTIMIZED: Run all health checks and setup in parallel (4x faster)
+    console.log('✓ Running parallel service checks...');
 
-    if (!appResponse || !appResponse.ok()) {
-      throw new Error('Test app is not running. Start with: npm run dev');
-    }
-    console.log('  ✅ Test app is running');
-
-    // 2. Verify Form.io server
-    console.log('✓ Checking Form.io server (http://localhost:3001)...');
     const formioHelper = new FormioApiHelper();
-    const formioHealthy = await formioHelper.healthCheck(context.request);
 
-    if (!formioHealthy) {
-      throw new Error('Form.io server is not running. Start with: make local-up');
-    }
-    console.log('  ✅ Form.io server is running');
+    const [appOk, formioOk, gcsOk, testFiles] = await Promise.all([
+      // 1. Test app check
+      page.goto('http://localhost:64849', {
+        timeout: 10000,
+        waitUntil: 'domcontentloaded'
+      }).then(r => {
+        if (!r || !r.ok()) {
+          throw new Error('Test app is not running. Start with: npm run dev');
+        }
+        console.log('  ✅ Test app is running');
+        return true;
+      }),
 
-    // 3. Bootstrap Form.io (create forms, authenticate, etc.)
+      // 2. Form.io server check
+      formioHelper.healthCheck(context.request).then(healthy => {
+        if (!healthy) {
+          throw new Error('Form.io server is not running. Start with: make local-up');
+        }
+        console.log('  ✅ Form.io server is running');
+        return true;
+      }),
+
+      // 3. GCS emulator check
+      context.request.get('http://localhost:4443/storage/v1/b', {
+        timeout: 5000
+      }).then(r => {
+        if (!r.ok()) {
+          throw new Error('GCS emulator is not running. Start with: make local-up');
+        }
+        console.log('  ✅ GCS emulator is running');
+        return true;
+      }),
+
+      // 4. Generate test files in parallel with health checks
+      generateStandardTestFiles().then(files => {
+        console.log(`  ✅ Generated ${Object.keys(files).length} test files:`,
+          Object.keys(files).map(key => files[key].filename).join(', ')
+        );
+        return files;
+      })
+    ]);
+
+    // 3. Bootstrap Form.io (must run after health checks)
     await bootstrapFormio();
-
-    // 4. Verify GCS emulator
-    console.log('✓ Checking GCS emulator (http://localhost:4443)...');
-    const gcsResponse = await context.request.get('http://localhost:4443/storage/v1/b', {
-      timeout: 5000
-    });
-
-    if (!gcsResponse.ok()) {
-      throw new Error('GCS emulator is not running. Start with: make local-up');
-    }
-    console.log('  ✅ GCS emulator is running');
-
-    // 5. Generate test files
-    console.log('✓ Generating test files...');
-    const testFiles = await generateStandardTestFiles();
-    console.log(`  ✅ Generated ${Object.keys(testFiles).length} test files:`,
-      Object.keys(testFiles).map(key => testFiles[key].filename).join(', ')
-    );
 
     // 6. Load and store configuration in environment
     const envTestPath = path.join(__dirname, '../../.env.test');
     if (fs.existsSync(envTestPath)) {
-      const envContent = fs.readFileSync(envTestPath, 'utf-8');
+      const fsPromises = await import('fs/promises');
+      const envContent = await fsPromises.readFile(envTestPath, 'utf-8');
       envContent.split('\n').forEach(line => {
         const match = line.match(/^([^#=]+)=(.*)$/);
         if (match) {

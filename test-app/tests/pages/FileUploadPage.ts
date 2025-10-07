@@ -47,6 +47,18 @@ export class FileUploadPage {
    * Upload file using input
    */
   async uploadFile(filePath: string): Promise<void> {
+    // Wait for Form.io to render the form
+    await this.page.waitForSelector('.formio-form', {
+      state: 'visible',
+      timeout: 15000
+    });
+
+    // Wait for file input specifically
+    await this.uploadInput.waitFor({
+      state: 'visible',
+      timeout: 10000
+    });
+
     await this.uploadInput.setInputFiles(filePath);
   }
 
@@ -54,6 +66,18 @@ export class FileUploadPage {
    * Upload multiple files
    */
   async uploadMultipleFiles(filePaths: string[]): Promise<void> {
+    // Wait for Form.io to render the form
+    await this.page.waitForSelector('.formio-form', {
+      state: 'visible',
+      timeout: 15000
+    });
+
+    // Wait for file input specifically
+    await this.uploadInput.waitFor({
+      state: 'visible',
+      timeout: 10000
+    });
+
     await this.uploadInput.setInputFiles(filePaths);
   }
 
@@ -140,8 +164,8 @@ export class FileUploadPage {
     const path = await download.path();
     if (!path) throw new Error('Download failed');
 
-    const fs = require('fs');
-    return fs.readFileSync(path);
+    const fs = await import('fs/promises');
+    return await fs.readFile(path);
   }
 
   /**

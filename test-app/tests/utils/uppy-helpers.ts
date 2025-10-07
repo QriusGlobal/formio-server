@@ -64,6 +64,7 @@ export function createTestFile(filename: string, content: string, mimeType: stri
  */
 export async function generateTestImages(count: number, basePath: string): Promise<string[]> {
   const files: string[] = [];
+  const fsPromises = await import('fs/promises');
 
   for (let i = 0; i < count; i++) {
     const filename = `test-image-${i + 1}.png`;
@@ -82,7 +83,7 @@ export async function generateTestImages(count: number, basePath: string): Promi
       0x42, 0x60, 0x82 // CRC
     ]);
 
-    fs.writeFileSync(filepath, pngData);
+    await fsPromises.writeFile(filepath, pngData);
     files.push(filepath);
   }
 
@@ -228,7 +229,8 @@ export async function dragAndDropFile(
   filePath: string,
   dropZoneSelector = '.uppy-Dashboard-dropFilesHereHint'
 ): Promise<void> {
-  const fileBuffer = fs.readFileSync(filePath);
+  const fsPromises = await import('fs/promises');
+  const fileBuffer = await fsPromises.readFile(filePath);
   const fileName = path.basename(filePath);
 
   // Create DataTransfer with file
@@ -329,6 +331,171 @@ export async function verifyValidationError(
   const error = await getErrorMessage(page);
   expect(error).toBeTruthy();
   expect(error).toContain(errorMessage);
+}
+
+/**
+ * Wait for validation error to appear
+ * Replaces arbitrary timeouts with event-driven error detection
+ */
+export async function waitForValidationError(
+  page: Page,
+  timeout = 5000
+): Promise<string | null> {
+  try {
+    // Wait for error informer to become visible
+    const errorElement = page.locator('.uppy-Informer-error').first();
+    await errorElement.waitFor({ state: 'visible', timeout });
+    return await errorElement.textContent();
+  } catch {
+    // Check if file was simply not added (silent rejection)
+    const fileCount = await getFileCount(page);
+    if (fileCount === 0) {
+      return 'File rejected (not added to list)';
+    }
+    return null;
+  }
+}
+
+/**
+ * Wait for error state on file item
+ * Detects error icons or error states on individual files
+ */
+export async function waitForFileError(
+  page: Page,
+  filename?: string,
+  timeout = 3000
+): Promise<boolean> {
+  try {
+    let errorLocator;
+    if (filename) {
+      // Find error on specific file
+      const fileItem = page.locator(`.uppy-Dashboard-Item:has-text("${filename}")`).first();
+      errorLocator = fileItem.locator('.uppy-Dashboard-Item--error, [data-uppy-file-error]');
+    } else {
+      // Find any file error
+      errorLocator = page.locator('.uppy-Dashboard-Item--error, [data-uppy-file-error]').first();
+    }
+    await errorLocator.waitFor({ state: 'visible', timeout });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Wait for file rejection (not added to list)
+ * Useful for validation that prevents file from being added
+ */
+export async function waitForFileRejection(
+  page: Page,
+  initialCount: number,
+  timeout = 2000
+): Promise<boolean> {
+  // Wait a moment for file processing
+  await page.waitForTimeout(100);
+
+  try {
+    // Use waitForFunction for precise state monitoring
+    await page.waitForFunction(
+      (count) => {
+        const items = document.querySelectorAll('.uppy-Dashboard-Item, [data-testid="file-card"]');
+        return items.length === count; // File count didn't increase
+      },
+      initialCount,
+      { timeout }
+    );
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Wait for size validation error
+ * Specifically looks for size-related error messages
+ */
+export async function waitForSizeError(
+  page: Page,
+  timeout = 3000
+): Promise<string | null> {
+  try {
+    // Wait for error containing size keywords
+    const errorElement = page.locator('.uppy-Informer-error:has-text(/size|large|limit|exceeds/i)').first();
+    await errorElement.waitFor({ state: 'visible', timeout });
+    return await errorElement.textContent();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Wait for type validation error
+ * Specifically looks for type-related error messages
+ */
+export async function waitForTypeError(
+  page: Page,
+  timeout = 3000
+): Promise<string | null> {
+  try {
+    // Wait for error containing type keywords
+    const errorElement = page.locator('.uppy-Informer-error:has-text(/type|allowed|invalid|restricted/i)').first();
+    await errorElement.waitFor({ state: 'visible', timeout });
+    return await errorElement.textContent();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Monitor validation state change
+ * Waits for either error display OR file rejection
+ */
+export async function monitorValidationState(
+  page: Page,
+  options: {
+    initialFileCount?: number;
+    expectError?: boolean;
+    expectRejection?: boolean;
+    timeout?: number;
+  } = {}
+): Promise<{
+  hasError: boolean;
+  errorMessage: string | null;
+  wasRejected: boolean;
+  finalFileCount: number;
+}> {
+  const {
+    initialFileCount = 0,
+    expectError = false,
+    expectRejection = false,
+    timeout = 3000
+  } = options;
+
+  // Race between error display and file rejection
+  const results = await Promise.allSettled([
+    waitForValidationError(page, timeout),
+    page.waitForFunction(
+      (count) => {
+        const items = document.querySelectorAll('.uppy-Dashboard-Item, [data-testid="file-card"]');
+        return items.length !== count;
+      },
+      initialFileCount,
+      { timeout }
+    ).catch(() => null)
+  ]);
+
+  const errorMessage = results[0].status === 'fulfilled' ? results[0].value : null;
+  const fileCountChanged = results[1].status === 'fulfilled';
+
+  const finalFileCount = await getFileCount(page);
+  const wasRejected = finalFileCount === initialFileCount;
+
+  return {
+    hasError: errorMessage !== null,
+    errorMessage,
+    wasRejected,
+    finalFileCount
+  };
 }
 
 /**

@@ -40,7 +40,14 @@ test.describe('Browser State Tests - TUS Upload', () => {
     });
 
     await expect(page.locator('.progress-bar')).toBeVisible({ timeout: 5000 });
-    await page.waitForTimeout(2000);
+
+    // Wait for upload to actually start making progress
+    await page.waitForFunction(() => {
+      const text = document.querySelector('.progress-text')?.textContent;
+      const match = text?.match(/(\d+)%/);
+      const progress = match ? parseInt(match[1]) : 0;
+      return progress > 0;
+    }, { timeout: 10000 });
 
     // Get progress before hiding
     const progressBefore = await page.evaluate(() => {
@@ -51,11 +58,17 @@ test.describe('Browser State Tests - TUS Upload', () => {
 
     // Simulate tab becoming hidden
     await simulateTabVisibilityChange(page, true);
-    await page.waitForTimeout(5000);
+
+    // Wait for upload to continue in background (progress should increase)
+    await page.waitForFunction((beforeProgress) => {
+      const text = document.querySelector('.progress-text')?.textContent;
+      const match = text?.match(/(\d+)%/);
+      const currentProgress = match ? parseInt(match[1]) : 0;
+      return currentProgress > beforeProgress;
+    }, progressBefore, { timeout: 15000 });
 
     // Simulate tab becoming visible again
     await simulateTabVisibilityChange(page, false);
-    await page.waitForTimeout(2000);
 
     // Upload should have continued
     const progressAfter = await page.evaluate(() => {
@@ -93,7 +106,14 @@ test.describe('Browser State Tests - TUS Upload', () => {
 
     // Simulate minimize by changing visibility
     await simulateTabVisibilityChange(page, true);
-    await page.waitForTimeout(3000);
+
+    // Wait for upload to continue (check progress is still updating)
+    await page.waitForFunction(() => {
+      const text = document.querySelector('.progress-text')?.textContent;
+      const match = text?.match(/(\d+)%/);
+      const progress = match ? parseInt(match[1]) : 0;
+      return progress > 10; // Wait for meaningful progress
+    }, { timeout: 10000 });
 
     // Restore
     await simulateTabVisibilityChange(page, false);
@@ -120,8 +140,14 @@ test.describe('Browser State Tests - TUS Upload', () => {
 
     await expect(page.locator('.progress-bar')).toBeVisible({ timeout: 5000 });
 
-    // Wait for some progress
-    await page.waitForTimeout(5000);
+    // Wait for meaningful upload progress and localStorage to populate
+    await page.waitForFunction(() => {
+      const text = document.querySelector('.progress-text')?.textContent;
+      const match = text?.match(/(\d+)%/);
+      const progress = match ? parseInt(match[1]) : 0;
+      const hasStorage = Object.keys(localStorage).some(key => key.includes('tus'));
+      return progress >= 20 && hasStorage;
+    }, { timeout: 15000 });
 
     // Get upload URL from localStorage before refresh
     const storageBefore = await getLocalStorage(page);
@@ -129,15 +155,20 @@ test.describe('Browser State Tests - TUS Upload', () => {
 
     // Refresh page
     await page.reload();
-    await page.waitForTimeout(2000);
+
+    // Wait for page to be fully ready after reload
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForFunction(() => document.readyState === 'complete', { timeout: 5000 });
 
     // Check localStorage persisted
     const storageAfter = await getLocalStorage(page);
     expect(storageAfter).toBeTruthy();
 
-    // TUS should support resume - check if file appears in UI
-    // (Implementation depends on whether component auto-resumes)
-    await page.waitForTimeout(3000);
+    // Wait for any auto-resume logic to initialize (check for TUS component readiness)
+    await page.waitForFunction(() => {
+      const input = document.querySelector('input[type="file"]');
+      return input !== null; // Component has re-rendered
+    }, { timeout: 10000 });
 
     // At minimum, no errors should occur
     consoleMonitor.assertNoErrors();
@@ -267,7 +298,13 @@ test.describe('Browser State Tests - TUS Upload', () => {
     });
 
     await expect(page.locator('.progress-bar')).toBeVisible({ timeout: 5000 });
-    await page.waitForTimeout(3000);
+
+    // Wait for localStorage to be populated with TUS data
+    await page.waitForFunction(() => {
+      return Object.keys(localStorage).some(key =>
+        key.includes('tus') && localStorage.getItem(key)?.includes('http')
+      );
+    }, { timeout: 10000 });
 
     // Check localStorage has upload data
     const storage = await getLocalStorage(page);
@@ -337,17 +374,32 @@ test.describe('Browser State Tests - Uppy Upload', () => {
     });
 
     await expect(page.locator('.uppy-StatusBar')).toBeVisible({ timeout: 5000 });
-    await page.waitForTimeout(5000);
+
+    // Wait for upload to start and Golden Retriever to save state
+    await page.waitForFunction(() => {
+      const statusBar = document.querySelector('.uppy-StatusBar-progress');
+      const hasFiles = document.querySelector('.uppy-Dashboard-Item');
+      return statusBar && hasFiles && Object.keys(localStorage).length > 0;
+    }, { timeout: 15000 });
 
     // Refresh page
     await page.reload();
-    await page.waitForTimeout(3000);
+
+    // Wait for page to fully load and Uppy to reinitialize
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForFunction(() => {
+      // Check if Uppy has reinitialized (dashboard is present)
+      return document.querySelector('.uppy-Dashboard') !== null;
+    }, { timeout: 10000 });
 
     // Golden Retriever should auto-resume
     await expect(page.locator('.uppy-StatusBar')).toBeVisible({ timeout: 5000 });
 
-    // Check status indicates resuming
-    await page.waitForTimeout(2000);
+    // Wait for Golden Retriever to restore file (check for dashboard item)
+    await page.waitForFunction(() => {
+      const fileCount = document.querySelectorAll('.uppy-Dashboard-Item').length;
+      return fileCount > 0;
+    }, { timeout: 10000 });
     const hasFile = await page.locator('.uppy-Dashboard-Item').count();
     expect(hasFile).toBeGreaterThan(0);
   });
@@ -371,7 +423,15 @@ test.describe('Browser State Tests - Uppy Upload', () => {
 
     // Simulate tab switch
     await simulateTabVisibilityChange(page, true);
-    await page.waitForTimeout(3000);
+
+    // Wait for upload to continue in hidden state (check progress advancement)
+    await page.waitForFunction(() => {
+      const statusBar = document.querySelector('.uppy-StatusBar-statusSecondary');
+      const progressText = statusBar?.textContent || '';
+      // Check if upload is progressing (bytes uploaded increasing)
+      return progressText.includes('uploaded') || progressText.includes('%');
+    }, { timeout: 10000 });
+
     await simulateTabVisibilityChange(page, false);
 
     // Should continue and complete

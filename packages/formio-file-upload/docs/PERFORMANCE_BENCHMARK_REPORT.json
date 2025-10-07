@@ -1,0 +1,83 @@
+{
+  "build": {
+    "time": 4708,
+    "timeFormatted": "4.71s",
+    "target": 30000,
+    "targetFormatted": "30.00s",
+    "pass": true,
+    "efficiency": "84.3"
+  },
+  "test": {
+    "time": 1528,
+    "timeFormatted": "1.53s",
+    "target": 5000,
+    "targetFormatted": "5.00s",
+    "pass": true,
+    "efficiency": "69.4"
+  },
+  "bundles": {
+    "outputs": {
+      "esm": {
+        "path": "lib/index.esm.js",
+        "size": 852525,
+        "sizeFormatted": "832.54 KB"
+      },
+      "cjs": {
+        "path": "lib/index.js",
+        "size": 852774,
+        "sizeFormatted": "832.79 KB"
+      },
+      "umd": {
+        "path": "dist/formio-file-upload.min.js",
+        "size": 386023,
+        "sizeFormatted": "376.98 KB"
+      },
+      "types": {
+        "path": "lib/index.d.ts",
+        "size": 880,
+        "sizeFormatted": "880 Bytes"
+      }
+    },
+    "sourcemaps": {
+      "esmMap": {
+        "path": "lib/index.esm.js.map",
+        "size": 1706631,
+        "sizeFormatted": "1.63 MB"
+      },
+      "cjsMap": {
+        "path": "lib/index.js.map",
+        "size": 1706659,
+        "sizeFormatted": "1.63 MB"
+      },
+      "umdMap": {
+        "path": "dist/formio-file-upload.min.js.map",
+        "size": 1395342,
+        "sizeFormatted": "1.33 MB"
+      }
+    },
+    "total": 2092202,
+    "pass": true
+  },
+  "security": {
+    "magicNumber": {
+      "iterations": 10000,
+      "avgTime": 0.00019653339999995296,
+      "avgTimeFormatted": "0ms",
+      "target": 5,
+      "targetFormatted": "5ms",
+      "pass": true
+    },
+    "filenameSanitization": {
+      "iterations": 10000,
+      "avgTime": 0.0004164750000000822,
+      "avgTimeFormatted": "0ms",
+      "target": 1,
+      "targetFormatted": "1ms",
+      "pass": true
+    },
+    "overall": {
+      "pass": true
+    }
+  },
+  "overall": {}
+}

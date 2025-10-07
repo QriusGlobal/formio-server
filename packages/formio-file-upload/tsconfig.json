@@ -10,11 +10,12 @@
     "rootDir": "./src",
     "strict": true,
     "noImplicitAny": true,
+    "strictNullChecks": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
     "baseUrl": ".",
     "paths": {
@@ -22,5 +23,15 @@
     }
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "lib", "dist", "test"]
+  "exclude": [
+    "node_modules",
+    "lib",
+    "dist",
+    "test",
+    "src/test-setup.ts",
+    "src/**/*.test.ts",
+    "src/**/*.spec.ts",
+    "**/*.test.ts",
+    "**/*.spec.ts"
+  ]
 }

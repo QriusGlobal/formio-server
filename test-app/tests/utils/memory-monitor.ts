@@ -158,36 +158,60 @@ export async function forceGarbageCollection(page: Page): Promise<void> {
 }
 
 /**
- * Wait for memory to stabilize
+ * Wait for memory to stabilize (event-driven)
+ * Replaces polling loop with page.waitForFunction()
  */
 export async function waitForMemoryStabilization(
   page: Page,
   maxWaitMs: number = 5000,
   checkIntervalMs: number = 500
 ): Promise<void> {
-  const startTime = Date.now();
-  let previousMemory = 0;
-  let stableCount = 0;
-  const requiredStableChecks = 3;
+  // Use page.waitForFunction to monitor memory stability
+  await page.waitForFunction(
+    ({ threshold, requiredChecks, interval }) => {
+      return new Promise<boolean>((resolve) => {
+        if (!performance.memory) {
+          resolve(true); // Memory API not available, consider stable
+          return;
+        }
 
-  while (Date.now() - startTime < maxWaitMs) {
-    const currentMemory = await page.evaluate(() => {
-      return performance.memory ? performance.memory.usedJSHeapSize : 0;
-    });
+        let previousMemory = performance.memory.usedJSHeapSize;
+        let stableCount = 0;
 
-    const diff = Math.abs(currentMemory - previousMemory);
-    const threshold = 1024 * 1024; // 1MB
+        const checkStability = () => {
+          const currentMemory = performance.memory!.usedJSHeapSize;
+          const diff = Math.abs(currentMemory - previousMemory);
 
-    if (diff < threshold) {
-      stableCount++;
-      if (stableCount >= requiredStableChecks) {
-        return;
-      }
-    } else {
-      stableCount = 0;
-    }
+          if (diff < threshold) {
+            stableCount++;
+            if (stableCount >= requiredChecks) {
+              resolve(true);
+              return true;
+            }
+          } else {
+            stableCount = 0;
+          }
 
-    previousMemory = currentMemory;
-    await page.waitForTimeout(checkIntervalMs);
-  }
+          previousMemory = currentMemory;
+          return false;
+        };
+
+        // Check immediately
+        if (checkStability()) return;
+
+        // Set up interval checking
+        const intervalId = setInterval(() => {
+          if (checkStability()) {
+            clearInterval(intervalId);
+          }
+        }, interval);
+      });
+    },
+    {
+      threshold: 1024 * 1024, // 1MB
+      requiredChecks: 3,
+      interval: checkIntervalMs
+    },
+    { timeout: maxWaitMs }
+  );
 }

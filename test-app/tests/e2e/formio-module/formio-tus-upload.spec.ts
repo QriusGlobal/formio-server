@@ -87,15 +87,43 @@ trailer << /Root 1 0 R >>
       }
     };
 
-    // Start upload
+    // Start upload with event-driven progress monitoring
     await tusComponent.uploadFile(largeFile.path);
 
-    // Monitor progress
-    const progressInterval = setInterval(checkProgress, 500);
+    // Set up progress event listener in browser
+    await page.evaluate(() => {
+      const progressValues: number[] = [];
+      (window as any).__progressValues = progressValues;
+
+      const observer = new MutationObserver(() => {
+        const progressElement = document.querySelector('[data-progress]');
+        if (progressElement) {
+          const progress = parseInt(progressElement.getAttribute('data-progress') || '0');
+          if (progress > 0 && !progressValues.includes(progress)) {
+            progressValues.push(progress);
+          }
+        }
+      });
+
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['data-progress']
+      });
+
+      (window as any).__progressObserver = observer;
+    });
 
     // Wait for completion
     await tusComponent.waitForUploadComplete();
-    clearInterval(progressInterval);
+
+    // Disconnect observer and retrieve values
+    const progressValues = await page.evaluate(() => {
+      const observer = (window as any).__progressObserver;
+      if (observer) observer.disconnect();
+      return (window as any).__progressValues || [];
+    });
 
     // Verify progress increased incrementally
     expect(progressValues.length).toBeGreaterThan(2);
