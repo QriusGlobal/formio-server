@@ -1,353 +1,332 @@
-# Claude Code Configuration - SPARC Development Environment
+# Form.io Server - Complete Project Context
 
-## 🚨 CRITICAL: CONCURRENT EXECUTION & FILE MANAGEMENT
+**Form.io Version:** 4.5.2
+**Node.js Requirements:** >=20.0.0
+**License:** OSL-3.0
+**Primary Stack:** Express.js + MongoDB + Mongoose
+**Codebase:** 189 source files + 58 test files
 
-**ABSOLUTE RULES**:
-1. ALL operations MUST be concurrent/parallel in a single message
-2. **NEVER save working files, text/mds and tests to the root folder**
-3. ALWAYS organize files in appropriate subdirectories
-4. **USE CLAUDE CODE'S TASK TOOL** for spawning agents concurrently, not just MCP
+## 🏗️ Project Architecture
 
-### ⚡ GOLDEN RULE: "1 MESSAGE = ALL RELATED OPERATIONS"
+### System Overview
+Form.io is a form builder and submission management platform that provides:
+- **Dynamic Form Builder**: JSON-based form definitions with 40+ component types
+- **Submission Engine**: Data validation, transformation, and storage
+- **Workflow Actions**: Post-submission triggers (email, webhooks, role assignment)
+- **Permission System**: Multi-layer access control (form, submission, field level)
+- **File Uploads**: TUS protocol with GCS storage integration
+- **Template System**: Import/export of complete form applications
 
-**MANDATORY PATTERNS:**
-- **TodoWrite**: ALWAYS batch ALL todos in ONE call (5-10+ todos minimum)
-- **Task tool (Claude Code)**: ALWAYS spawn ALL agents in ONE message with full instructions
-- **File operations**: ALWAYS batch ALL reads/writes/edits in ONE message
-- **Bash commands**: ALWAYS batch ALL terminal operations in ONE message
-- **Memory operations**: ALWAYS batch ALL memory store/retrieve in ONE message
+### Core Request Flow
+```
+1. Express Router (/index.js:31)
+   ↓
+2. Middleware Stack (47 middleware modules)
+   ↓
+3. Resource Handler (/src/resources/)
+   ↓
+4. Model Layer (/src/models/)
+   ↓
+5. MongoDB (via Mongoose)
+   ↓
+6. Action Triggers (/src/actions/)
+```
 
-### 🎯 CRITICAL: Claude Code Task Tool for Agent Execution
+## 📁 Directory Structure
 
-**Claude Code's Task tool is the PRIMARY way to spawn agents:**
+```
+formio/
+├── src/                    # Core application code (189 files)
+│   ├── actions/            # Workflow engine (11 files)
+│   ├── authentication/     # Auth utilities (2 files)
+│   ├── cache/              # Caching layer (1 file)
+│   ├── db/                 # Database layer (40 files)
+│   │   ├── updates/        # Schema migrations (33 versions)
+│   │   └── manual/         # Complex migrations (1 file)
+│   ├── export/             # Data export (5 files)
+│   ├── middleware/         # Request processing (47 files)
+│   ├── models/             # Data models (11 files)
+│   ├── plugins/            # Mongoose plugins (3 files)
+│   ├── resources/          # API resources (5 files)
+│   ├── storage/            # File storage (4 files)
+│   ├── templates/          # Form templates (4 files)
+│   ├── upload/             # TUS upload (19 files)
+│   ├── util/               # Utilities (29 files)
+│   └── vm/                 # VM for sandboxed execution (8 files)
+├── test/                   # Test suite (58 files, 35k+ lines)
+├── portal/                 # Admin portal (pre-built)
+└── config/                 # Configuration files
+```
+
+## 🔑 Key Files and Their Purpose
+
+### Entry Points
+| File | Lines | Purpose |
+|------|-------|---------|
+| `/index.js` | 349 | Main router factory, initializes all routes |
+| `/server.js` | 146 | Express server configuration |
+| `/install.js` | 404 | Database setup and initial data |
+| `/main.js` | 10 | Application entry point |
+
+### Data Models (`/src/models/`)
+| File | Lines | Purpose |
+|------|-------|---------|
+| `Form.js` | 264 | Form schema, validation rules, component definitions |
+| `Submission.js` | 109 | Submission data storage and metadata |
+| `Action.js` | 131 | Workflow action configurations |
+| `Role.js` | 79 | User roles and permission sets |
+| `Token.js` | 69 | JWT token management |
+| `AccessSchema.js` | 36 | Permission definition schema |
+
+### API Resources (`/src/resources/`)
+| File | Lines | Purpose |
+|------|-------|---------|
+| `FormResource.js` | 96 | Form CRUD operations |
+| `SubmissionResource.js` | 244 | Submission API endpoints |
+| `Validator.js` | 380 | **Core validation engine** |
+| `RoleResource.js` | 33 | Role management |
+
+### Action System (`/src/actions/`)
+| File | Lines | Purpose |
+|------|-------|---------|
+| `actions.js` | 949 | **Main action orchestrator** |
+| `EmailAction.js` | 302 | Email notification workflows |
+| `LoginAction.js` | 324 | Authentication actions |
+| `RoleAction.js` | 377 | Dynamic role assignment |
+| `SaveSubmission.js` | 296 | Submission persistence |
+| `WebhookAction.js` | 263 | External webhook triggers |
+| `ResetPassword.js` | 463 | Password reset workflow |
+
+### Critical Middleware (`/src/middleware/`)
+| File | Lines | Purpose |
+|------|-------|---------|
+| `permissionHandler.js` | 788 | **Core permission system** |
+| `submissionHandler.js` | 425 | **Submission processing pipeline** |
+| `tokenHandler.js` | 246 | JWT authentication |
+| `formHandler.js` | 56 | Form request processing |
+| `accessHandler.js` | 88 | Access control enforcement |
+
+### Utilities (`/src/util/`)
+| File | Lines | Purpose |
+|------|-------|---------|
+| `util.js` | 887 | **Core utility functions** |
+| `email/index.js` | 567 | Email service integration |
+| `email/renderEmail.js` | 446 | Template rendering engine |
+| `delete.js` | 280 | Cascading delete operations |
+| `swagger.js` | 337 | API documentation generation |
+
+### Database (`/src/db/`)
+| File | Lines | Purpose |
+|------|-------|---------|
+| `index.js` | 819 | **Database initialization and connection** |
+| `install.js` | 164 | Initial setup procedures |
+| `updates/` | ~3000 | 33 migration scripts (1.0.0 → 3.3.20) |
+
+## 🔍 Common Development Patterns
+
+### Working with Forms
 ```javascript
-// ✅ CORRECT: Use Claude Code's Task tool for parallel agent execution
-[Single Message]:
-  Task("Research agent", "Analyze requirements and patterns...", "researcher")
-  Task("Coder agent", "Implement core features...", "coder")
-  Task("Tester agent", "Create comprehensive tests...", "tester")
-  Task("Reviewer agent", "Review code quality...", "reviewer")
-  Task("Architect agent", "Design system architecture...", "system-architect")
+// Key files for form operations:
+/src/models/Form.js           // Schema and validation
+/src/resources/FormResource.js // API endpoints
+/src/middleware/formHandler.js // Request processing
+/src/middleware/formLoader.js  // Data loading
+
+// Common patterns:
+- Forms stored as JSON with component tree
+- Components have unique keys for data binding
+- Validation rules attached to components
+- Form revisions tracked automatically
 ```
 
-**MCP tools are ONLY for coordination setup:**
-- `mcp__claude-flow__swarm_init` - Initialize coordination topology
-- `mcp__claude-flow__agent_spawn` - Define agent types for coordination
-- `mcp__claude-flow__task_orchestrate` - Orchestrate high-level workflows
-
-### 📁 File Organization Rules
-
-**NEVER save to root folder. Use these directories:**
-- `/src` - Source code files
-- `/tests` - Test files
-- `/docs` - Documentation and markdown files
-- `/config` - Configuration files
-- `/scripts` - Utility scripts
-- `/examples` - Example code
-
-## Project Overview
-
-This project uses SPARC (Specification, Pseudocode, Architecture, Refinement, Completion) methodology with Claude-Flow orchestration for systematic Test-Driven Development.
-
-## SPARC Commands
-
-### Core Commands
-- `bunx claude-flow sparc modes` - List available modes
-- `bunx claude-flow sparc run <mode> "<task>"` - Execute specific mode
-- `bunx claude-flow sparc tdd "<feature>"` - Run complete TDD workflow
-- `bunx claude-flow sparc info <mode>` - Get mode details
-
-### Batchtools Commands
-- `bunx claude-flow sparc batch <modes> "<task>"` - Parallel execution
-- `bunx claude-flow sparc pipeline "<task>"` - Full pipeline processing
-- `bunx claude-flow sparc concurrent <mode> "<tasks-file>"` - Multi-task processing
-
-### Build Commands (Using Bun Runtime)
-- `bun run build` - Build project (5-10x faster than npm)
-- `bun run test` - Run tests
-- `bun run lint` - Linting
-- `bun run typecheck` - Type checking
-
-## SPARC Workflow Phases
-
-1. **Specification** - Requirements analysis (`sparc run spec-pseudocode`)
-2. **Pseudocode** - Algorithm design (`sparc run spec-pseudocode`)
-3. **Architecture** - System design (`sparc run architect`)
-4. **Refinement** - TDD implementation (`sparc tdd`)
-5. **Completion** - Integration (`sparc run integration`)
-
-## Code Style & Best Practices
-
-- **Modular Design**: Files under 500 lines
-- **Environment Safety**: Never hardcode secrets
-- **Test-First**: Write tests before implementation
-- **Clean Architecture**: Separate concerns
-- **Documentation**: Keep updated
-
-## 🚀 Available Agents (54 Total)
-
-### Core Development
-`coder`, `reviewer`, `tester`, `planner`, `researcher`
-
-### Swarm Coordination
-`hierarchical-coordinator`, `mesh-coordinator`, `adaptive-coordinator`, `collective-intelligence-coordinator`, `swarm-memory-manager`
-
-### Consensus & Distributed
-`byzantine-coordinator`, `raft-manager`, `gossip-coordinator`, `consensus-builder`, `crdt-synchronizer`, `quorum-manager`, `security-manager`
-
-### Performance & Optimization
-`perf-analyzer`, `performance-benchmarker`, `task-orchestrator`, `memory-coordinator`, `smart-agent`
-
-### GitHub & Repository
-`github-modes`, `pr-manager`, `code-review-swarm`, `issue-tracker`, `release-manager`, `workflow-automation`, `project-board-sync`, `repo-architect`, `multi-repo-swarm`
-
-### SPARC Methodology
-`sparc-coord`, `sparc-coder`, `specification`, `pseudocode`, `architecture`, `refinement`
-
-### Specialized Development
-`backend-dev`, `mobile-dev`, `ml-developer`, `cicd-engineer`, `api-docs`, `system-architect`, `code-analyzer`, `base-template-generator`
-
-### Testing & Validation
-`tdd-london-swarm`, `production-validator`
-
-### Migration & Planning
-`migration-planner`, `swarm-init`
-
-## 🎯 Claude Code vs MCP Tools
-
-### Claude Code Handles ALL EXECUTION:
-- **Task tool**: Spawn and run agents concurrently for actual work
-- File operations (Read, Write, Edit, MultiEdit, Glob, Grep)
-- Code generation and programming
-- Bash commands and system operations
-- Implementation work
-- Project navigation and analysis
-- TodoWrite and task management
-- Git operations
-- Package management
-- Testing and debugging
-
-### MCP Tools ONLY COORDINATE:
-- Swarm initialization (topology setup)
-- Agent type definitions (coordination patterns)
-- Task orchestration (high-level planning)
-- Memory management
-- Neural features
-- Performance tracking
-- GitHub integration
-
-**KEY**: MCP coordinates the strategy, Claude Code's Task tool executes with real agents.
-
-## 🚀 Quick Setup (Bun Runtime)
-
-```bash
-# Add MCP servers (Claude Flow required, others optional)
-# Note: Using bunx for faster startup and execution
-claude mcp add claude-flow bunx claude-flow@alpha mcp start
-claude mcp add ruv-swarm bunx ruv-swarm mcp start  # Optional: Enhanced coordination
-claude mcp add flow-nexus bunx flow-nexus@latest mcp start  # Optional: Cloud features
-```
-
-## MCP Tool Categories
-
-### Coordination
-`swarm_init`, `agent_spawn`, `task_orchestrate`
-
-### Monitoring
-`swarm_status`, `agent_list`, `agent_metrics`, `task_status`, `task_results`
-
-### Memory & Neural
-`memory_usage`, `neural_status`, `neural_train`, `neural_patterns`
-
-### GitHub Integration
-`github_swarm`, `repo_analyze`, `pr_enhance`, `issue_triage`, `code_review`
-
-### System
-`benchmark_run`, `features_detect`, `swarm_monitor`
-
-### Flow-Nexus MCP Tools (Optional Advanced Features)
-Flow-Nexus extends MCP capabilities with 70+ cloud-based orchestration tools:
-
-**Key MCP Tool Categories:**
-- **Swarm & Agents**: `swarm_init`, `swarm_scale`, `agent_spawn`, `task_orchestrate`
-- **Sandboxes**: `sandbox_create`, `sandbox_execute`, `sandbox_upload` (cloud execution)
-- **Templates**: `template_list`, `template_deploy` (pre-built project templates)
-- **Neural AI**: `neural_train`, `neural_patterns`, `seraphina_chat` (AI assistant)
-- **GitHub**: `github_repo_analyze`, `github_pr_manage` (repository management)
-- **Real-time**: `execution_stream_subscribe`, `realtime_subscribe` (live monitoring)
-- **Storage**: `storage_upload`, `storage_list` (cloud file management)
-
-**Authentication Required:**
-- Register: `mcp__flow-nexus__user_register` or `bunx flow-nexus@latest register`
-- Login: `mcp__flow-nexus__user_login` or `bunx flow-nexus@latest login`
-- Access 70+ specialized MCP tools for advanced orchestration
-
-## 🚀 Agent Execution Flow with Claude Code
-
-### The Correct Pattern:
-
-1. **Optional**: Use MCP tools to set up coordination topology
-2. **REQUIRED**: Use Claude Code's Task tool to spawn agents that do actual work
-3. **REQUIRED**: Each agent runs hooks for coordination
-4. **REQUIRED**: Batch all operations in single messages
-
-### Example Full-Stack Development:
-
+### Working with Submissions
 ```javascript
-// Single message with all agent spawning via Claude Code's Task tool
-[Parallel Agent Execution]:
-  Task("Backend Developer", "Build REST API with Express. Use hooks for coordination.", "backend-dev")
-  Task("Frontend Developer", "Create React UI. Coordinate with backend via memory.", "coder")
-  Task("Database Architect", "Design PostgreSQL schema. Store schema in memory.", "code-analyzer")
-  Task("Test Engineer", "Write Jest tests. Check memory for API contracts.", "tester")
-  Task("DevOps Engineer", "Setup Docker and CI/CD. Document in memory.", "cicd-engineer")
-  Task("Security Auditor", "Review authentication. Report findings via hooks.", "reviewer")
-  
-  // All todos batched together
-  TodoWrite { todos: [...8-10 todos...] }
-  
-  // All file operations together
-  Write "backend/server.js"
-  Write "frontend/App.jsx"
-  Write "database/schema.sql"
+// Key files for submission operations:
+/src/models/Submission.js               // Data model
+/src/resources/SubmissionResource.js    // API layer
+/src/middleware/submissionHandler.js    // Processing
+/src/actions/SaveSubmission.js          // Persistence
+
+// Common patterns:
+- Submissions reference parent form
+- Data stored in flexible JSON structure
+- Validation runs before save
+- Actions trigger after successful save
 ```
 
-## 📋 Agent Coordination Protocol
-
-### Every Agent Spawned via Task Tool MUST:
-
-**1️⃣ BEFORE Work:**
-```bash
-bunx claude-flow@alpha hooks pre-task --description "[task]"
-bunx claude-flow@alpha hooks session-restore --session-id "swarm-[id]"
-```
-
-**2️⃣ DURING Work:**
-```bash
-bunx claude-flow@alpha hooks post-edit --file "[file]" --memory-key "swarm/[agent]/[step]"
-bunx claude-flow@alpha hooks notify --message "[what was done]"
-```
-
-**3️⃣ AFTER Work:**
-```bash
-bunx claude-flow@alpha hooks post-task --task-id "[task]"
-bunx claude-flow@alpha hooks session-end --export-metrics true
-```
-
-## 🎯 Concurrent Execution Examples
-
-### ✅ CORRECT WORKFLOW: MCP Coordinates, Claude Code Executes
-
+### Working with Permissions
 ```javascript
-// Step 1: MCP tools set up coordination (optional, for complex tasks)
-[Single Message - Coordination Setup]:
-  mcp__claude-flow__swarm_init { topology: "mesh", maxAgents: 6 }
-  mcp__claude-flow__agent_spawn { type: "researcher" }
-  mcp__claude-flow__agent_spawn { type: "coder" }
-  mcp__claude-flow__agent_spawn { type: "tester" }
+// Key files for permission system:
+/src/middleware/permissionHandler.js    // Core logic
+/src/models/AccessSchema.js             // Permission model
+/src/middleware/accessHandler.js        // Enforcement
+/src/models/Role.js                     // Role definitions
 
-// Step 2: Claude Code Task tool spawns ACTUAL agents that do the work
-[Single Message - Parallel Agent Execution]:
-  // Claude Code's Task tool spawns real agents concurrently
-  Task("Research agent", "Analyze API requirements and best practices. Check memory for prior decisions.", "researcher")
-  Task("Coder agent", "Implement REST endpoints with authentication. Coordinate via hooks.", "coder")
-  Task("Database agent", "Design and implement database schema. Store decisions in memory.", "code-analyzer")
-  Task("Tester agent", "Create comprehensive test suite with 90% coverage.", "tester")
-  Task("Reviewer agent", "Review code quality and security. Document findings.", "reviewer")
-  
-  // Batch ALL todos in ONE call
-  TodoWrite { todos: [
-    {id: "1", content: "Research API patterns", status: "in_progress", priority: "high"},
-    {id: "2", content: "Design database schema", status: "in_progress", priority: "high"},
-    {id: "3", content: "Implement authentication", status: "pending", priority: "high"},
-    {id: "4", content: "Build REST endpoints", status: "pending", priority: "high"},
-    {id: "5", content: "Write unit tests", status: "pending", priority: "medium"},
-    {id: "6", content: "Integration tests", status: "pending", priority: "medium"},
-    {id: "7", content: "API documentation", status: "pending", priority: "low"},
-    {id: "8", content: "Performance optimization", status: "pending", priority: "low"}
-  ]}
-  
-  // Parallel file operations
-  Bash "mkdir -p app/{src,tests,docs,config}"
-  Write "app/package.json"
-  Write "app/src/server.js"
-  Write "app/tests/server.test.js"
-  Write "app/docs/API.md"
+// Permission levels:
+1. Form-level (who can view/edit forms)
+2. Submission-level (who can submit/view/edit data)
+3. Field-level (conditional field access)
+4. Resource-level (API endpoint access)
 ```
 
-### ❌ WRONG (Multiple Messages):
+### Working with Actions
 ```javascript
-Message 1: mcp__claude-flow__swarm_init
-Message 2: Task("agent 1")
-Message 3: TodoWrite { todos: [single todo] }
-Message 4: Write "file.js"
-// This breaks parallel coordination!
+// Key files for action system:
+/src/actions/actions.js         // Main orchestrator
+/src/models/Action.js           // Action configuration
+/src/actions/EmailAction.js     // Email example
+/src/actions/WebhookAction.js   // Webhook example
+
+// Action flow:
+1. Form submission validated
+2. Actions triggered in priority order
+3. Each action executes independently
+4. Errors logged but don't block submission
 ```
 
-## Performance Benefits
+## 🧪 Testing Infrastructure
 
-- **84.8% SWE-Bench solve rate**
-- **32.3% token reduction**
-- **2.8-4.4x speed improvement**
-- **27+ neural models**
+### Test Coverage
+- **5,657 lines**: Form API tests (`/test/form.js`)
+- **5,772 lines**: Submission tests (`/test/submission.js`)
+- **5,998 lines**: Action workflow tests (`/test/actions.js`)
+- **11,155 lines**: Access control tests (`/test/submission-access.js`)
+- **1,958 lines**: Authentication tests (`/test/auth.js`)
+- **3,897 lines**: Template system tests (`/test/templates.js`)
 
-## Hooks Integration
+### Running Tests
+```bash
+# Full test suite
+npm test
 
-### Pre-Operation
-- Auto-assign agents by file type
-- Validate commands for safety
-- Prepare resources automatically
-- Optimize topology by complexity
-- Cache searches
+# Specific test file
+mocha test/form.js -b -t 60000
 
-### Post-Operation
-- Auto-format code
-- Train neural patterns
-- Update memory
-- Analyze performance
-- Track token usage
+# With coverage
+npm run test:coverage
+```
 
-### Session Management
-- Generate summaries
-- Persist state
-- Track metrics
-- Restore context
-- Export workflows
+## 🚀 Development Commands
 
-## Advanced Features (v2.0.0)
+### Setup and Run
+```bash
+# Install dependencies
+npm install
 
-- 🚀 Automatic Topology Selection
-- ⚡ Parallel Execution (2.8-4.4x speed)
-- 🧠 Neural Training
-- 📊 Bottleneck Analysis
-- 🤖 Smart Auto-Spawning
-- 🛡️ Self-Healing Workflows
-- 💾 Cross-Session Memory
-- 🔗 GitHub Integration
+# Start development server with auto-reload
+npm run start:dev
 
-## Integration Tips
+# Production server
+npm start
 
-1. Start with basic swarm init
-2. Scale agents gradually
-3. Use memory for context
-4. Monitor progress regularly
-5. Train patterns from success
-6. Enable hooks automation
-7. Use GitHub tools first
+# Build VM bundle
+npm run build:vm
 
-## Support
+# Build admin portal
+npm run build:portal
+```
 
-- Documentation: https://github.com/ruvnet/claude-flow
-- Issues: https://github.com/ruvnet/claude-flow/issues
-- Flow-Nexus Platform: https://flow-nexus.ruv.io (registration required for cloud features)
+### Database Management
+```bash
+# Initialize new project
+node install.js
+
+# Run specific migration
+node src/db/updates/3.1.4.js
+
+# Check database connection
+node src/db/index.js
+```
+
+## 🔧 Configuration
+
+### Environment Variables
+```javascript
+// config/default.json structure:
+{
+  "port": 3001,
+  "host": "localhost",
+  "mongodb": "mongodb://localhost:27017/formio",
+  "redis": {
+    "host": "localhost",
+    "port": 6379
+  },
+  "jwt": {
+    "secret": "CHANGEME",
+    "expireTime": 240
+  }
+}
+```
+
+### Docker Support
+```yaml
+# docker-compose.yml provides:
+- MongoDB container
+- Redis container (optional)
+- Form.io application container
+```
+
+## 💡 Architecture Insights
+
+### Design Principles
+1. **Plugin Architecture**: Extensible via hooks and middleware
+2. **JSON-Driven**: Forms, submissions, and actions all JSON-based
+3. **RESTful API**: Standard HTTP verbs for all operations
+4. **Multi-Tenancy**: Project-based isolation built-in
+5. **Event-Driven**: Actions system for workflows
+
+### Performance Considerations
+- MongoDB indexes on form._id, submission.form
+- Redis caching for frequently accessed data
+- Lazy loading of form components
+- Batch processing for large submissions
+- Stream processing for exports
+
+### Security Features
+- JWT-based authentication
+- Role-based access control (RBAC)
+- Field-level encryption support
+- ReCAPTCHA integration
+- Input sanitization and validation
+- CORS configuration
+
+## 🛠️ Troubleshooting Guide
+
+### Common Issues
+1. **Permission Denied**: Check `/src/middleware/permissionHandler.js`
+2. **Validation Errors**: Debug in `/src/resources/Validator.js`
+3. **Action Not Firing**: Trace through `/src/actions/actions.js`
+4. **Database Issues**: Check `/src/db/index.js` connection
+
+### Debug Points
+```javascript
+// Add debug logging:
+DEBUG=* npm run start:dev           // All debug output
+DEBUG=formio:* npm run start:dev    // Form.io specific
+DEBUG=formio:submission:* npm start // Submission specific
+```
+
+### Key Log Locations
+- Application logs: Console output
+- MongoDB logs: MongoDB log file
+- Action logs: Database action collection
+- Error tracking: `/src/util/error.js`
+
+## 📚 Additional Resources
+
+### Internal Documentation
+- API routes: Auto-documented via Swagger at `/spec.json`
+- Database schema: See model files in `/src/models/`
+- Middleware order: Defined in `/index.js`
+
+### External Dependencies
+- **@formio/core**: Core form rendering logic
+- **@formio/js**: JavaScript form renderer
+- **mongoose**: MongoDB ORM
+- **express**: Web framework
+- **jsonwebtoken**: JWT implementation
+- **nodemailer**: Email sending
 
 ---
 
-Remember: **Claude Flow coordinates, Claude Code creates!**
-
-# important-instruction-reminders
-Do what has been asked; nothing more, nothing less.
-NEVER create files unless they're absolutely necessary for achieving your goal.
-ALWAYS prefer editing an existing file to creating a new one.
-NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
-Never save working files, text/mds and tests to the root folder.
+**Note**: This is a living document. When exploring the codebase, use the file paths and line numbers as starting points, then trace through the code flow to understand the complete picture.

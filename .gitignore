@@ -38,3 +38,5 @@ hive-mind-prompt-*.txt
 .jest-cache/
 .swarm-status.json
 benchmark-results-*.json
+.codecontext/cache/
+.codecontext/logs/
