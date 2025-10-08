@@ -1,0 +1,466 @@
+name: Form.io Custom CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'formio/**'
+      - '.github/workflows/ci-cd.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'formio/**'
+      - '.github/workflows/ci-cd.yml'
+  release:
+    types: [published]
+
+env:
+  REGISTRY: australia-southeast1-docker.pkg.dev
+  PROJECT_ID: erlich-dev
+  REPOSITORY: formio-custom
+  IMAGE_NAME: formio
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+jobs:
+  # Lint and Test Job
+  lint-and-test:
+    name: Lint & Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: formio/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./formio
+        run: npm ci
+
+      - name: Run linting
+        working-directory: ./formio
+        run: npm run lint
+
+      - name: Run unit tests
+        working-directory: ./formio
+        run: npm test
+
+      - name: Generate coverage report
+        working-directory: ./formio
+        run: npm run test:coverage || true
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./formio/coverage/lcov.info
+          flags: formio-server
+          name: Form.io Server Coverage
+
+  # Security Scan Job
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Run npm audit
+        working-directory: ./formio
+        run: npm audit --audit-level moderate
+
+  # Build Docker Image Job
+  build:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    needs: [lint-and-test, security-scan]
+    if: github.event_name != 'pull_request'
+    timeout-minutes: 30
+    outputs:
+      image-digest: ${{ steps.build.outputs.digest }}
+      image-tag: ${{ steps.meta.outputs.tags }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Artifact Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: _json_key
+          password: ${{ secrets.GCP_AR_SA_KEY }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: ./formio
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+          provenance: true
+          sbom: true
+
+  # Integration Test Job
+  integration-test:
+    name: Integration Test
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name != 'pull_request'
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          version: 'latest'
+
+      - name: Deploy test environment
+        run: |
+          gcloud run deploy formio-test-${{ github.run_number }} \
+            --image=${{ needs.build.outputs.image-tag }} \
+            --region=australia-southeast1 \
+            --platform=managed \
+            --allow-unauthenticated \
+            --set-env-vars="NODE_ENV=test,DEBUG=formio:*" \
+            --quiet
+
+      - name: Wait for deployment
+        run: sleep 30
+
+      - name: Run integration tests
+        run: |
+          # Get service URL
+          SERVICE_URL=$(gcloud run services describe formio-test-${{ github.run_number }} \
+            --region=australia-southeast1 \
+            --format='value(status.url)')
+
+          # Health check
+          curl -f "$SERVICE_URL/health" || exit 1
+
+          # Additional integration tests
+          curl -f "$SERVICE_URL/api/version" || exit 1
+
+      - name: Cleanup test environment
+        if: always()
+        run: |
+          gcloud run services delete formio-test-${{ github.run_number }} \
+            --region=australia-southeast1 \
+            --quiet || true
+
+  # Deploy to Development
+  deploy-dev:
+    name: Deploy to Development
+    runs-on: ubuntu-latest
+    needs: [build, integration-test]
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    environment: development
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v1
+
+      - name: Update Terraform configuration
+        working-directory: ./dss-formio-service/terraform/environments/dev
+        run: |
+          # Update image tag in terraform.tfvars
+          sed -i 's|custom_image_tag = ".*"|custom_image_tag = "${{ github.sha }}"|' terraform.tfvars
+
+      - name: Initialize Terraform
+        working-directory: ./dss-formio-service/terraform/environments/dev
+        run: terraform init
+
+      - name: Plan Terraform changes
+        working-directory: ./dss-formio-service/terraform/environments/dev
+        run: terraform plan -out=tfplan
+
+      - name: Apply Terraform changes
+        working-directory: ./dss-formio-service/terraform/environments/dev
+        run: terraform apply -auto-approve tfplan
+
+      - name: Get service URL
+        id: service
+        run: |
+          SERVICE_URL=$(terraform output -raw service_url)
+          echo "url=$SERVICE_URL" >> $GITHUB_OUTPUT
+
+      - name: Health check
+        run: |
+          sleep 30
+          curl -f "${{ steps.service.outputs.url }}/health"
+
+      - name: Notify deployment
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          channel: '#dev-deployments'
+          text: |
+            Form.io Custom deployed to development!
+            Service URL: ${{ steps.service.outputs.url }}
+            Commit: ${{ github.sha }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+  # Deploy to Staging
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [build, integration-test]
+    if: github.event_name == 'release' && github.event.release.prerelease
+    environment: staging
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v1
+
+      - name: Deploy to staging
+        run: |
+          gcloud run deploy formio-custom-staging \
+            --image=${{ needs.build.outputs.image-tag }} \
+            --region=australia-southeast1 \
+            --platform=managed \
+            --allow-unauthenticated \
+            --set-env-vars="NODE_ENV=staging" \
+            --set-min-instances=1 \
+            --quiet
+
+      - name: Get service URL
+        id: service
+        run: |
+          SERVICE_URL=$(gcloud run services describe formio-custom-staging \
+            --region=australia-southeast1 \
+            --format='value(status.url)')
+          echo "url=$SERVICE_URL" >> $GITHUB_OUTPUT
+
+      - name: Run smoke tests
+        run: |
+          sleep 30
+          curl -f "${{ steps.service.outputs.url }}/health"
+          curl -f "${{ steps.service.outputs.url }}/api/version"
+
+  # Deploy to Production
+  deploy-prod:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [build, integration-test]
+    if: github.event_name == 'release' && !github.event.release.prerelease
+    environment: production
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v1
+
+      - name: Update Terraform configuration
+        working-directory: ./dss-formio-service/terraform/environments/prod
+        run: |
+          # Update image tag in terraform.tfvars
+          sed -i 's|custom_image_tag = ".*"|custom_image_tag = "${{ github.ref_name }}"|' terraform.tfvars
+
+      - name: Initialize Terraform
+        working-directory: ./dss-formio-service/terraform/environments/prod
+        run: terraform init
+
+      - name: Plan Terraform changes
+        working-directory: ./dss-formio-service/terraform/environments/prod
+        run: terraform plan -out=tfplan
+
+      - name: Request approval
+        uses: trstringer/manual-approval@v1
+        with:
+          secret: ${{ github.TOKEN }}
+          approvers: admin,devops-lead
+          minimum-approvals: 2
+          issue-title: "Production deployment approval for ${{ github.ref_name }}"
+          issue-body: |
+            Please approve deployment of Form.io Custom ${{ github.ref_name }} to production
+
+            Changes: ${{ github.event.release.body }}
+            Docker Image: ${{ needs.build.outputs.image-tag }}
+
+            Check the workflow run here: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+      - name: Apply Terraform changes
+        working-directory: ./dss-formio-service/terraform/environments/prod
+        run: terraform apply -auto-approve tfplan
+
+      - name: Get service URL
+        id: service
+        run: |
+          SERVICE_URL=$(terraform output -raw service_url)
+          echo "url=$SERVICE_URL" >> $GITHUB_OUTPUT
+
+      - name: Health check
+        run: |
+          sleep 60
+          curl -f "${{ steps.service.outputs.url }}/health"
+
+      - name: Run smoke tests
+        run: |
+          curl -f "${{ steps.service.outputs.url }}/api/version"
+          curl -f "${{ steps.service.outputs.url }}/health"
+
+      - name: Update DNS (if configured)
+        run: |
+          # Update DNS records if needed
+          echo "DNS update placeholder"
+
+      - name: Notify deployment success
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          channel: '#prod-deployments'
+          text: |
+            :rocket: Form.io Custom ${{ github.ref_name }} deployed to production!
+            Service URL: ${{ steps.service.outputs.url }}
+            Release notes: ${{ github.event.release.html_url }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+      - name: Create rollback tag
+        if: failure()
+        run: |
+          # Create rollback tag for quick recovery
+          git tag rollback-${{ github.ref_name }}-$(date +%Y%m%d-%H%M%S)
+          git push origin rollback-${{ github.ref_name }}-$(date +%Y%m%d-%H%M%S)
+
+  # Post-deployment Tests
+  post-deployment-tests:
+    name: Post-deployment Tests
+    runs-on: ubuntu-latest
+    needs: deploy-dev
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install test dependencies
+        working-directory: ./test-app
+        run: npm ci
+
+      - name: Run E2E tests against dev
+        run: |
+          export FORMIO_URL=$(cd ./dss-formio-service/terraform/environments/dev && terraform output -raw service_url)
+          npm run test:e2e:formio
+
+  # Performance Tests
+  performance-test:
+    name: Performance Test
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    if: github.event_name == 'release' && github.event.release.prerelease
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup k6
+        uses: grafana/k6-action@v0.3.1
+        with:
+          k6-version: 'v0.47.0'
+
+      - name: Run performance tests
+        run: |
+          # Get staging URL
+          SERVICE_URL=$(gcloud run services describe formio-custom-staging \
+            --region=australia-southeast1 \
+            --format='value(status.url)')
+
+          # Run k6 tests
+          k6 run --vus 10 --duration 30s -e BASE_URL="$SERVICE_URL" ./tests/performance/load-test.js
+
+      - name: Upload performance results
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-results
+          path: performance-results.html
