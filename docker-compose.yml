@@ -82,6 +82,12 @@ services:
     container_name: formio-server
     ports:
       - "${FORMIO_PORT:-3001}:3001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
     environment:
       # Database
       MONGO: mongodb://mongodb:27017/${MONGO_DB_NAME:-formioapp}
