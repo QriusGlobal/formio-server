@@ -1,0 +1,834 @@
+{
+  "title": "Default",
+  "name": "default",
+  "version": "2.0.0",
+  "description": "Provides a simple User authentication system.",
+  "roles": {
+    "administrator": {
+      "title": "Administrator",
+      "description": "A role for Administrative Users.",
+      "admin": true,
+      "default": false
+    },
+    "authenticated": {
+      "title": "Authenticated",
+      "description": "A role for Authenticated Users.",
+      "admin": false,
+      "default": false
+    },
+    "anonymous": {
+      "title": "Anonymous",
+      "description": "A role for Anonymous Users.",
+      "admin": false,
+      "default": true
+    }
+  },
+  "resources": {
+    "user": {
+      "title": "User",
+      "type": "resource",
+      "name": "user",
+      "path": "user",
+      "pdfComponents": [],
+      "tags": [],
+      "submissionAccess": [
+        {
+          "type": "create_all",
+          "roles": ["administrator"]
+        },
+        {
+          "type": "read_all",
+          "roles": ["administrator"]
+        },
+        {
+          "type": "update_all",
+          "roles": ["administrator"]
+        },
+        {
+          "type": "delete_all",
+          "roles": ["administrator"]
+        },
+        {
+          "type": "create_own",
+          "roles": []
+        },
+        {
+          "type": "read_own",
+          "roles": []
+        },
+        {
+          "type": "update_own",
+          "roles": []
+        },
+        {
+          "type": "delete_own",
+          "roles": []
+        }
+      ],
+      "access": [
+        {
+          "type": "read_all",
+          "roles": [
+            "anonymous",
+            "authenticated",
+            "administrator"
+          ]
+        }
+      ],
+      "components": [
+        {
+          "type": "email",
+          "persistent": true,
+          "unique": true,
+          "required": true,
+          "protected": false,
+          "defaultValue": "",
+          "suffix": "",
+          "prefix": "",
+          "placeholder": "Enter your email address",
+          "key": "email",
+          "label": "Email",
+          "inputType": "email",
+          "tableView": true,
+          "input": true
+        },
+        {
+          "type": "password",
+          "persistent": true,
+          "protected": true,
+          "suffix": "",
+          "prefix": "",
+          "placeholder": "Enter your password.",
+          "key": "password",
+          "label": "Password",
+          "inputType": "password",
+          "tableView": false,
+          "input": true
+        },
+        {
+          "type": "button",
+          "theme": "primary",
+          "disableOnInvalid": true,
+          "action": "submit",
+          "block": false,
+          "rightIcon": "",
+          "leftIcon": "",
+          "size": "md",
+          "key": "submit",
+          "tableView": false,
+          "label": "Submit",
+          "input": true
+        }
+      ]
+    },
+    "admin": {
+      "title": "Admin",
+      "type": "resource",
+      "name": "admin",
+      "path": "admin",
+      "pdfComponents": [],
+      "tags": [],
+      "submissionAccess": [
+        {
+          "type": "create_all",
+          "roles": ["administrator"]
+        },
+        {
+          "type": "read_all",
+          "roles": ["administrator"]
+        },
+        {
+          "type": "update_all",
+          "roles": ["administrator"]
+        },
+        {
+          "type": "delete_all",
+          "roles": ["administrator"]
+        },
+        {
+          "type": "create_own",
+          "roles": []
+        },
+        {
+          "type": "read_own",
+          "roles": []
+        },
+        {
+          "type": "update_own",
+          "roles": []
+        },
+        {
+          "type": "delete_own",
+          "roles": []
+        }
+      ],
+      "access": [
+        {
+          "type": "read_all",
+          "roles": [
+            "anonymous",
+            "authenticated",
+            "administrator"
+          ]
+        }
+      ],
+      "components": [
+        {
+          "type": "email",
+          "persistent": true,
+          "unique": true,
+          "required": true,
+          "protected": false,
+          "defaultValue": "",
+          "suffix": "",
+          "prefix": "",
+          "placeholder": "Enter your email address",
+          "key": "email",
+          "label": "Email",
+          "inputType": "email",
+          "tableView": true,
+          "input": true
+        },
+        {
+          "type": "password",
+          "persistent": true,
+          "protected": true,
+          "suffix": "",
+          "prefix": "",
+          "placeholder": "Enter your password.",
+          "key": "password",
+          "label": "Password",
+          "inputType": "password",
+          "tableView": false,
+          "input": true
+        },
+        {
+          "type": "button",
+          "theme": "primary",
+          "disableOnInvalid": true,
+          "action": "submit",
+          "block": false,
+          "rightIcon": "",
+          "leftIcon": "",
+          "size": "md",
+          "key": "submit",
+          "tableView": false,
+          "label": "Submit",
+          "input": true
+        }
+      ]
+    }
+  },
+  "forms": {
+    "userLogin": {
+      "title": "User Login",
+      "type": "form",
+      "name": "userLogin",
+      "path": "user/login",
+      "pdfComponents": [],
+      "tags": [],
+      "access": [
+        {
+          "type": "read_all",
+          "roles": ["anonymous"]
+        }
+      ],
+      "submissionAccess": [
+        {
+          "type" : "create_own",
+          "roles" : ["anonymous"]
+        }
+      ],
+      "components": [
+        {
+          "type": "email",
+          "persistent": true,
+          "unique": false,
+          "protected": false,
+          "defaultValue": "",
+          "suffix": "",
+          "prefix": "",
+          "placeholder": "Enter your email address",
+          "key": "email",
+          "lockKey": true,
+          "label": "Email",
+          "inputType": "email",
+          "tableView": true,
+          "input": true
+        },
+        {
+          "type": "password",
+          "persistent": true,
+          "protected": true,
+          "suffix": "",
+          "prefix": "",
+          "placeholder": "Enter your password.",
+          "key": "password",
+          "lockKey": true,
+          "label": "Password",
+          "inputType": "password",
+          "tableView": false,
+          "input": true
+        },
+        {
+          "type": "button",
+          "theme": "primary",
+          "disableOnInvalid": true,
+          "action": "submit",
+          "block": false,
+          "rightIcon": "",
+          "leftIcon": "",
+          "size": "md",
+          "key": "submit",
+          "tableView": false,
+          "label": "Submit",
+          "input": true
+        }
+      ]
+    },
+    "userRegister": {
+      "title": "User Register",
+      "name": "userRegister",
+      "path": "user/register",
+      "pdfComponents": [],
+      "type": "form",
+      "tags": [],
+      "access": [
+        {
+          "type": "read_all",
+          "roles": ["anonymous"]
+        }
+      ],
+      "submissionAccess": [
+        {
+          "type": "create_own",
+          "roles": ["anonymous"]
+        }
+      ],
+      "components": [
+        {
+          "type": "email",
+          "persistent": true,
+          "unique": false,
+          "protected": false,
+          "defaultValue": "",
+          "suffix": "",
+          "prefix": "",
+          "placeholder": "Enter your email address",
+          "key": "email",
+          "lockKey": true,
+          "label": "Email",
+          "inputType": "email",
+          "tableView": true,
+          "input": true
+        },
+        {
+          "type": "password",
+          "persistent": true,
+          "protected": true,
+          "suffix": "",
+          "prefix": "",
+          "placeholder": "Enter your password.",
+          "key": "password",
+          "lockKey": true,
+          "label": "Password",
+          "inputType": "password",
+          "tableView": false,
+          "input": true
+        },
+        {
+          "theme": "primary",
+          "disableOnInvalid": true,
+          "action": "submit",
+          "block": false,
+          "rightIcon": "",
+          "leftIcon": "",
+          "size": "md",
+          "key": "submit",
+          "label": "Submit",
+          "input": true,
+          "type": "button"
+        }
+      ]
+    },
+    "adminLogin": {
+      "title": "Admin Login",
+      "type": "form",
+      "name": "adminLogin",
+      "path": "admin/login",
+      "pdfComponents": [],
+      "tags": [],
+      "access": [
+        {
+          "type": "read_all",
+          "roles": ["anonymous"]
+        }
+      ],
+      "submissionAccess": [
+        {
+          "type" : "create_own",
+          "roles" : ["anonymous"]
+        }
+      ],
+      "components": [
+        {
+          "type": "email",
+          "persistent": true,
+          "unique": false,
+          "protected": false,
+          "defaultValue": "",
+          "suffix": "",
+          "prefix": "",
+          "placeholder": "Enter your email address",
+          "key": "email",
+          "lockKey": true,
+          "label": "Email",
+          "inputType": "email",
+          "tableView": true,
+          "input": true
+        },
+        {
+          "type": "password",
+          "persistent": true,
+          "protected": true,
+          "suffix": "",
+          "prefix": "",
+          "placeholder": "Enter your password.",
+          "key": "password",
+          "lockKey": true,
+          "label": "Password",
+          "inputType": "password",
+          "tableView": false,
+          "input": true
+        },
+        {
+          "type": "button",
+          "theme": "primary",
+          "disableOnInvalid": true,
+          "action": "submit",
+          "block": false,
+          "rightIcon": "",
+          "leftIcon": "",
+          "size": "md",
+          "key": "submit",
+          "tableView": false,
+          "label": "Submit",
+          "input": true
+        }
+      ]
+    },
+    "tusFileUploadSimple": {
+      "title": "TUS File Upload - Simple",
+      "type": "form",
+      "name": "tusFileUploadSimple",
+      "path": "test/tus-upload-simple",
+      "pdfComponents": [],
+      "tags": ["test", "upload", "tus"],
+      "access": [
+        {
+          "type": "read_all",
+          "roles": ["administrator", "authenticated", "anonymous"]
+        }
+      ],
+      "submissionAccess": [
+        {
+          "type": "create_all",
+          "roles": ["administrator", "authenticated"]
+        },
+        {
+          "type": "read_all",
+          "roles": ["administrator"]
+        }
+      ],
+      "components": [
+        {
+          "type": "textfield",
+          "key": "title",
+          "label": "Upload Title",
+          "placeholder": "Enter a title for your upload",
+          "input": true,
+          "validate": {
+            "required": true
+          },
+          "tableView": true
+        },
+        {
+          "type": "file",
+          "key": "file",
+          "label": "File Upload (TUS Resumable)",
+          "storage": "url",
+          "url": "${TUS_ENDPOINT:-http://localhost:1080/files/}",
+          "options": {
+            "withCredentials": false
+          },
+          "filePattern": "*",
+          "fileMinSize": "0KB",
+          "fileMaxSize": "100MB",
+          "uploadOnly": false,
+          "input": true,
+          "validate": {
+            "required": true
+          },
+          "tableView": false
+        },
+        {
+          "type": "textarea",
+          "key": "notes",
+          "label": "Notes",
+          "placeholder": "Optional notes about this upload",
+          "input": true,
+          "rows": 3,
+          "tableView": true
+        },
+        {
+          "type": "button",
+          "action": "submit",
+          "label": "Submit Upload",
+          "theme": "primary",
+          "disableOnInvalid": true,
+          "input": true,
+          "tableView": false,
+          "key": "submit"
+        }
+      ]
+    },
+    "tusFileUploadMulti": {
+      "title": "TUS File Upload - Multiple Files",
+      "type": "form",
+      "name": "tusFileUploadMulti",
+      "path": "test/tus-upload-multi",
+      "pdfComponents": [],
+      "tags": ["test", "upload", "tus", "multiple"],
+      "access": [
+        {
+          "type": "read_all",
+          "roles": ["administrator", "authenticated", "anonymous"]
+        }
+      ],
+      "submissionAccess": [
+        {
+          "type": "create_all",
+          "roles": ["administrator", "authenticated"]
+        },
+        {
+          "type": "read_all",
+          "roles": ["administrator"]
+        }
+      ],
+      "components": [
+        {
+          "type": "textfield",
+          "key": "batchTitle",
+          "label": "Batch Upload Title",
+          "placeholder": "Enter a title for this batch upload",
+          "input": true,
+          "validate": {
+            "required": true
+          },
+          "tableView": true
+        },
+        {
+          "type": "file",
+          "key": "files",
+          "label": "Multiple Files Upload (TUS Resumable)",
+          "storage": "url",
+          "url": "${TUS_ENDPOINT:-http://localhost:1080/files/}",
+          "options": {
+            "withCredentials": false
+          },
+          "filePattern": "*",
+          "fileMinSize": "0KB",
+          "fileMaxSize": "100MB",
+          "multiple": true,
+          "fileMaxCount": 10,
+          "uploadOnly": false,
+          "input": true,
+          "validate": {
+            "required": true
+          },
+          "tableView": false
+        },
+        {
+          "type": "textarea",
+          "key": "description",
+          "label": "Batch Description",
+          "placeholder": "Describe this batch of files",
+          "input": true,
+          "rows": 4,
+          "tableView": true
+        },
+        {
+          "type": "button",
+          "action": "submit",
+          "label": "Submit Batch Upload",
+          "theme": "primary",
+          "disableOnInvalid": true,
+          "input": true,
+          "tableView": false,
+          "key": "submit"
+        }
+      ]
+    },
+    "gcsFileUploadTest": {
+      "title": "GCS File Upload Test",
+      "type": "form",
+      "name": "gcsFileUploadTest",
+      "path": "test/gcs-upload",
+      "pdfComponents": [],
+      "tags": ["test", "upload", "tus", "gcs", "cloud"],
+      "access": [
+        {
+          "type": "read_all",
+          "roles": ["administrator", "authenticated", "anonymous"]
+        }
+      ],
+      "submissionAccess": [
+        {
+          "type": "create_all",
+          "roles": ["administrator", "authenticated"]
+        },
+        {
+          "type": "read_all",
+          "roles": ["administrator"]
+        }
+      ],
+      "components": [
+        {
+          "type": "select",
+          "key": "environment",
+          "label": "Target Environment",
+          "placeholder": "Select GCS environment",
+          "data": {
+            "values": [
+              {
+                "label": "GCS Emulator (Local Testing)",
+                "value": "emulator"
+              },
+              {
+                "label": "Production GCS",
+                "value": "production"
+              }
+            ]
+          },
+          "defaultValue": "emulator",
+          "input": true,
+          "validate": {
+            "required": true
+          },
+          "tableView": true
+        },
+        {
+          "type": "textfield",
+          "key": "testName",
+          "label": "Test Case Name",
+          "placeholder": "Enter test case identifier",
+          "input": true,
+          "validate": {
+            "required": true
+          },
+          "tableView": true
+        },
+        {
+          "type": "file",
+          "key": "testFile",
+          "label": "Test File Upload (GCS/TUS)",
+          "storage": "url",
+          "url": "${GCS_UPLOAD_ENDPOINT:-http://localhost:4443/upload/formio-test/}",
+          "options": {
+            "withCredentials": false
+          },
+          "filePattern": "*",
+          "fileMinSize": "0KB",
+          "fileMaxSize": "100MB",
+          "uploadOnly": false,
+          "input": true,
+          "validate": {
+            "required": true
+          },
+          "tableView": false
+        },
+        {
+          "type": "checkbox",
+          "key": "verifyIntegrity",
+          "label": "Verify File Integrity",
+          "defaultValue": true,
+          "input": true,
+          "tableView": true
+        },
+        {
+          "type": "textarea",
+          "key": "testNotes",
+          "label": "Test Notes",
+          "placeholder": "Additional test information",
+          "input": true,
+          "rows": 3,
+          "tableView": true
+        },
+        {
+          "type": "button",
+          "action": "submit",
+          "label": "Submit GCS Test",
+          "theme": "primary",
+          "disableOnInvalid": true,
+          "input": true,
+          "tableView": false,
+          "key": "submit"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "user:role": {
+      "title": "Role Assignment",
+      "name": "role",
+      "priority": 1,
+      "handler": ["after"],
+      "method": ["create"],
+      "form": "user",
+      "settings": {
+        "association": "new",
+        "type": "add",
+        "role": "authenticated"
+      }
+    },
+    "user:save": {
+      "title": "Save Submission",
+      "name": "save",
+      "form": "user",
+      "handler": ["before"],
+      "method": ["create", "update"],
+      "priority": 10
+    },
+    "userLogin:login": {
+      "name": "login",
+      "title": "Login",
+      "form": "userLogin",
+      "priority": 2,
+      "method": ["create"],
+      "handler": ["before"],
+      "settings": {
+        "resources": ["user"],
+        "username": "email",
+        "password": "password",
+        "allowedAttempts": 5,
+        "attemptWindow": 30,
+        "lockWait": 1800
+      }
+    },
+    "userRegister:save": {
+      "title": "Save Submission",
+      "name": "save",
+      "form": "userRegister",
+      "handler": ["before"],
+      "method": ["create", "update"],
+      "priority": 11,
+      "settings": {
+        "resource": "user",
+        "fields": {
+          "email": "email",
+          "password": "password"
+        }
+      }
+    },
+    "userRegister:login": {
+      "name": "login",
+      "title": "Login",
+      "form": "userRegister",
+      "priority": 2,
+      "method": ["create"],
+      "handler": ["before"],
+      "settings": {
+        "resources": ["user"],
+        "username": "email",
+        "password": "password"
+      }
+    },
+    "admin:role": {
+      "title": "Role Assignment",
+      "name": "role",
+      "priority": 1,
+      "handler": ["after"],
+      "method": ["create"],
+      "form": "admin",
+      "settings": {
+        "association": "new",
+        "type": "add",
+        "role": "administrator"
+      }
+    },
+    "admin:save": {
+      "title": "Save Submission",
+      "name": "save",
+      "form": "admin",
+      "handler": ["before"],
+      "method": ["create", "update"],
+      "priority": 10
+    },
+    "adminLogin:login": {
+      "name": "login",
+      "title": "Login",
+      "form": "adminLogin",
+      "priority": 2,
+      "method": ["create"],
+      "handler": ["before"],
+      "settings": {
+        "resources": ["admin"],
+        "username": "email",
+        "password": "password",
+        "allowedAttempts": 5,
+        "attemptWindow": 30,
+        "lockWait": 1800
+      }
+    },
+    "tusFileUploadSimple:save": {
+      "title": "Save TUS Upload Submission",
+      "name": "save",
+      "form": "tusFileUploadSimple",
+      "handler": ["before"],
+      "method": ["create", "update"],
+      "priority": 10
+    },
+    "tusFileUploadMulti:save": {
+      "title": "Save TUS Multi Upload Submission",
+      "name": "save",
+      "form": "tusFileUploadMulti",
+      "handler": ["before"],
+      "method": ["create", "update"],
+      "priority": 10
+    },
+    "gcsFileUploadTest:save": {
+      "title": "Save GCS Upload Test Submission",
+      "name": "save",
+      "form": "gcsFileUploadTest",
+      "handler": ["before"],
+      "method": ["create", "update"],
+      "priority": 10
+    }
+  },
+  "access": [
+    {
+      "type": "create_all",
+      "roles": [
+        "administrator"
+      ]
+    },
+    {
+      "type": "read_all",
+      "roles": [
+        "administrator"
+      ]
+    },
+    {
+      "type": "update_all",
+      "roles": [
+        "administrator"
+      ]
+    },
+    {
+      "type": "delete_all",
+      "roles": [
+        "administrator"
+      ]
+    }
+  ]
+}

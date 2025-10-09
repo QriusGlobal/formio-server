@@ -1,0 +1,41 @@
+{
+  "name": "@formio/react-tus-upload",
+  "version": "1.0.0",
+  "description": "Production-ready React component for resumable file uploads using TUS protocol",
+  "main": "TusFileUpload.tsx",
+  "types": "TusFileUpload.types.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "lint": "eslint *.{ts,tsx}"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  },
+  "dependencies": {
+    "tus-js-client": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0",
+    "eslint": "^8.56.0",
+    "@typescript-eslint/eslint-plugin": "^6.19.0",
+    "@typescript-eslint/parser": "^6.19.0"
+  },
+  "keywords": [
+    "react",
+    "upload",
+    "tus",
+    "resumable",
+    "file-upload",
+    "formio",
+    "drag-and-drop",
+    "progress",
+    "typescript"
+  ],
+  "author": "Form.io",
+  "license": "MIT"
+}

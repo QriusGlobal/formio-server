@@ -1,0 +1,56 @@
+{
+  "streaming": {
+    "uploads": {
+      "enabled": false,
+      "description": "Enable Web Streams for large file uploads (experimental)",
+      "threshold": 10485760,
+      "thresholdDescription": "Size threshold in bytes (10MB default)",
+      "maxSize": 5368709120,
+      "maxSizeDescription": "Maximum file size in bytes (5GB)",
+      "timeout": 300000,
+      "timeoutDescription": "Total upload timeout in milliseconds (5 minutes)",
+      "chunkTimeout": 10000,
+      "chunkTimeoutDescription": "Maximum time between chunks in milliseconds (10 seconds)",
+      "maxCompressionRatio": 100,
+      "maxCompressionRatioDescription": "Maximum allowed compression ratio for bomb detection",
+      "enableHashVerification": true,
+      "enableHashVerificationDescription": "Enable xxHash integrity verification"
+    },
+    "security": {
+      "preventPathTraversal": true,
+      "preventPathTraversalDescription": "Sanitize file paths to prevent directory traversal",
+      "enableLeasing": true,
+      "enableLeasingDescription": "Prevent concurrent writes to same destination",
+      "leaseTimeout": 300000,
+      "leaseTimeoutDescription": "Lease auto-release timeout in milliseconds (5 minutes)",
+      "enableAbortController": true,
+      "enableAbortControllerDescription": "Enable cascade cleanup with AbortController"
+    },
+    "performance": {
+      "chunkSize": 65536,
+      "chunkSizeDescription": "Stream chunk size in bytes (64KB)",
+      "highWaterMark": 65536,
+      "highWaterMarkDescription": "Stream buffer high water mark in bytes (64KB)",
+      "enableResumable": true,
+      "enableResumableDescription": "Enable GCS resumable uploads"
+    },
+    "telemetry": {
+      "enabled": true,
+      "enabledDescription": "Enable streaming telemetry metrics",
+      "metricsPrefix": "formio_streaming_",
+      "metricsPrefixDescription": "Prometheus metrics prefix",
+      "exportInterval": 60000,
+      "exportIntervalDescription": "Metrics export interval in milliseconds (1 minute)"
+    },
+    "cleanup": {
+      "enabled": true,
+      "enabledDescription": "Enable automatic cleanup of orphaned uploads",
+      "cronSchedule": "0 2 * * *",
+      "cronScheduleDescription": "Cron schedule for cleanup job (2 AM daily)",
+      "orphanedTimeout": 86400000,
+      "orphanedTimeoutDescription": "Time before upload is considered orphaned in milliseconds (24 hours)",
+      "batchSize": 100,
+      "batchSizeDescription": "Number of orphaned uploads to process per batch"
+    }
+  }
+}

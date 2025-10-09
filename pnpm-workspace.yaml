@@ -1,0 +1,14 @@
+# pnpm Workspace Configuration
+# Defines which directories contain packages in this monorepo
+# See: https://pnpm.io/workspaces
+
+packages:
+  # Published NPM packages
+  - 'packages/*'
+
+  # Applications (not published)
+  - 'apps/*'
+
+  # Shared tooling and configurations
+  # Uncomment when needed:
+  # - 'tooling/*'
