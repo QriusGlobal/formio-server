@@ -6,9 +6,13 @@ packages:
   # Published NPM packages
   - 'packages/*'
 
-  # Applications (not published)
-  - 'apps/*'
+  # Form.io packages (to be reorganized)
+  - 'formio'
+  - 'formio-core'
+  - 'formio-react'
 
-  # Shared tooling and configurations
-  # Uncomment when needed:
-  # - 'tooling/*'
+  # Applications (not published)
+  - 'test-app'
+
+  # Infrastructure (Terraform - no package.json)
+  # - 'dss-formio-service'

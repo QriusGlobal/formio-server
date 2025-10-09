@@ -51,7 +51,43 @@ This repository contains the complete Form.io ecosystem for building, deploying,
 
 ### Core Packages
 
-#### `packages/formio-file-upload`
+#### `formio/` - Form.io Server v4.5.2
+The complete Form.io server application with API and admin portal.
+
+**Key Features:**
+- 📝 Form CRUD operations with MongoDB
+- 🔐 Authentication & authorization
+- 🚀 BullMQ async file processing
+- 📦 Docker containerization
+- ⚙️ Native VM execution (isolated-vm)
+
+**Size**: 19MB | **Engine**: Node.js >=20.0.0
+
+#### `formio-core/` - Form.io Core v2.5.1
+The core Form.io rendering framework and validation engine.
+
+**Key Features:**
+- 🎨 Component rendering system
+- ✅ Advanced validation rules
+- 🔄 Form processing pipeline
+- 📊 TypeScript SDK
+- 🔌 Plugin architecture
+
+**Size**: 24MB | **Language**: TypeScript
+
+#### `formio-react/` - React SDK v6.1.0
+React components for rendering Form.io forms.
+
+**Key Features:**
+- ⚛️ React 18+ components
+- 🎯 TypeScript support
+- 🎨 Customizable themes
+- 🔌 Form.io integration
+- 📦 ES Module exports
+
+**Size**: 2MB | **Type**: React Library
+
+#### `packages/formio-file-upload` - File Upload Module v1.0.0
 Enterprise file upload module with TUS resumable uploads and Uppy.js UI integration.
 
 **Features:**
@@ -108,17 +144,26 @@ docker-compose --profile dev up -d
 docker-compose --profile full up -d
 ```
 
-#### `dss-formio-service/` (Planned)
-Terraform modules for GCP Cloud Run deployment.
+#### `dss-formio-service/` - GCP Deployment Infrastructure
+Terraform modules for deploying Form.io to Google Cloud Platform.
 
-**Status:** 📋 Directory placeholder - Implementation pending
+**Features:**
+- ☁️ Cloud Run deployment
+- 🗄️ MongoDB Atlas integration
+- 📦 Cloud Storage for files
+- 🔒 Secret Manager for credentials
+- 🌐 Cloud Load Balancing
+- 📊 Monitoring & logging
+- 🔐 Binary authorization
 
-**Planned Features:**
-- Cloud Run deployment
-- Cloud SQL (PostgreSQL)
-- Cloud Storage for files
-- Secret Manager integration
-- Load balancing & auto-scaling
+**Components:**
+- `terraform/modules/formio-service/` - Main service module
+- `terraform/modules/cloud-run/` - Cloud Run configuration
+- `terraform/modules/storage/` - GCS bucket management
+- `terraform/environments/dev/` - Development environment
+- `terraform/environments/prod/` - Production environment
+
+**Size**: 1.4GB (includes test data)
 
 ### Testing
 
@@ -466,20 +511,27 @@ GitHub Actions workflows in `.github/workflows/`:
 
 ## 🗂️ Project Structure
 
-### Current Structure (Transitional - See MIGRATION.md)
+### Current Structure
 
 ```
 formio-monorepo/
+├── formio/                      # ✅ Form.io server v4.5.2 (19MB)
+├── formio-core/                 # ✅ Core framework v2.5.1 (24MB)
+├── formio-react/                # ✅ React SDK v6.1.0 (2MB)
 ├── packages/
-│   └── formio-file-upload/     # ✅ File upload module (production)
+│   └── formio-file-upload/     # ✅ File upload module v1.0.0
 ├── test-app/                    # ✅ React testing application
 ├── tests/                       # ✅ E2E test framework
+├── dss-formio-service/         # ✅ GCP Terraform deployment (1.4GB)
 ├── docs/                        # ✅ Documentation & examples
 ├── scripts/                     # ✅ Utility scripts
 ├── nginx/                       # ✅ Nginx configuration
 ├── docker-compose.yml           # ✅ Service orchestration
-├── pnpm-workspace.yaml          # ✅ NEW - Workspace config
-└── turbo.json                   # ✅ NEW - Build orchestration
+├── pnpm-workspace.yaml          # ✅ Workspace config
+├── turbo.json                   # ✅ Build orchestration
+└── package.json                 # ✅ Root workspace manifest
+
+Total: ~1.9GB (2.6GB before cleanup)
 ```
 
 ### Target Structure (Recommended - See MIGRATION.md)
