@@ -1,0 +1,55 @@
+version: "3.8"
+services:
+  mongo:
+    image: mongo:6
+    restart: always
+    volumes:
+      - mdb-data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  formio:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    restart: always
+    links:
+      - mongo
+      - redis
+    ports:
+      - "3001:3001"
+    environment:
+      DEBUG: formio:*
+      NODE_CONFIG: '{"mongo": "mongodb://admin:admin@mongo:27017/formio?authSource=admin"}'
+      ROOT_EMAIL: admin@example.com
+      ROOT_PASSWORD: CHANGEME
+      REDIS_URL: redis://redis:6379
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      NO_INSTALL: "1"  # Skip client download, we have portal at /portal/dist
+    depends_on:
+      mongo:
+        condition: service_started
+      redis:
+        condition: service_healthy
+    stdin_open: true # -i
+    tty: true # -t
+
+volumes:
+  mdb-data:
+  redis-data:
