@@ -1,4 +1,4 @@
-.PHONY: help local-up local-down local-reset local-logs local-logs-formio test-app verify-upload quick-start
+.PHONY: help local-up local-down local-reset local-logs local-logs-formio form-client-web-app verify-upload quick-start
 
 .DEFAULT_GOAL := help
 
@@ -13,7 +13,7 @@ help: ## Show this help message
 
 local-up: ## 🚀 Start local development environment (MongoDB + GCS + Form.io)
 	@echo "🚀 Starting local development environment..."
-	@docker-compose -f docker-compose.local.yml up -d
+	@docker-compose -f docker-compose.yml up -d
 	@echo ""
 	@echo "⏳ Waiting for services to be ready..."
 	@sleep 10
@@ -31,14 +31,14 @@ local-up: ## 🚀 Start local development environment (MongoDB + GCS + Form.io)
 	@echo "  🌐 Form.io Server: http://localhost:3001"
 	@echo ""
 	@echo "Next steps:"
-	@echo "  1. Run 'make test-app' to start the test application"
+	@echo "  1. Run 'make form-client-web-app' to start the test application"
 	@echo "  2. Open http://localhost:64849 in your browser"
 	@echo "  3. Run 'make local-logs-formio' to watch server logs"
 	@echo ""
 
 local-down: ## 🛑 Stop local development environment (keeps data)
 	@echo "🛑 Stopping local development environment..."
-	@docker-compose -f docker-compose.local.yml down
+	@docker-compose -f docker-compose.yml down
 	@echo "✅ Services stopped (data preserved)"
 
 local-reset: ## 🗑️  Reset local environment (delete ALL data)
@@ -47,30 +47,30 @@ local-reset: ## 🗑️  Reset local environment (delete ALL data)
 	@sleep 5
 	@echo ""
 	@echo "🗑️  Resetting local environment..."
-	@docker-compose -f docker-compose.local.yml down -v
+	@docker-compose -f docker-compose.yml down -v
 	@echo "✅ All data deleted. Run 'make local-up' to start fresh."
 
 local-logs: ## 📜 Show logs from all services (follow mode)
-	@docker-compose -f docker-compose.local.yml logs -f
+	@docker-compose -f docker-compose.yml logs -f
 
 local-logs-formio: ## 📋 Show Form.io server logs only (follow mode)
 	@echo "📋 Form.io Server Logs (Ctrl+C to exit)"
 	@echo "════════════════════════════════════════════════════════════"
-	@docker-compose -f docker-compose.local.yml logs -f formio-server
+	@docker-compose -f docker-compose.yml logs -f formio-server
 
 local-logs-gcs: ## 🪣 Show GCS emulator logs only (follow mode)
-	@docker-compose -f docker-compose.local.yml logs -f gcs-emulator
+	@docker-compose -f docker-compose.yml logs -f gcs-emulator
 
 local-logs-mongo: ## 📦 Show MongoDB logs only (follow mode)
-	@docker-compose -f docker-compose.local.yml logs -f mongodb
+	@docker-compose -f docker-compose.yml logs -f mongodb
 
-test-app: ## 🧪 Start React test app on port 64849
+form-client-web-app: ## 🧪 Start React test app on port 64849
 	@echo "🧪 Starting React test application..."
-	@cd test-app && npm install && npm run dev
+	@cd form-client-web-app && npm install && npm run dev
 
-test-app-build: ## 📦 Build test app for production
+form-client-web-app-build: ## 📦 Build test app for production
 	@echo "📦 Building test app..."
-	@cd test-app && npm install && npm run build
+	@cd form-client-web-app && npm install && npm run build
 
 verify-upload: ## 🔍 Check files in GCS emulator
 	@echo "🔍 Files in local GCS bucket:"
@@ -82,7 +82,7 @@ verify-services: ## ✅ Check if all services are healthy
 	@echo "✅ Checking service health..."
 	@echo "════════════════════════════════════════════════════════════"
 	@echo -n "MongoDB:        "
-	@docker-compose -f docker-compose.local.yml exec -T mongodb mongosh --eval "db.adminCommand('ping')" > /dev/null 2>&1 && echo "✅ Running" || echo "❌ Not running"
+	@docker-compose -f docker-compose.yml exec -T mongodb mongosh --eval "db.adminCommand('ping')" > /dev/null 2>&1 && echo "✅ Running" || echo "❌ Not running"
 	@echo -n "GCS Emulator:   "
 	@curl -s http://localhost:4443/storage/v1/b > /dev/null 2>&1 && echo "✅ Running" || echo "❌ Not running"
 	@echo -n "Form.io Server: "
@@ -97,7 +97,7 @@ quick-start: local-up ## 🏃 Quick start: Start everything and open test app
 	@make verify-services
 	@echo ""
 	@echo "🎉 Opening test app..."
-	@cd test-app && npm install && npm run dev &
+	@cd form-client-web-app && npm install && npm run dev &
 	@sleep 3
 	@open http://localhost:64849 2>/dev/null || echo "Open http://localhost:64849 in your browser"
 
@@ -117,8 +117,8 @@ dev-formio-server-standalone: ## 🔧 Run formio server standalone (no Docker)
 
 rebuild-formio-server: ## 🔨 Rebuild formio server Docker image
 	@echo "🔨 Rebuilding formio server Docker image..."
-	@docker-compose -f docker-compose.local.yml build formio-server
-	@docker-compose -f docker-compose.local.yml up -d formio-server
+	@docker-compose -f docker-compose.yml build formio-server
+	@docker-compose -f docker-compose.yml up -d formio-server
 	@echo "✅ Form.io server rebuilt and restarted"
 
 # Testing commands
@@ -136,10 +136,10 @@ test-formio-react: ## 🧪 Run formio-react unit tests
 # Debugging commands
 
 shell-formio: ## 🐚 Open shell in formio server container
-	@docker-compose -f docker-compose.local.yml exec formio-server sh
+	@docker-compose -f docker-compose.yml exec formio-server sh
 
 shell-mongo: ## 🐚 Open MongoDB shell
-	@docker-compose -f docker-compose.local.yml exec mongodb mongosh formioapp
+	@docker-compose -f docker-compose.yml exec mongodb mongosh formioapp
 
 inspect-gcs: ## 🔍 Detailed GCS bucket inspection
 	@echo "🔍 GCS Bucket Details:"
@@ -151,7 +151,7 @@ inspect-gcs: ## 🔍 Detailed GCS bucket inspection
 
 clean-logs: ## 🧹 Clear Docker logs
 	@echo "🧹 Clearing Docker logs..."
-	@docker-compose -f docker-compose.local.yml logs > /dev/null 2>&1
+	@docker-compose -f docker-compose.yml logs > /dev/null 2>&1
 	@echo "✅ Logs cleared"
 
 # Status commands

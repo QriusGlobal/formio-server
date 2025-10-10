@@ -28,10 +28,10 @@ services:
       - formio-network
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     mem_limit: 1g
     cpus: 1.0
 
@@ -46,9 +46,10 @@ services:
       - formio-network
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
     mem_limit: 512m
     cpus: 0.5
@@ -56,6 +57,7 @@ services:
   gcs-emulator:
     image: fsouza/fake-gcs-server:latest
     container_name: formio-gcs
+    user: "1000:1000"
     ports:
       - "4443:4443"
     command:
@@ -66,9 +68,10 @@ services:
       - formio-network
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:4443/storage/v1/b"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     tmpfs:
       - /data:rw,noexec,nosuid,size=1g
 
@@ -141,19 +144,14 @@ services:
       - formio-network
     volumes:
       - ./formio/config:/app/config:ro
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3001/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 20
-      start_period: 30s
+    user: "1000:1000"
     mem_limit: 1g
     cpus: 1.0
 
   tus-server:
     image: tusproject/tusd:latest
     container_name: formio-tus
-    user: "0:0"
+    user: "1000:1000"
     ports:
       - "${TUS_PORT:-1080}:1080"
     volumes:
@@ -170,9 +168,10 @@ services:
       - formio-network
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:1080/"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     mem_limit: 512m
     cpus: 0.5
 
@@ -198,6 +197,7 @@ services:
       - formio-network
     volumes:
       - ./form-client-web-app/src:/app/src:cached
+    user: "1000:1000"
 
   # ═══════════════════════════════════════════════════════════════
   #  TESTING SERVICES (--profile test)
@@ -221,6 +221,7 @@ services:
       formio-server:
         condition: service_healthy
     command: tail -f /dev/null
+    user: "1000:1000"
 
   # ═══════════════════════════════════════════════════════════════
   #  FULL STACK SERVICES (--profile full)
@@ -233,6 +234,7 @@ services:
       target: production
     container_name: formio-upload-processor
     profiles: ["full"]
+    user: "1000:1000"
     environment:
       MONGO: mongodb://mongodb:27017/${MONGO_DB_NAME:-formioapp}
       TUS_UPLOAD_DIR: /data/uploads
@@ -271,6 +273,7 @@ services:
       target: production
     container_name: formio-webhook
     profiles: ["full"]
+    user: "1000:1000"
     ports:
       - "3002:3002"
     environment:
@@ -361,7 +364,6 @@ volumes:
   nginx-logs:
     name: formio_nginx_logs
     driver: local
-
 # ═══════════════════════════════════════════════════════════════
 #  USAGE EXAMPLES
 # ═══════════════════════════════════════════════════════════════

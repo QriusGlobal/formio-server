@@ -40,3 +40,15 @@ hive-mind-prompt-*.txt
 benchmark-results-*.json
 .codecontext/cache/
 .codecontext/logs/
+
+# Environment files (security)
+.env
+.env.local
+.env.*.local
+!.env.example
+!.env.test.example
+
+# SSL Certificates (nginx/ssl/)
+nginx/ssl/*.pem
+nginx/ssl/*.crt
+nginx/ssl/*.key
