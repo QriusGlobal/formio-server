@@ -26,7 +26,7 @@ formio-monorepo/
 ├── dss-formio-service/         # ✅ ACTIVE - GCP Terraform (1.4GB)
 ├── packages/
 │   └── formio-file-upload/     # ✅ ACTIVE - File upload module v1.0.0
-├── test-app/                    # ✅ ACTIVE - React testing app
+├── form-client-web-app/                    # ✅ ACTIVE - React testing app
 ├── tests/                       # ✅ ACTIVE - E2E test framework
 ├── docs/                        # ✅ ACTIVE - Documentation
 ├── scripts/                     # ✅ ACTIVE - Utility scripts
@@ -80,7 +80,7 @@ npm test           # Run all tests
 npm run benchmark  # Performance benchmarks
 ```
 
-#### `test-app/` - React Testing Application
+#### `form-client-web-app/` - React Testing Application
 **Status**: ✅ Active development
 **Purpose**: Local development and testing environment
 **Entry Point**: `src/main.tsx`
@@ -164,7 +164,7 @@ npm run test:e2e:ui     # Interactive test UI
    - Upload directory: `/data/uploads`
 
 **Profile Services**:
-- **`--profile dev`**: Adds test-app container
+- **`--profile dev`**: Adds form-client-web-app container
 - **`--profile test`**: Adds Playwright container
 - **`--profile full`**: Adds nginx, upload-processor, webhook-handler
 
@@ -322,18 +322,18 @@ npm test
 
 # Package-specific tests
 cd packages/formio-file-upload && npm test &
-cd test-app && npm run test:e2e &
+cd form-client-web-app && npm run test:e2e &
 wait
 ```
 
 **Sequential Execution**:
 ```bash
-npm test && cd test-app && npm run test:e2e
+npm test && cd form-client-web-app && npm run test:e2e
 ```
 
 ### Test Data
 
-**Fixtures** (`tests/fixtures/`, `test-app/tests/fixtures/`):
+**Fixtures** (`tests/fixtures/`, `form-client-web-app/tests/fixtures/`):
 - `test-files.ts` - Sample file generators
 - `mock-data.ts` - Form definitions
 - `test-data-generator.ts` - Dynamic test data
@@ -352,7 +352,7 @@ make local-up        # Start all services
 make local-down      # Stop services (keep data)
 make local-reset     # Delete all data
 make local-logs      # View all logs
-make test-app        # Start test application
+make form-client-web-app        # Start test application
 ```
 
 **Docker Compose Profiles**:
@@ -417,7 +417,7 @@ packages/formio-file-upload/src/index.ts
 
 **Test Application**:
 ```
-test-app/src/main.tsx
+form-client-web-app/src/main.tsx
 └── App.tsx (routing)
     ├── pages/FormioSubmissionTest.tsx
     └── pages/TusBulkUploadTest.tsx
@@ -433,7 +433,7 @@ tests/playwright.config.ts
 ```
 docker-compose.yml
 ├── Core: mongodb, redis, gcs-emulator, formio-server, tus-server
-├── Dev: test-app
+├── Dev: form-client-web-app
 ├── Test: playwright
 └── Full: nginx, upload-processor, webhook-handler
 ```
@@ -443,7 +443,7 @@ docker-compose.yml
 | File | Purpose |
 |------|---------|
 | `tsconfig.json` | TypeScript configuration (ES2020, strict mode) |
-| `playwright.config.ts` | E2E test configuration (test-app/, tests/) |
+| `playwright.config.ts` | E2E test configuration (form-client-web-app/, tests/) |
 | `rollup.config.js` | Module bundling (file-upload package) |
 | `docker-compose.yml` | Service orchestration |
 | `.codecontext/config.yaml` | CodeContext MCP settings |
@@ -519,7 +519,7 @@ npm test
 
 ### Adding a New E2E Test
 
-1. **Create test** in `test-app/tests/e2e/`:
+1. **Create test** in `form-client-web-app/tests/e2e/`:
 ```typescript
 // new-feature.spec.ts
 import { test, expect } from '@playwright/test'
@@ -715,7 +715,7 @@ cd packages/formio-file-upload
 npm run dev  # Watch mode
 
 # 3. Test in application (separate terminal)
-cd test-app
+cd form-client-web-app
 npm run dev  # http://localhost:64849
 
 # 4. Run tests
@@ -750,6 +750,80 @@ Deploy (if main branch)
 
 ---
 
-**Last Updated**: 2025-01-09
-**Codebase Version**: formio-monorepo main branch
+## 🏛️ Qrius Platform Architecture
+
+### Strategic Direction
+
+This monorepo is evolving into the **Qrius Platform** - a proprietary form-building platform built on Form.io with:
+- Custom components (LLM-powered, WebGPU, WASM)
+- Clean separation via Anti-Corruption Layer (ACL)
+- Controlled upstream dependency management via git-subrepo
+- Dual-track architecture (Pure React + FormBuilder)
+
+### Architecture Documentation
+
+**Primary Documents**:
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Complete Qrius platform architecture
+  - Repository strategy with git-subrepo
+  - Dual-track architecture (Runtime vs Admin paths)
+  - Anti-Corruption Layer pattern
+  - 5-week phased implementation plan
+  - Risk mitigation and success metrics
+
+- **[docs/GIT_SUBREPO_WORKFLOW.md](./docs/GIT_SUBREPO_WORKFLOW.md)** - Git-subrepo workflow guide
+  - Upstream synchronization workflows
+  - Conflict resolution strategies
+  - Contributing back to upstream
+  - Troubleshooting and best practices
+
+### Key Architectural Principles
+
+1. **Git-Subrepo for Dependency Management**
+   - `formio/`, `formio-core/`, `formio-react/` managed as subrepos
+   - Upstream tracking branches for controlled merging
+   - Preserves local changes, no re-cloning required
+   - Private repository for proprietary Qrius code
+
+2. **Anti-Corruption Layer (ACL)**
+   - Protocol-based `IQriusComponent` interface
+   - `FormioAdapter` bridges Qrius components to Form.io
+   - Zero Form.io dependencies in Qrius components
+   - Testable in isolation
+
+3. **Dual-Track Architecture**
+   - **Runtime Path**: Pure React forms (no Form.io overhead)
+   - **Admin Path**: FormBuilder drag-and-drop interface
+   - Same components work in both paths
+
+### Package Structure (Future)
+
+```
+packages/
+├── qrius-formio-react/        # Minimal fork (cloud deps removed)
+├── qrius-components/          # Pure Qrius components
+├── qrius-formio-adapter/      # Anti-Corruption Layer
+└── qrius-react-forms/         # Pure React form renderer
+```
+
+### Implementation Status
+
+**Current Phase**: Phase 0 - Planning Complete ✅
+**Next Phase**: Git-Subrepo Setup (Awaiting approval)
+
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for complete implementation plan with phase gates and success criteria.
+
+### AI Assistant Instructions for Qrius Development
+
+When working on Qrius-related tasks:
+
+1. **Respect the ACL boundary**: Qrius components should never import Form.io directly
+2. **Use git-subrepo commands**: See [docs/GIT_SUBREPO_WORKFLOW.md](./docs/GIT_SUBREPO_WORKFLOW.md)
+3. **Test in isolation**: Qrius components must be testable without Form.io
+4. **Follow implementation phases**: Do not skip phase gates
+5. **Document architectural decisions**: Update ARCHITECTURE.md as needed
+
+---
+
+**Last Updated**: 2025-01-10
+**Codebase Version**: formio-monorepo main branch (evolving to Qrius Platform)
 **AI Assistant**: Optimized for Claude Code with batch-mode execution patterns

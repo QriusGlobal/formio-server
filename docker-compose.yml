@@ -180,11 +180,11 @@ services:
   #  DEVELOPMENT SERVICES (--profile dev)
   # ═══════════════════════════════════════════════════════════════
 
-  test-app:
+  form-client-web-app:
     build:
-      context: ./test-app
+      context: ./form-client-web-app
       dockerfile: Dockerfile.dev
-    container_name: formio-test-app
+    container_name: formio-form-client-web-app
     profiles: ["dev"]
     ports:
       - "64849:64849"
@@ -197,7 +197,7 @@ services:
     networks:
       - formio-network
     volumes:
-      - ./test-app/src:/app/src:cached
+      - ./form-client-web-app/src:/app/src:cached
 
   # ═══════════════════════════════════════════════════════════════
   #  TESTING SERVICES (--profile test)
@@ -209,13 +209,13 @@ services:
     profiles: ["test"]
     working_dir: /app
     volumes:
-      - ./test-app:/app:cached
+      - ./form-client-web-app:/app:cached
     networks:
       - formio-network
     environment:
       CI: "true"
       FORMIO_URL: http://formio-server:3001
-      TEST_APP_URL: http://test-app:64849
+      TEST_APP_URL: http://form-client-web-app:64849
       PWDEBUG: "0"
     depends_on:
       formio-server:

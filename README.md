@@ -108,7 +108,7 @@ Formio.use(FormioFileUploadModule)
 
 ### Applications
 
-#### `test-app/`
+#### `form-client-web-app/`
 React testing application for development and validation.
 
 **Features:**
@@ -248,7 +248,7 @@ pnpm install
 # That's it! pnpm automatically handles:
 # - Root dependencies
 # - packages/formio-file-upload dependencies
-# - test-app dependencies
+# - form-client-web-app dependencies
 # - Shared dependencies (hoisted to save disk space)
 ```
 
@@ -277,11 +277,11 @@ pnpm dev
 
 # This automatically starts:
 # - packages/formio-file-upload in watch mode
-# - test-app Vite dev server on http://localhost:64849
+# - form-client-web-app Vite dev server on http://localhost:64849
 
 # Or start individual packages:
 pnpm --filter @formio/file-upload dev
-pnpm --filter test-app dev
+pnpm --filter form-client-web-app dev
 ```
 
 ### Testing Strategy
@@ -303,9 +303,9 @@ pnpm --filter @formio/file-upload test:coverage
 pnpm test:e2e
 
 # Run E2E for specific app
-pnpm --filter test-app test:e2e
-pnpm --filter test-app test:e2e:ui      # Interactive UI mode
-pnpm --filter test-app test:e2e:debug   # Debug mode
+pnpm --filter form-client-web-app test:e2e
+pnpm --filter form-client-web-app test:e2e:ui      # Interactive UI mode
+pnpm --filter form-client-web-app test:e2e:debug   # Debug mode
 ```
 
 #### Performance Validation
@@ -476,7 +476,7 @@ cd packages/formio-file-upload
 npm run test:coverage
 
 # Test application E2E
-cd test-app
+cd form-client-web-app
 npm run test:e2e
 
 # Visual regression
@@ -520,7 +520,7 @@ formio-monorepo/
 ├── formio-react/                # ✅ React SDK v6.1.0 (2MB)
 ├── packages/
 │   └── formio-file-upload/     # ✅ File upload module v1.0.0
-├── test-app/                    # ✅ React testing application
+├── form-client-web-app/                    # ✅ React testing application
 ├── tests/                       # ✅ E2E test framework
 ├── dss-formio-service/         # ✅ GCP Terraform deployment (1.4GB)
 ├── docs/                        # ✅ Documentation & examples
@@ -545,7 +545,7 @@ formio-monorepo/
 │   └── server/                 # @formio/server (planned)
 │
 ├── apps/                        # Applications (not published)
-│   └── test-app/               # Testing application
+│   └── form-client-web-app/               # Testing application
 │
 ├── infrastructure/
 │   ├── local/                  # Docker Compose for local dev
