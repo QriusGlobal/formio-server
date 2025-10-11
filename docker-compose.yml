@@ -57,13 +57,13 @@ services:
   gcs-emulator:
     image: fsouza/fake-gcs-server:latest
     container_name: formio-gcs
-    user: "1000:1000"
     ports:
       - "4443:4443"
     command:
       - "-scheme=http"
       - "-port=4443"
       - "-external-url=http://localhost:4443"
+      - "-filesystem-root=/data"
     networks:
       - formio-network
     healthcheck:
@@ -144,7 +144,6 @@ services:
       - formio-network
     volumes:
       - ./formio/config:/app/config:ro
-    user: "1000:1000"
     mem_limit: 1g
     cpus: 1.0
 
