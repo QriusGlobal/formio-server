@@ -1,0 +1,663 @@
+{
+  "title": "1.d. Specialist Report",
+  "display": "form",
+  "type": "form",
+  "name": "specialist-report",
+  "path": "specialist-report",
+  "components": [
+    {
+      "label": "Date of Inspection?",
+      "key": "date_of_inspection",
+      "type": "datetime",
+      "input": true,
+      "validate": {
+        "required": false
+      },
+      "description": "What date was inspection conducted?",
+      "format": "yyyy-MM-dd",
+      "enableTime": false
+    },
+    {
+      "label": "Client Present?",
+      "key": "client_present",
+      "type": "radio",
+      "input": true,
+      "validate": {
+        "required": false
+      },
+      "description": "Was the client present onsite?",
+      "values": [
+        {
+          "label": "Yes",
+          "value": "Yes"
+        },
+        {
+          "label": "No",
+          "value": "No"
+        }
+      ]
+    },
+    {
+      "label": "Onsite Inspection Completed By",
+      "key": "onsite_inspection_completed_by",
+      "type": "textarea",
+      "input": true,
+      "validate": {
+        "required": false
+      },
+      "description": "Full name of person/(s) conducting the general specialist report?",
+      "rows": 4,
+      "autoExpand": true
+    },
+    {
+      "label": "Specialist Report Type",
+      "key": "specialist_report_type",
+      "type": "selectboxes",
+      "input": true,
+      "validate": {
+        "required": false
+      },
+      "description": "What Specialist Type is being conducted.",
+      "values": [
+        {
+          "label": "Appliance Report",
+          "value": "Appliance Report"
+        },
+        {
+          "label": "Leak Report",
+          "value": "Leak Report"
+        },
+        {
+          "label": "Electrical Report",
+          "value": "Electrical Report"
+        },
+        {
+          "label": "Air Conditioner Report",
+          "value": "Air Conditioner Report"
+        },
+        {
+          "label": "Television/Antenna Report",
+          "value": "Television/Antenna Report"
+        },
+        {
+          "label": "Pool Report",
+          "value": "Pool Report"
+        },
+        {
+          "label": "Solar HWS Report",
+          "value": "Solar HWS Report"
+        },
+        {
+          "label": "Plumbing Report",
+          "value": "Plumbing Report"
+        },
+        {
+          "label": "Make-Safe Report",
+          "value": "Make-Safe Report"
+        },
+        {
+          "label": "Security Report",
+          "value": "Security Report"
+        }
+      ]
+    },
+    {
+      "label": "House Type",
+      "key": "house_type",
+      "type": "radio",
+      "input": true,
+      "validate": {
+        "required": false
+      },
+      "description": "House Type.",
+      "values": [
+        {
+          "label": "Single Storey",
+          "value": "Single Storey"
+        },
+        {
+          "label": "Double Storey",
+          "value": "Double Storey"
+        },
+        {
+          "label": "Multi Level",
+          "value": "Multi Level"
+        },
+        {
+          "label": "Split Level",
+          "value": "Split Level"
+        }
+      ]
+    },
+    {
+      "label": "Roof Type",
+      "key": "roof_type",
+      "type": "selectboxes",
+      "input": true,
+      "validate": {
+        "required": false
+      },
+      "description": "Roof Type",
+      "values": [
+        {
+          "label": "Decramastic Roof",
+          "value": "Decramastic Roof"
+        },
+        {
+          "label": "Concrete Tiles",
+          "value": "Concrete Tiles"
+        },
+        {
+          "label": "Polycarb",
+          "value": "Polycarb"
+        },
+        {
+          "label": "Colorbond",
+          "value": "Colorbond"
+        },
+        {
+          "label": "Terracotta Tiles",
+          "value": "Terracotta Tiles"
+        },
+        {
+          "label": "Asbestos",
+          "value": "Asbestos"
+        },
+        {
+          "label": "Corrugated Iron",
+          "value": "Corrugated Iron"
+        },
+        {
+          "label": "Trimdek",
+          "value": "Trimdek"
+        },
+        {
+          "label": "Shingles",
+          "value": "Shingles"
+        },
+        {
+          "label": "Slate",
+          "value": "Slate"
+        }
+      ]
+    },
+    {
+      "label": "Approximate Age of Home?",
+      "key": "approximate_age_of_home",
+      "type": "number",
+      "input": true,
+      "validate": {
+        "required": false
+      },
+      "description": "Approximate Age of Home."
+    },
+    {
+      "label": "Cause / Circumstances (How damage occurred and causes)",
+      "key": "cause___circumstances_how_damage_occurred_and_causes",
+      "type": "selectboxes",
+      "input": true,
+      "validate": {
+        "required": false
+      },
+      "values": [
+        {
+          "label": "Burst Pipe/Leak",
+          "value": "Burst Pipe/Leak"
+        },
+        {
+          "label": "Flooding ",
+          "value": "Flooding "
+        },
+        {
+          "label": "Fire",
+          "value": "Fire"
+        },
+        {
+          "label": "Hail",
+          "value": "Hail"
+        },
+        {
+          "label": "General Storm Damage/Fallen Debris",
+          "value": "General Storm Damage/Fallen Debris"
+        },
+        {
+          "label": "Vermin ",
+          "value": "Vermin "
+        },
+        {
+          "label": "Owner Maintenance ",
+          "value": "Owner Maintenance "
+        },
+        {
+          "label": "Lightning Strike/Fallen Powerline/Power Surge",
+          "value": "Lightning Strike/Fallen Powerline/Power Surge"
+        },
+        {
+          "label": "Malicious Damage",
+          "value": "Malicious Damage"
+        },
+        {
+          "label": "Other:-",
+          "value": "Other:-"
+        }
+      ]
+    },
+    {
+      "label": "Please describe how damage occurred",
+      "key": "please_describe_how_damage_occurred",
+      "type": "textarea",
+      "input": true,
+      "validate": {
+        "required": false
+      },
+      "rows": 4,
+      "autoExpand": true
+    },
+    {
+      "label": "Event Related Damages",
+      "key": "event_related_damages",
+      "type": "textarea",
+      "input": true,
+      "validate": {
+        "required": false
+      },
+      "description": "Please list all damage/(s) present onsite",
+      "rows": 4,
+      "autoExpand": true
+    },
+    {
+      "label": "What are the maintenance issues related to the claim?",
+      "key": "what_are_the_maintenance_issues_related_to_the_claim",
+      "type": "textarea",
+      "input": true,
+      "validate": {
+        "required": false
+      },
+      "rows": 4,
+      "autoExpand": true
+    },
+    {
+      "label": "If applicable, what are the model/brand/style/serial numbers?",
+      "key": "if_applicable,_what_are_the_model_brand_style_serial_numbers",
+      "type": "textarea",
+      "input": true,
+      "validate": {
+        "required": false
+      },
+      "description": "If applicable, what are the model/brand/serial numbers?",
+      "rows": 4,
+      "autoExpand": true
+    },
+    {
+      "label": "Has this product been installed properly?",
+      "key": "has_this_product_been_installed_properly",
+      "type": "radio",
+      "input": true,
+      "validate": {
+        "required": false
+      },
+      "description": "Has this product been installed properly?",
+      "values": [
+        {
+          "label": "Yes",
+          "value": "Yes"
+        },
+        {
+          "label": "No",
+          "value": "No"
+        }
+      ]
+    },
+    {
+      "label": "If applicable, what are the test results?",
+      "key": "if_applicable,_what_are_the_test_results",
+      "type": "textarea",
+      "input": true,
+      "validate": {
+        "required": false
+      },
+      "description": "If applicable, what are the test results?",
+      "rows": 4,
+      "autoExpand": true
+    },
+    {
+      "label": "Repair Estimate (inc GST)",
+      "key": "repair_estimate_inc_gst",
+      "type": "textfield",
+      "input": true,
+      "validate": {
+        "required": false
+      },
+      "description": "Please provide a repair Estimate (inc GST)"
+    },
+    {
+      "label": "Was a Safety Harness required as part of inspection?",
+      "key": "was_a_safety_harness_required_as_part_of_inspection",
+      "type": "radio",
+      "input": true,
+      "validate": {
+        "required": false
+      },
+      "values": [
+        {
+          "label": "Yes",
+          "value": "Yes"
+        },
+        {
+          "label": "No",
+          "value": "No"
+        }
+      ]
+    },
+    {
+      "label": "Site Findings",
+      "key": "site_findings",
+      "type": "textarea",
+      "input": true,
+      "validate": {
+        "required": false
+      },
+      "description": "Provide details of site findings and any relevant information.",
+      "rows": 4,
+      "autoExpand": true
+    },
+    {
+      "label": "Conclusion",
+      "key": "conclusion",
+      "type": "textarea",
+      "input": true,
+      "validate": {
+        "required": false
+      },
+      "rows": 4,
+      "autoExpand": true
+    },
+    {
+      "label": "Site Image 1",
+      "key": "site_image_1",
+      "type": "file",
+      "input": true,
+      "validate": {
+        "required": false
+      },
+      "image": true,
+      "storage": "url",
+      "url": "http://localhost:1080/files/",
+      "filePattern": "image/*",
+      "fileMaxSize": "10MB"
+    },
+    {
+      "label": "Site Image 2",
+      "key": "site_image_2",
+      "type": "file",
+      "input": true,
+      "validate": {
+        "required": false
+      },
+      "image": true,
+      "storage": "url",
+      "url": "http://localhost:1080/files/",
+      "filePattern": "image/*",
+      "fileMaxSize": "10MB"
+    },
+    {
+      "label": "Site Image 3",
+      "key": "site_image_3",
+      "type": "file",
+      "input": true,
+      "validate": {
+        "required": false
+      },
+      "image": true,
+      "storage": "url",
+      "url": "http://localhost:1080/files/",
+      "filePattern": "image/*",
+      "fileMaxSize": "10MB"
+    },
+    {
+      "label": "Site Image 4",
+      "key": "site_image_4",
+      "type": "file",
+      "input": true,
+      "validate": {
+        "required": false
+      },
+      "image": true,
+      "storage": "url",
+      "url": "http://localhost:1080/files/",
+      "filePattern": "image/*",
+      "fileMaxSize": "10MB"
+    },
+    {
+      "label": "Site Image 5",
+      "key": "site_image_5",
+      "type": "file",
+      "input": true,
+      "validate": {
+        "required": false
+      },
+      "image": true,
+      "storage": "url",
+      "url": "http://localhost:1080/files/",
+      "filePattern": "image/*",
+      "fileMaxSize": "10MB"
+    },
+    {
+      "label": "Site Image 6",
+      "key": "site_image_6",
+      "type": "file",
+      "input": true,
+      "validate": {
+        "required": false
+      },
+      "image": true,
+      "storage": "url",
+      "url": "http://localhost:1080/files/",
+      "filePattern": "image/*",
+      "fileMaxSize": "10MB"
+    },
+    {
+      "label": "Site Image 7",
+      "key": "site_image_7",
+      "type": "file",
+      "input": true,
+      "validate": {
+        "required": false
+      },
+      "image": true,
+      "storage": "url",
+      "url": "http://localhost:1080/files/",
+      "filePattern": "image/*",
+      "fileMaxSize": "10MB"
+    },
+    {
+      "label": "Site Image 8",
+      "key": "site_image_8",
+      "type": "file",
+      "input": true,
+      "validate": {
+        "required": false
+      },
+      "image": true,
+      "storage": "url",
+      "url": "http://localhost:1080/files/",
+      "filePattern": "image/*",
+      "fileMaxSize": "10MB"
+    },
+    {
+      "label": "Site Image 9",
+      "key": "site_image_9",
+      "type": "file",
+      "input": true,
+      "validate": {
+        "required": false
+      },
+      "image": true,
+      "storage": "url",
+      "url": "http://localhost:1080/files/",
+      "filePattern": "image/*",
+      "fileMaxSize": "10MB"
+    },
+    {
+      "label": "Site Image 10",
+      "key": "site_image_10",
+      "type": "file",
+      "input": true,
+      "validate": {
+        "required": false
+      },
+      "image": true,
+      "storage": "url",
+      "url": "http://localhost:1080/files/",
+      "filePattern": "image/*",
+      "fileMaxSize": "10MB"
+    },
+    {
+      "label": "Site Image 11",
+      "key": "site_image_11",
+      "type": "file",
+      "input": true,
+      "validate": {
+        "required": false
+      },
+      "image": true,
+      "storage": "url",
+      "url": "http://localhost:1080/files/",
+      "filePattern": "image/*",
+      "fileMaxSize": "10MB"
+    },
+    {
+      "label": "Site Image 12",
+      "key": "site_image_12",
+      "type": "file",
+      "input": true,
+      "validate": {
+        "required": false
+      },
+      "image": true,
+      "storage": "url",
+      "url": "http://localhost:1080/files/",
+      "filePattern": "image/*",
+      "fileMaxSize": "10MB"
+    },
+    {
+      "label": "Site Image 13",
+      "key": "site_image_13",
+      "type": "file",
+      "input": true,
+      "validate": {
+        "required": false
+      },
+      "image": true,
+      "storage": "url",
+      "url": "http://localhost:1080/files/",
+      "filePattern": "image/*",
+      "fileMaxSize": "10MB"
+    },
+    {
+      "label": "Site Image 14",
+      "key": "site_image_14",
+      "type": "file",
+      "input": true,
+      "validate": {
+        "required": false
+      },
+      "image": true,
+      "storage": "url",
+      "url": "http://localhost:1080/files/",
+      "filePattern": "image/*",
+      "fileMaxSize": "10MB"
+    },
+    {
+      "label": "Site Image 15",
+      "key": "site_image_15",
+      "type": "file",
+      "input": true,
+      "validate": {
+        "required": false
+      },
+      "image": true,
+      "storage": "url",
+      "url": "http://localhost:1080/files/",
+      "filePattern": "image/*",
+      "fileMaxSize": "10MB"
+    },
+    {
+      "label": "Site Image 16",
+      "key": "site_image_16",
+      "type": "file",
+      "input": true,
+      "validate": {
+        "required": false
+      },
+      "image": true,
+      "storage": "url",
+      "url": "http://localhost:1080/files/",
+      "filePattern": "image/*",
+      "fileMaxSize": "10MB"
+    },
+    {
+      "label": "Site Image 17",
+      "key": "site_image_17",
+      "type": "file",
+      "input": true,
+      "validate": {
+        "required": false
+      },
+      "image": true,
+      "storage": "url",
+      "url": "http://localhost:1080/files/",
+      "filePattern": "image/*",
+      "fileMaxSize": "10MB"
+    },
+    {
+      "label": "Site Image 18",
+      "key": "site_image_18",
+      "type": "file",
+      "input": true,
+      "validate": {
+        "required": false
+      },
+      "image": true,
+      "storage": "url",
+      "url": "http://localhost:1080/files/",
+      "filePattern": "image/*",
+      "fileMaxSize": "10MB"
+    },
+    {
+      "label": "Site Image 19",
+      "key": "site_image_19",
+      "type": "file",
+      "input": true,
+      "validate": {
+        "required": false
+      },
+      "image": true,
+      "storage": "url",
+      "url": "http://localhost:1080/files/",
+      "filePattern": "image/*",
+      "fileMaxSize": "10MB"
+    },
+    {
+      "label": "Site Image 20",
+      "key": "site_image_20",
+      "type": "file",
+      "input": true,
+      "validate": {
+        "required": false
+      },
+      "image": true,
+      "storage": "url",
+      "url": "http://localhost:1080/files/",
+      "filePattern": "image/*",
+      "fileMaxSize": "10MB"
+    }
+  ],
+  "metadata": {
+    "servicem8_uuid": "156174f9-428b-4b34-a673-b6767d17e1ce",
+    "servicem8_badge": "REP",
+    "servicem8_document_template": "1ae6d7cc-e618-4ad0-968e-1f73a31fe7ab",
+    "conversion_date": "2025-10-09T16:25:23.662021",
+    "total_active_fields": 38
+  }
+}
