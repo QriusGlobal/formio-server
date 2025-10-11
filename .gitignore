@@ -1,13 +1,352 @@
 
+# ============================================================================
+# COMPREHENSIVE .GITIGNORE FOR FORM.IO MONOREPO
+# ============================================================================
+# Tech Stack: TypeScript, React, Node.js, pnpm workspaces, Turbo
+# Infrastructure: Docker, Terraform, MongoDB, Redis, GCS
+# Build Tools: Vite, Rollup, esbuild, Webpack
+# Testing: Playwright, Vitest, Jest
+# ============================================================================
 
-# Removed Windows wrapper files per user request
-hive-mind-prompt-*.txt
+# ============================================================================
+# DEPENDENCIES & PACKAGE MANAGERS
+# ============================================================================
 
+# Node modules (all package managers)
+node_modules/
+jspm_packages/
 
-# Removed Windows wrapper files per user request
-hive-mind-prompt-*.txt
+# pnpm
+.pnpm-debug.log*
+.pnpm-store/
+pnpm-lock.yaml.lock
 
-# Claude Flow generated files
+# npm
+npm-debug.log*
+.npm/
+
+# Yarn
+yarn-debug.log*
+yarn-error.log*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+.pnp.*
+
+# Bun
+.bun/
+bun.lock.lock
+# Bun cache pollution fix (CRITICAL)
+**/~/
+
+# ============================================================================
+# BUILD OUTPUTS & ARTIFACTS
+# ============================================================================
+
+# TypeScript
+*.tsbuildinfo
+.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# Compiled output
+dist/
+build/
+out/
+lib/
+*.js.map
+*.css.map
+
+# Turbo
+.turbo/
+
+# Rollup
+.rollup.cache/
+
+# Vite
+.vite/
+vite.config.*.timestamp-*
+
+# Webpack
+.webpack/
+
+# esbuild
+.esbuild/
+
+# Bundle analyzer
+bundle-analyzer-report.html
+
+# ============================================================================
+# TESTING & COVERAGE
+# ============================================================================
+
+# Test results
+test-results/
+playwright-report/
+.last-run.json
+test-output/
+e2e-results/
+
+# Coverage
+coverage/
+.nyc_output/
+*.lcov
+.coverage/
+htmlcov/
+
+# Jest
+.jest-cache/
+
+# Playwright
+playwright/.cache/
+playwright-results/
+
+# Benchmark results
+benchmark-results*.json
+benchmarks/results/
+
+# Visual regression baselines (keep in VCS, but ignore diffs)
+*-diff.png
+*-actual.png
+
+# ============================================================================
+# ENVIRONMENT & SECRETS
+# ============================================================================
+
+# Environment files (SECURITY CRITICAL)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
+.env.real-gcs
+
+# Allow example files
+!.env.example
+!.env.test.example
+!.env.template
+
+# SSL Certificates
+*.pem
+*.crt
+*.key
+*.cert
+*.p12
+*.pfx
+nginx/ssl/*.pem
+nginx/ssl/*.crt
+nginx/ssl/*.key
+
+# Secrets
+secrets/
+*.secret
+.secrets
+*.gpg
+*.asc
+
+# ============================================================================
+# INFRASTRUCTURE & DEVOPS
+# ============================================================================
+
+# Docker
+.dockerignore.backup
+docker-compose.override.yml
+
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+.terraform.lock.hcl
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+
+# MongoDB local data
+data/db/
+mongodb-data/
+mongo-data/
+**/.mongodb/
+
+# Redis
+dump.rdb
+appendonly.aof
+redis-data/
+
+# GCS Emulator
+gcs-data/
+fake-gcs-data/
+
+# TUS uploads
+uploads/
+tus-uploads/
+
+# Local development data
+**/formio-community-local/
+
+# ============================================================================
+# LOGS
+# ============================================================================
+
+# Application logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.pnpm-debug.log
+
+# System logs
+*.log.*
+*.log.gz
+combined.log
+error.log
+access.log
+debug.log
+apply.log
+state_assessment.log
+terraform-plan.log
+
+# ============================================================================
+# OPERATING SYSTEM FILES
+# ============================================================================
+
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.AppleDouble
+.LSOverride
+.Spotlight-V100
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ============================================================================
+# IDE & EDITOR FILES
+# ============================================================================
+
+# VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+*.code-workspace
+.history/
+*.vsix
+
+# JetBrains (WebStorm, IntelliJ, etc.)
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+.idea_modules/
+
+# Vim
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+Session.vim
+Sessionx.vim
+.netrwhist
+tags
+[._]*.un~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+.org-id-locations
+*_archive
+*_flymake.*
+/eshell/history
+/eshell/lastdir
+/elpa/
+*.rel
+/auto/
+.cask/
+flycheck_*.el
+/server/
+.projectile
+.dir-locals.el
+/network-security.data
+
+# Sublime Text
+*.tmlanguage.cache
+*.tmPreferences.cache
+*.stTheme.cache
+*.sublime-workspace
+*.sublime-project
+sftp-config.json
+Package Control.last-run
+Package Control.ca-list
+Package Control.ca-bundle
+Package Control.system-ca-bundle
+Package Control.cache/
+Package Control.ca-certs/
+Package Control.merged-ca-bundle
+Package Control.user-ca-bundle
+oscrypto-ca-bundle.crt
+bh_unicode_properties.cache
+GitHub.sublime-settings
+
+# Neovim
+.nvim/
+.nvimrc
+*.swp
+*.swo
+
+# ============================================================================
+# AI ASSISTANTS & DEVELOPMENT TOOLS
+# ============================================================================
+
+# Claude Code
 .claude/settings.local.json
 .mcp.json
 claude-flow.config.json
@@ -31,24 +370,163 @@ coordination/orchestration/*
 *.sqlite-journal
 *.sqlite-wal
 claude-flow
-# Removed Windows wrapper files per user request
 hive-mind-prompt-*.txt
-
-# Test artifacts and temporary files
-.jest-cache/
 .swarm-status.json
-benchmark-results-*.json
+
+# Serena
+.serena/
+
+# CodeContext
 .codecontext/cache/
 .codecontext/logs/
 
-# Environment files (security)
-.env
-.env.local
-.env.*.local
-!.env.example
-!.env.test.example
+# Cursor
+.cursor/
 
-# SSL Certificates (nginx/ssl/)
-nginx/ssl/*.pem
-nginx/ssl/*.crt
-nginx/ssl/*.key
+# GitHub Copilot
+.github/copilot/
+
+# ============================================================================
+# TEMPORARY & CACHE FILES
+# ============================================================================
+
+# General temp files
+tmp/
+temp/
+*.tmp
+*.temp
+.cache/
+.parcel-cache/
+
+# OS temp files
+*.swp
+*.swo
+*.swn
+*~
+
+# Package manager caches
+.eslintcache
+.stylelintcache
+.prettiercache
+
+# Build caches
+.sass-cache/
+.cache/
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional stylelint cache
+.stylelintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# ============================================================================
+# MONOREPO SPECIFIC
+# ============================================================================
+
+# Lerna
+lerna-debug.log*
+.changelog
+
+# Nx
+.nx/cache/
+.nx/workspace-data/
+
+# Rush
+common/temp/
+common/deploy/
+common/autoinstallers/*/.npmrc
+
+# ============================================================================
+# DOCUMENTATION TOOLS
+# ============================================================================
+
+# TypeDoc
+docs/api/
+typedoc/
+
+# Storybook
+storybook-static/
+.out/
+
+# ============================================================================
+# PERFORMANCE & PROFILING
+# ============================================================================
+
+# Chrome profiling
+*.cpuprofile
+
+# V8 snapshots
+*.heapsnapshot
+
+# Performance monitoring
+.clinic/
+flamegraph*.html
+*.trace
+
+# ============================================================================
+# MISC
+# ============================================================================
+
+# Lock files (keep pnpm-lock.yaml in VCS)
+package-lock.json
+yarn.lock
+bun.lockb
+
+# Editor backups
+*.bak
+*.backup
+*.old
+*.orig
+
+# Archives
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# Image thumbnails
+*.thumb
+
+# ============================================================================
+# PROJECT SPECIFIC
+# ============================================================================
+
+# Form.io specific uploads
+form-uploads/
+formio-uploads/
+
+# HAR files (HTTP Archive)
+*.har
+
+# Temporary package.json files
+package.json.tmp
+
+# Test app specific
+test-app/.env.test.backup
+form-client-web-app/.env.test.backup
+
+# ============================================================================
+# END OF .GITIGNORE
+# ============================================================================
