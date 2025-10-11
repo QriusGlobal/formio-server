@@ -55,12 +55,13 @@ echo "🖥️  Removing OS-specific files..."
 find . -type f \( -name ".DS_Store" -o -name "Thumbs.db" \) -delete 2>/dev/null || true
 echo "   ✓ Removed .DS_Store and Thumbs.db files"
 
-# 7. Log files
-echo "📋 Removing log files..."
-rm -f dss-formio-service/apply.log
-rm -f dss-formio-service/state_assessment.log
-rm -f dss-formio-service/terraform/environments/dev/terraform-plan.log 2>/dev/null || true
-echo "   ✓ Removed log files"
+# 7. Log files (SKIPPED - keeping Terraform logs per user request)
+echo "📋 Log files..."
+echo "   ℹ Skipping - Terraform logs preserved per user request"
+# Terraform logs are useful for debugging, keep them:
+# - dss-formio-service/apply.log
+# - dss-formio-service/state_assessment.log
+# - dss-formio-service/terraform/environments/dev/terraform-plan.log
 
 echo ""
 echo "✅ Phase 1 complete! Recovered ~526 MB"
