@@ -46,9 +46,9 @@ export default class UppyFileUploadComponent extends FileComponent {
         showProgressDetails: true,
         showLinkToFileUploadResult: true,
         proudlyDisplayPoweredByUppy: false,
-        plugins: ['Webcam', 'ScreenCapture', 'ImageEditor', 'Audio', 'Url']
+        plugins: ['Webcam', 'ScreenCapture', 'ImageEditor', 'Audio', 'Url'],
       },
-      ...extend
+      ...extend,
     });
   }
 
@@ -59,7 +59,7 @@ export default class UppyFileUploadComponent extends FileComponent {
       group: 'premium',
       documentation: '/userguide/forms/premium-components#uppy-file-upload',
       weight: 101,
-      schema: UppyFileUploadComponent.schema()
+      schema: UppyFileUploadComponent.schema(),
     };
   }
 
@@ -78,7 +78,7 @@ export default class UppyFileUploadComponent extends FileComponent {
                 defaultValue: true,
                 weight: 25,
                 tooltip: 'Show dashboard inline vs modal',
-                input: true
+                input: true,
               },
               {
                 type: 'number',
@@ -88,10 +88,10 @@ export default class UppyFileUploadComponent extends FileComponent {
                 weight: 26,
                 conditional: {
                   json: {
-                    '===': [{ var: 'data.uppyOptions.inline' }, true]
-                  }
+                    '===': [{ var: 'data.uppyOptions.inline' }, true],
+                  },
                 },
-                input: true
+                input: true,
               },
               {
                 type: 'checkbox',
@@ -99,7 +99,7 @@ export default class UppyFileUploadComponent extends FileComponent {
                 label: 'Show Progress Details',
                 defaultValue: true,
                 weight: 27,
-                input: true
+                input: true,
               },
               {
                 type: 'checkbox',
@@ -108,7 +108,7 @@ export default class UppyFileUploadComponent extends FileComponent {
                 defaultValue: false,
                 weight: 28,
                 tooltip: 'Automatically start upload after adding files',
-                input: true
+                input: true,
               },
               {
                 type: 'checkbox',
@@ -116,11 +116,11 @@ export default class UppyFileUploadComponent extends FileComponent {
                 label: 'Allow Multiple Upload Batches',
                 defaultValue: true,
                 weight: 29,
-                input: true
-              }
-            ]
-          }
-        ]
+                input: true,
+              },
+            ],
+          },
+        ],
       },
       {
         key: 'data',
@@ -143,16 +143,16 @@ export default class UppyFileUploadComponent extends FileComponent {
                     { label: 'Import from URL', value: 'Url' },
                     { label: 'Google Drive', value: 'GoogleDrive' },
                     { label: 'Dropbox', value: 'Dropbox' },
-                    { label: 'Instagram', value: 'Instagram' }
-                  ]
+                    { label: 'Instagram', value: 'Instagram' },
+                  ],
                 },
                 defaultValue: ['Webcam', 'ScreenCapture', 'ImageEditor', 'Audio', 'Url'],
-                input: true
-              }
-            ]
-          }
-        ]
-      }
+                input: true,
+              },
+            ],
+          },
+        ],
+      },
     ]);
   }
 
@@ -190,13 +190,13 @@ export default class UppyFileUploadComponent extends FileComponent {
         maxFileSize: this.parseFileSize(this.component.fileMaxSize) ?? undefined,
         minFileSize: this.parseFileSize(this.component.fileMinSize) ?? undefined,
         maxNumberOfFiles: this.component.multiple ? 10 : 1,
-        allowedFileTypes: this.parseFilePattern(this.component.filePattern) ?? undefined
+        allowedFileTypes: this.parseFilePattern(this.component.filePattern) ?? undefined,
       },
       meta: {
         formId: this.root?.formId || '',
         submissionId: this.root?.submissionId || '',
-        fieldKey: this.component.key || ''
-      }
+        fieldKey: this.component.key || '',
+      },
     };
 
     // Initialize Uppy instance
@@ -206,7 +206,7 @@ export default class UppyFileUploadComponent extends FileComponent {
       autoProceed: uppyConfig.autoProceed,
       allowMultipleUploadBatches: uppyConfig.allowMultipleUploadBatches,
       restrictions: uppyConfig.restrictions,
-      meta: uppyConfig.meta
+      meta: uppyConfig.meta,
     });
 
     // Add Dashboard plugin
@@ -230,7 +230,7 @@ export default class UppyFileUploadComponent extends FileComponent {
       disableThumbnailGenerator: false,
       disablePageScrollWhenModalOpen: true,
       animateOpenClose: true,
-      browserBackButtonClose: true
+      browserBackButtonClose: true,
     });
 
     // Add TUS plugin for resumable uploads
@@ -238,12 +238,12 @@ export default class UppyFileUploadComponent extends FileComponent {
       endpoint: this.component.url || '/files',
       chunkSize: (this.component.chunkSize || 8) * 1024 * 1024,
       retryDelays: [0, 3000, 5000, 10000, 20000],
-      headers: this.getHeaders()
+      headers: this.getHeaders(),
     });
 
     // Add Golden Retriever for recovering uploads after browser crash
     this.uppy.use(GoldenRetriever, {
-      serviceWorker: false
+      serviceWorker: false,
     });
 
     // Add optional plugins based on configuration
@@ -268,7 +268,7 @@ export default class UppyFileUploadComponent extends FileComponent {
     if (plugins.includes('Url')) {
       this.uppy.use(Url, {
         target: Dashboard,
-        companionUrl: this.component.companionUrl || null
+        companionUrl: this.component.companionUrl || null,
       });
     }
 
@@ -280,12 +280,10 @@ export default class UppyFileUploadComponent extends FileComponent {
     if (!this.uppy) return;
 
     this.uppy.on('file-added', async (file: any) => {
-      console.log('[Uppy] File added:', file.name);
-
       // Security: Sanitize filename
       const safeName = sanitizeFilename(file.name, {
         addTimestamp: true,
-        preserveExtension: false
+        preserveExtension: false,
       });
 
       // Security: Verify file type
@@ -304,25 +302,21 @@ export default class UppyFileUploadComponent extends FileComponent {
       // Update file with sanitized name
       this.uppy?.setFileMeta(file.id, {
         name: safeName,
-        originalName: file.name
+        originalName: file.name,
       });
 
       this.emit('fileAdded', file);
     });
 
     this.uppy.on('upload', () => {
-      console.log('[Uppy] Upload started');
       this.emit('uploadStart');
     });
 
     this.uppy.on('upload-progress', (file: any, progress: any) => {
-      console.log('[Uppy] Upload progress:', file.name, progress);
       this.emit('uploadProgress', { file, progress });
     });
 
     this.uppy.on('upload-success', (file: any, response: any) => {
-      console.log('[Uppy] Upload success:', file.name, response);
-
       const uploadFile: UploadFile = {
         id: file.id,
         name: file.name,
@@ -332,7 +326,7 @@ export default class UppyFileUploadComponent extends FileComponent {
         storage: this.component.storage,
         status: UploadStatus.COMPLETED,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       // Add to component value
@@ -352,14 +346,11 @@ export default class UppyFileUploadComponent extends FileComponent {
     });
 
     this.uppy.on('complete', (result: any) => {
-      console.log('[Uppy] All uploads complete:', result);
-
       // P3-T2: Clean up GoldenRetriever localStorage to prevent QuotaExceededError (critical for Safari 5MB limit)
       if (result.successful.length > 0 && result.failed.length === 0) {
         const uppyId = this.uppy!.getID();
         try {
           localStorage.removeItem(`uppy/${uppyId}`);
-          console.log('[Uppy] Cleaned GoldenRetriever recovery state');
         } catch (error) {
           console.warn('[Uppy] Failed to clean recovery state:', error);
         }
@@ -374,15 +365,14 @@ export default class UppyFileUploadComponent extends FileComponent {
     });
 
     this.uppy.on('cancel-all', () => {
-      console.log('[Uppy] All uploads cancelled');
       this.emit('uploadCancelled');
     });
   }
 
   private getHeaders(): Record<string, string> {
     return {
-      'Authorization': `Bearer ${this.root?.token || ''}`,
-      'x-jwt-token': this.root?.token || ''
+      Authorization: `Bearer ${this.root?.token || ''}`,
+      'x-jwt-token': this.root?.token || '',
     };
   }
 
@@ -390,10 +380,10 @@ export default class UppyFileUploadComponent extends FileComponent {
     if (!size) return null;
 
     const units: Record<string, number> = {
-      'B': 1,
-      'KB': 1024,
-      'MB': 1024 * 1024,
-      'GB': 1024 * 1024 * 1024
+      B: 1,
+      KB: 1024,
+      MB: 1024 * 1024,
+      GB: 1024 * 1024 * 1024,
     };
 
     const match = size.match(/^(\d+(?:\.\d+)?)\s*([KMGT]?B)$/i);
@@ -408,7 +398,7 @@ export default class UppyFileUploadComponent extends FileComponent {
   private parseFilePattern(pattern: string): string[] | null {
     if (!pattern || pattern === '*') return null;
 
-    return pattern.split(',').map(p => {
+    return pattern.split(',').map((p) => {
       const trimmed = p.trim();
       if (trimmed.startsWith('*.')) {
         return `.${trimmed.substring(2)}`;

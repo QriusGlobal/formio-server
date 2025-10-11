@@ -12,7 +12,7 @@ export function registerValidators() {
     fileSize: fileSizeValidator,
     fileType: fileTypeValidator,
     virusScan: virusScanValidator,
-    imageResolution: imageResolutionValidator
+    imageResolution: imageResolutionValidator,
   };
 }
 
@@ -89,8 +89,6 @@ async function virusScanValidator(context: any) {
 
   // This would need to call a server-side virus scanning API
   // For now, we'll just return true
-  console.log('Virus scan validation would be performed server-side');
-
   return true;
 }
 
@@ -100,7 +98,7 @@ async function virusScanValidator(context: any) {
 function imageResolutionValidator(context: any) {
   const { component, value } = context;
 
-  if (!value || !component.imageMinResolution && !component.imageMaxResolution) {
+  if (!value || (!component.imageMinResolution && !component.imageMaxResolution)) {
     return true;
   }
 
@@ -113,7 +111,6 @@ function imageResolutionValidator(context: any) {
 
     // This would need to load the image and check dimensions
     // For now, we'll skip this validation
-    console.log('Image resolution validation would be performed client-side');
   }
 
   return true;
@@ -126,11 +123,11 @@ function parseFileSize(size: string): number | null {
   if (!size) return null;
 
   const units: Record<string, number> = {
-    'B': 1,
-    'KB': 1024,
-    'MB': 1024 * 1024,
-    'GB': 1024 * 1024 * 1024,
-    'TB': 1024 * 1024 * 1024 * 1024
+    B: 1,
+    KB: 1024,
+    MB: 1024 * 1024,
+    GB: 1024 * 1024 * 1024,
+    TB: 1024 * 1024 * 1024 * 1024,
   };
 
   const match = size.match(/^(\d+(?:\.\d+)?)\s*([KMGT]?B)$/i);
@@ -148,5 +145,5 @@ function parseFileSize(size: string): number | null {
 function parseFilePattern(pattern: string): string[] {
   if (!pattern || pattern === '*') return ['*'];
 
-  return pattern.split(',').map(p => p.trim());
+  return pattern.split(',').map((p) => p.trim());
 }

@@ -101,16 +101,18 @@ export async function calculateFileChecksum(
     const checksum = checksumBigInt.toString(16).padStart(16, '0');
     const processingTime = performance.now() - startTime;
 
-    if (enableLogging) {
-      const throughput = (fileSize / 1024 / 1024) / (processingTime / 1000);
-      console.log(`[xxHash] Processed ${(fileSize / 1024 / 1024).toFixed(2)} MB in ${processingTime.toFixed(2)}ms (~${throughput.toFixed(2)} MB/s)`);
+    if (enableLogging && process.env.NODE_ENV !== 'production') {
+      const throughput = fileSize / 1024 / 1024 / (processingTime / 1000);
+      console.log(
+        `[xxHash] Processed ${(fileSize / 1024 / 1024).toFixed(2)} MB in ${processingTime.toFixed(2)}ms (~${throughput.toFixed(2)} MB/s)`
+      );
     }
 
     return {
       valid: true,
       checksum,
       size: fileSize,
-      processingTime
+      processingTime,
     };
   } catch (error) {
     return {
@@ -118,7 +120,7 @@ export async function calculateFileChecksum(
       checksum: '',
       size: file.size,
       processingTime: performance.now() - startTime,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
 }
@@ -162,7 +164,7 @@ export async function validateFileIntegrity(
     return {
       ...result,
       valid: false,
-      error: `Checksum mismatch: expected ${expectedChecksum}, got ${result.checksum}`
+      error: `Checksum mismatch: expected ${expectedChecksum}, got ${result.checksum}`,
     };
   }
 
@@ -185,9 +187,7 @@ export async function calculateMultipleChecksums(
   options: FileIntegrityOptions = {}
 ): Promise<FileIntegrityResult[]> {
   // Process files in parallel for maximum performance
-  return Promise.all(
-    files.map(file => calculateFileChecksum(file, options))
-  );
+  return Promise.all(files.map((file) => calculateFileChecksum(file, options)));
 }
 
 /**
@@ -220,7 +220,7 @@ export async function fileIntegrityValidator(context: any): Promise<boolean | st
     }
 
     const result = await validateFileIntegrity(file, {
-      expectedChecksum: file.checksum
+      expectedChecksum: file.checksum,
     });
 
     if (!result.valid) {
@@ -256,6 +256,6 @@ export async function addChecksumMetadata(
   return Object.assign(file, {
     checksum: result.checksum,
     checksumAlgorithm: 'xxh64',
-    checksumProcessingTime: result.processingTime
+    checksumProcessingTime: result.processingTime,
   });
 }

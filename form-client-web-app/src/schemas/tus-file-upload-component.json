@@ -1,0 +1,47 @@
+{
+  "title": "TUS File Upload Form",
+  "display": "form",
+  "type": "form",
+  "name": "tusFileUploadForm",
+  "path": "tusfileupload",
+  "components": [
+    {
+      "label": "Name",
+      "tableView": true,
+      "key": "name",
+      "type": "textfield",
+      "input": true,
+      "placeholder": "Enter your name",
+      "description": "Your full name",
+      "validate": {
+        "required": false,
+        "custom": "",
+        "customPrivate": false,
+        "strictDateValidation": false,
+        "multiple": false,
+        "unique": false
+      }
+    },
+    {
+      "label": "Description",
+      "tableView": true,
+      "key": "description",
+      "type": "textarea",
+      "input": true,
+      "placeholder": "Describe your files",
+      "rows": 3,
+      "description": "Optional description of the files you're uploading"
+    },
+    {
+      "label": "Submit",
+      "showValidations": false,
+      "theme": "primary",
+      "tableView": false,
+      "key": "submit",
+      "type": "button",
+      "input": true,
+      "saveOnEnter": false,
+      "disableOnInvalid": true
+    }
+  ]
+}

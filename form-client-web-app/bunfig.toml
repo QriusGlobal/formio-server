@@ -1,0 +1,25 @@
+# Bun Configuration for form-client-web-app
+# https://bun.sh/docs/runtime/bunfig
+
+[install]
+# Use pnpm for workspace compatibility (optional: can use bun for faster installs)
+# To use bun: bun install
+# To use pnpm: pnpm install (recommended for workspace)
+optional = false
+peer = true
+production = false
+dev = true
+
+[install.cache]
+# Cache directory for faster installs
+dir = "~/.bun/install/cache"
+
+[run]
+# Automatically load .env files
+# Note: Vite already handles .env, but Bun can too
+bun = true
+
+[test]
+# Use Bun's built-in test runner (alternative to Vitest)
+# Currently using Vitest - can switch to Bun test if desired
+preload = []
