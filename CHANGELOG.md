@@ -10,11 +10,25 @@ and this project adheres to
 
 ### Added
 
+- **Specialist Report Form Integration** - Complete end-to-end implementation
+  - Server submission mode toggle in FormViewer component
+  - Form upload script (`scripts/create-specialist-report-form.js`)
+  - Comprehensive integration documentation
+    (docs/SPECIALIST_REPORT_INTEGRATION.md)
+- **Monorepo Audit & Cleanup Plan** - Comprehensive analysis of dead code and
+  redundancies
+  - Identified 630MB of recoverable disk space
+  - Created phased cleanup plan with risk assessment
+  - Enhanced .gitignore patterns for build artifacts and caches
 - Initial CHANGELOG.md creation
 - Documentation of Form.io server authentication credentials
 
 ### Fixed
 
+- **Storage Configuration** - Changed from base64 to URL/TUS for 20 file upload
+  fields
+  - Prevents MongoDB 16MB document limit issues
+  - 99.97% size reduction for submissions with files
 - Discovered and documented default admin credentials for Form.io server
   (`admin@formio.local:admin123`)
 
@@ -22,6 +36,12 @@ and this project adheres to
 
 - Updated `.env.example` to include default ROOT_PASSWORD for development
   consistency
+- FormViewer now supports both client-side and server-side submission modes
+
+### Deprecated
+
+- `test-app/` directory - Superseded by `form-client-web-app/` (pending removal
+  in next release)
 
 ## [0.1.0] - 2025-10-11
 
