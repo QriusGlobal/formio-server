@@ -15,16 +15,23 @@ and this project adheres to
   - Form upload script (`scripts/create-specialist-report-form.js`)
   - Comprehensive integration documentation
     (docs/SPECIALIST_REPORT_INTEGRATION.md)
-- **Monorepo Audit & Cleanup Plan** - Comprehensive analysis of dead code and
-  redundancies
-  - Identified 630MB of recoverable disk space
-  - Created phased cleanup plan with risk assessment
-  - Enhanced .gitignore patterns for build artifacts and caches
+- **Monorepo Cleanup & Optimization** - Phase 1 execution complete
+  - Recovered ~600MB disk space (16.7% size reduction: 3.6GB → 3.0GB)
+  - Removed nested node_modules, Bun cache pollution, build artifacts
+  - Enhanced .gitignore from 55 to 532 lines (prevents future pollution)
+  - Created safety checkpoint and dry-run script
+  - Comprehensive cleanup documentation (docs/MONOREPO_CLEANUP.md)
 - Initial CHANGELOG.md creation
 - Documentation of Form.io server authentication credentials
 
 ### Fixed
 
+- **Docker Compose Configuration** - GCS emulator and formio-server startup
+  issues
+  - Added `-filesystem-root=/data` flag to GCS emulator to fix EACCES errors
+  - Removed user restriction from formio-server to allow client download during
+    initialization
+  - All services now start correctly after cleanup
 - **Storage Configuration** - Changed from base64 to URL/TUS for 20 file upload
   fields
   - Prevents MongoDB 16MB document limit issues
