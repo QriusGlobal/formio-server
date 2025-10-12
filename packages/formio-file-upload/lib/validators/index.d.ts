@@ -3,6 +3,7 @@
  */
 export * from './magicNumbers';
 export * from './sanitizeFilename';
+export * from './fileIntegrity';
 export declare function registerValidators(): {
     fileSize: typeof fileSizeValidator;
     fileType: typeof fileTypeValidator;

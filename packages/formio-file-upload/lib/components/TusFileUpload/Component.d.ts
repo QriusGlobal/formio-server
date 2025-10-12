@@ -10,6 +10,8 @@ export default class TusFileUploadComponent extends FileComponent {
     currentFile: UploadFile | null;
     private uploadQueue;
     private isUploading;
+    private rafPending;
+    private cachedTusConfig;
     static schema(...extend: any[]): ComponentSchema;
     static get builderInfo(): {
         title: string;

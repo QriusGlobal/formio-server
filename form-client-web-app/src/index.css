@@ -1,3 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import '@uppy/core/dist/style.min.css';
+@import '@uppy/dashboard/dist/style.min.css';
+
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -26,13 +33,21 @@ body {
   min-width: 320px;
   min-height: 100vh;
   background: #0f0f0f;
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 #root {
   width: 100%;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-weight: 600;
   color: #ffffff;
 }
@@ -43,4 +58,103 @@ button {
 
 code {
   font-family: 'Courier New', monospace;
+}
+
+input[type='checkbox'],
+input[type='radio'],
+button,
+a,
+label {
+  min-height: 48px;
+  min-width: 48px;
+}
+
+@layer components {
+  .form-title {
+    @apply text-2xl font-bold text-white mb-6;
+  }
+
+  .form-section {
+    @apply text-lg font-semibold text-gray-200 mb-4;
+  }
+
+  .form-label {
+    @apply text-base font-medium text-gray-300 mb-2;
+  }
+
+  .form-description {
+    @apply text-sm text-gray-400 mt-1;
+  }
+
+  .form-field {
+    @apply mb-6;
+  }
+
+  .form-group {
+    @apply space-y-4;
+  }
+
+  .checkbox-list {
+    @apply space-y-3;
+  }
+}
+
+.uppy-Root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+}
+
+.uppy-Dashboard {
+  @apply rounded-lg shadow-lg;
+}
+
+.uppy-Dashboard--modal {
+  @apply bg-gray-900;
+}
+
+details summary {
+  cursor: pointer;
+  user-select: none;
+}
+
+details[open] summary ~ * {
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* Screen reader only (accessibility) */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }

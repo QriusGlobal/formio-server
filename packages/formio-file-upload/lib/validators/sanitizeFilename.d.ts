@@ -68,13 +68,21 @@ export interface SanitizeOptions {
  * @returns Sanitized filename
  */
 export declare function sanitizeFilename(filename: string, options?: SanitizeOptions): string;
+export interface ValidationOptions {
+    /**
+     * Validate raw filename without sanitization
+     * @default false
+     */
+    raw?: boolean;
+}
 /**
  * Check if filename contains dangerous patterns
  *
  * @param filename - Filename to check
+ * @param options - Validation options
  * @returns Object with validation result
  */
-export declare function validateFilename(filename: string): {
+export declare function validateFilename(filename: string, options?: ValidationOptions): {
     valid: boolean;
     errors: string[];
 };
