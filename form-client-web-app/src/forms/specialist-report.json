@@ -375,18 +375,16 @@
     {
       "label": "Site Images",
       "key": "site_images",
-      "type": "textarea",
+      "type": "multiimageupload",
       "input": true,
       "validate": {
         "required": false
       },
-      "description": "Upload up to 20 site images with automatic numbering and metadata extraction",
-      "rows": 1,
-      "wysiwyg": false,
-      "customClass": "multi-image-upload-field",
-      "attributes": {
-        "data-component-type": "multiImageUpload"
-      }
+      "maxFiles": 20,
+      "compressionQuality": 0.8,
+      "autoNumbering": true,
+      "extractMetadata": true,
+      "description": "Upload up to 20 site images with automatic numbering and metadata extraction"
     }
   ],
   "metadata": {

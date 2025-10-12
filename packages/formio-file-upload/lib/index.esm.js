@@ -2965,22 +2965,58 @@ function matchesSignature(bytes, signature) {
  */
 const DANGEROUS_EXTENSIONS = [
     // Executables
-    '.exe', '.com', '.bat', '.cmd', '.sh', '.bash', '.zsh',
+    '.exe',
+    '.com',
+    '.bat',
+    '.cmd',
+    '.sh',
+    '.bash',
+    '.zsh',
     // Scripts
-    '.js', '.mjs', '.cjs', '.vbs', '.vbe', '.ps1', '.psm1',
+    '.js',
+    '.mjs',
+    '.cjs',
+    '.vbs',
+    '.vbe',
+    '.ps1',
+    '.psm1',
     // Server-side code
-    '.php', '.php3', '.php4', '.php5', '.phtml', '.phps',
-    '.asp', '.aspx', '.jsp', '.jspx',
-    '.cgi', '.pl', '.py', '.rb',
+    '.php',
+    '.php3',
+    '.php4',
+    '.php5',
+    '.phtml',
+    '.phps',
+    '.asp',
+    '.aspx',
+    '.jsp',
+    '.jspx',
+    '.cgi',
+    '.pl',
+    '.py',
+    '.rb',
     // Configuration files
-    '.htaccess', '.htpasswd', '.ini', '.conf',
+    '.htaccess',
+    '.htpasswd',
+    '.ini',
+    '.conf',
     // Compressed executables
-    '.scr', '.pif', '.application', '.gadget', '.msi', '.msp',
-    '.jar', '.war', '.ear',
+    '.scr',
+    '.pif',
+    '.application',
+    '.gadget',
+    '.msi',
+    '.msp',
+    '.jar',
+    '.war',
+    '.ear',
     // Links and shortcuts
-    '.lnk', '.url', '.desktop',
+    '.lnk',
+    '.url',
+    '.desktop',
     // Web archives that can execute
-    '.hta', '.htr',
+    '.hta',
+    '.htr',
 ];
 /**
  * Characters that are dangerous in filenames
@@ -2998,9 +3034,28 @@ const MAX_FILENAME_LENGTH = 255;
  * Reserved Windows filenames
  */
 const RESERVED_NAMES = [
-    'CON', 'PRN', 'AUX', 'NUL',
-    'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9',
-    'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9',
+    'CON',
+    'PRN',
+    'AUX',
+    'NUL',
+    'COM1',
+    'COM2',
+    'COM3',
+    'COM4',
+    'COM5',
+    'COM6',
+    'COM7',
+    'COM8',
+    'COM9',
+    'LPT1',
+    'LPT2',
+    'LPT3',
+    'LPT4',
+    'LPT5',
+    'LPT6',
+    'LPT7',
+    'LPT8',
+    'LPT9',
 ];
 /**
  * Sanitize filename to prevent security vulnerabilities
@@ -3032,7 +3087,7 @@ function sanitizeFilename(filename, options = {}) {
     }
     // Check for dangerous double extensions
     if (!preserveExtension) {
-        const dangerousExtFound = DANGEROUS_EXTENSIONS.some(dangerousExt => {
+        const dangerousExtFound = DANGEROUS_EXTENSIONS.some((dangerousExt) => {
             const extLower = ext.toLowerCase();
             const nameLower = name.toLowerCase();
             // Check if extension is dangerous
@@ -3252,10 +3307,10 @@ function parseFilePattern(pattern) {
  *
  * Extends Form.io's base File component to provide TUS resumable upload capabilities
  */
-const FileComponent$1 = Components.components.file;
-class TusFileUploadComponent extends FileComponent$1 {
+const FileComponent$2 = Components.components.file;
+class TusFileUploadComponent extends FileComponent$2 {
     static schema(...extend) {
-        return FileComponent$1.schema({
+        return FileComponent$2.schema({
             type: 'tusupload',
             label: 'TUS File Upload',
             key: 'tusupload',
@@ -3282,7 +3337,7 @@ class TusFileUploadComponent extends FileComponent$1 {
         };
     }
     static editForm() {
-        return FileComponent$1.editForm([
+        return FileComponent$2.editForm([
             {
                 key: 'display',
                 components: [
@@ -18904,10 +18959,10 @@ Url.prototype.canHandleRootDrop = canHandleRootDrop;
 // Import Uppy styles
 // NOTE: Uppy CSS imports removed - consuming apps must import Uppy styles
 // See documentation for required CSS imports
-const FileComponent = Components.components.file;
-class UppyFileUploadComponent extends FileComponent {
+const FileComponent$1 = Components.components.file;
+class UppyFileUploadComponent extends FileComponent$1 {
     static schema(...extend) {
-        return FileComponent.schema({
+        return FileComponent$1.schema({
             type: 'uppyupload',
             label: 'Uppy File Upload',
             key: 'uppyupload',
@@ -18941,7 +18996,7 @@ class UppyFileUploadComponent extends FileComponent {
         };
     }
     static editForm() {
-        return FileComponent.editForm([
+        return FileComponent$1.editForm([
             {
                 key: 'display',
                 components: [
@@ -19286,6 +19341,115 @@ class UppyFileUploadComponent extends FileComponent {
 }
 
 /**
+ * Multi-Image Upload Component for Form.io
+ *
+ * Adapter that bridges the pure React MultiImageUpload component to Form.io.
+ * Follows Anti-Corruption Layer pattern to minimize coupling.
+ */
+const FileComponent = Components.components.file;
+class MultiImageUploadComponent extends FileComponent {
+    constructor() {
+        super(...arguments);
+        this.reactContainer = null;
+        this.mountedReactComponent = null;
+    }
+    static registerReactComponent(factory) {
+        MultiImageUploadComponent.reactComponentFactory = factory;
+    }
+    static schema(...extend) {
+        return FileComponent.schema({
+            type: 'multiimageupload',
+            label: 'Multi-Image Upload',
+            key: 'site_images',
+            storage: 'url',
+            url: 'http://localhost:1080/files/',
+            maxFiles: 20,
+            compressionQuality: 0.8,
+            autoNumbering: true,
+            extractMetadata: true,
+            filePattern: 'image/*,video/*',
+            fileMaxSize: '10MB',
+            ...extend,
+        });
+    }
+    static get builderInfo() {
+        return {
+            title: 'Multi-Image Upload',
+            icon: 'images',
+            group: 'premium',
+            documentation: '/userguide/forms/premium-components#multi-image-upload',
+            weight: 102,
+            schema: MultiImageUploadComponent.schema(),
+        };
+    }
+    static editForm() {
+        return FileComponent.editForm();
+    }
+    render() {
+        this.reactContainer = this.ce('div', {
+            class: 'formio-component-multiimageupload',
+            id: `${this.component.key}-react-container`,
+        });
+        this.loadReactComponent();
+        return this.reactContainer;
+    }
+    async loadReactComponent() {
+        if (!this.reactContainer)
+            return;
+        try {
+            if (!MultiImageUploadComponent.reactComponentFactory) {
+                throw new Error('React component factory not registered');
+            }
+            const { React, ReactDOM, MultiImageUpload } = MultiImageUploadComponent.reactComponentFactory();
+            const root = ReactDOM.createRoot(this.reactContainer);
+            root.render(React.createElement(MultiImageUpload, {
+                formKey: this.component.key || 'site_images',
+                maxFiles: this.component.maxFiles || 20,
+                compressionQuality: this.component.compressionQuality || 0.8,
+                autoNumbering: this.component.autoNumbering ?? true,
+                extractMetadata: this.component.extractMetadata ?? true,
+                onChange: (files) => {
+                    this.updateValue(files);
+                },
+                value: this.dataValue || [],
+            }));
+            this.mountedReactComponent = root;
+        }
+        catch (error) {
+            console.error('Failed to load React component:', error);
+            if (this.reactContainer) {
+                this.reactContainer.innerHTML = `
+          <div class="alert alert-danger">
+            Failed to load Multi-Image Upload component. Please check console for details.
+          </div>
+        `;
+            }
+        }
+    }
+    destroy() {
+        if (this.mountedReactComponent) {
+            try {
+                this.mountedReactComponent.unmount();
+            }
+            catch (error) {
+                console.warn('Error unmounting React component:', error);
+            }
+            this.mountedReactComponent = null;
+        }
+        this.reactContainer = null;
+        super.destroy();
+    }
+    getValue() {
+        return this.dataValue || [];
+    }
+    setValue(value) {
+        this.dataValue = value;
+        return true;
+    }
+}
+MultiImageUploadComponent.reactComponentFactory = null;
+
+/**
  * File Storage Provider for Form.io
  *
  * Abstract provider interface for different storage backends
@@ -19540,9 +19704,10 @@ function getUppyTemplate() {
 const FormioFileUploadModule = {
     components: {
         tusupload: TusFileUploadComponent,
-        uppyupload: UppyFileUploadComponent
-    }
+        uppyupload: UppyFileUploadComponent,
+        multiimageupload: MultiImageUploadComponent,
+    },
 };
 
-export { FileStorageProvider, TusFileUploadComponent, UploadStatus$1 as UploadStatus, UppyFileUploadComponent, FormioFileUploadModule as default, registerTemplates, registerValidators };
+export { FileStorageProvider, MultiImageUploadComponent, TusFileUploadComponent, UploadStatus$1 as UploadStatus, UppyFileUploadComponent, FormioFileUploadModule as default, registerTemplates, registerValidators };
 //# sourceMappingURL=index.esm.js.map

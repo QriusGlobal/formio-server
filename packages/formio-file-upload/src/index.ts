@@ -7,12 +7,18 @@
 
 import TusFileUploadComponent from './components/TusFileUpload/Component';
 import UppyFileUploadComponent from './components/UppyFileUpload/Component';
+import MultiImageUploadComponent from './components/MultiImageUpload/Component';
 import FileStorageProvider from './providers/FileStorageProvider';
 import { registerTemplates } from './templates';
 import { registerValidators } from './validators';
 
 // Export individual components for direct use
-export { TusFileUploadComponent, UppyFileUploadComponent, FileStorageProvider };
+export {
+  TusFileUploadComponent,
+  UppyFileUploadComponent,
+  MultiImageUploadComponent,
+  FileStorageProvider,
+};
 
 // Export utility functions
 export { registerTemplates, registerValidators };
@@ -22,8 +28,9 @@ export { registerTemplates, registerValidators };
 const FormioFileUploadModule = {
   components: {
     tusupload: TusFileUploadComponent,
-    uppyupload: UppyFileUploadComponent
-  }
+    uppyupload: UppyFileUploadComponent,
+    multiimageupload: MultiImageUploadComponent,
+  },
 };
 
 // Default export for Formio.use()

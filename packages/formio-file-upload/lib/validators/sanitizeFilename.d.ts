@@ -82,7 +82,7 @@ export interface ValidationOptions {
  * @param options - Validation options
  * @returns Object with validation result
  */
-export declare function validateFilename(filename: string, options?: ValidationOptions): {
+export declare function validateFilename(filename: string, _options?: ValidationOptions): {
     valid: boolean;
     errors: string[];
 };
