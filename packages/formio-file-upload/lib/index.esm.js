@@ -19369,8 +19369,7 @@ class MultiImageUploadComponent extends FileComponent {
             extractMetadata: true,
             filePattern: 'image/*,video/*',
             fileMaxSize: '10MB',
-            ...extend,
-        });
+        }, ...extend);
     }
     static get builderInfo() {
         return {

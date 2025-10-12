@@ -11,7 +11,18 @@ import './formio-dark.css';
 
 // Register Form.io File Upload Module
 import { Formio } from '@formio/js';
-import FormioFileUploadModule from '../../packages/formio-file-upload/src/index';
+import FormioFileUploadModule, {
+  MultiImageUploadComponent
+} from '../../packages/formio-file-upload/src/index';
+import { MultiImageUpload } from './components/MultiImageUpload';
+
+// CRITICAL: Register React component factory BEFORE Formio.use()
+// This enables the Form.io adapter to load the React component at runtime
+MultiImageUploadComponent.registerReactComponent(() => ({
+  React,
+  ReactDOM,
+  MultiImageUpload
+}));
 
 Formio.use(FormioFileUploadModule);
 

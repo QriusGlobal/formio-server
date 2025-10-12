@@ -19,20 +19,22 @@ export default class MultiImageUploadComponent extends FileComponent {
   }
 
   static schema(...extend: any[]) {
-    return FileComponent.schema({
-      type: 'multiimageupload',
-      label: 'Multi-Image Upload',
-      key: 'site_images',
-      storage: 'url',
-      url: 'http://localhost:1080/files/',
-      maxFiles: 20,
-      compressionQuality: 0.8,
-      autoNumbering: true,
-      extractMetadata: true,
-      filePattern: 'image/*,video/*',
-      fileMaxSize: '10MB',
-      ...extend,
-    });
+    return FileComponent.schema(
+      {
+        type: 'multiimageupload',
+        label: 'Multi-Image Upload',
+        key: 'site_images',
+        storage: 'url',
+        url: 'http://localhost:1080/files/',
+        maxFiles: 20,
+        compressionQuality: 0.8,
+        autoNumbering: true,
+        extractMetadata: true,
+        filePattern: 'image/*,video/*',
+        fileMaxSize: '10MB',
+      },
+      ...extend
+    );
   }
 
   static get builderInfo() {
