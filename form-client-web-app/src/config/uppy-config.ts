@@ -5,8 +5,6 @@
  * with TUS protocol integration for resumable uploads.
  */
 
-import type Uppy from '@uppy/core';
-
 export interface UppyConfigOptions {
   /**
    * TUS server endpoint URL
@@ -75,7 +73,7 @@ export const defaultUppyConfig: Required<UppyConfigOptions> = {
   retryDelays: [0, 1000, 3000, 5000],
   autoProceed: false,
   allowMultipleUploads: true,
-  debug: process.env.NODE_ENV === 'development',
+  debug: process.env.NODE_ENV === 'development'
 };
 
 /**
@@ -88,7 +86,7 @@ export const getUppyRestrictions = (config: UppyConfigOptions = {}) => {
     maxFileSize: mergedConfig.maxFileSize,
     maxNumberOfFiles: mergedConfig.maxNumberOfFiles,
     minNumberOfFiles: mergedConfig.minNumberOfFiles,
-    allowedFileTypes: mergedConfig.allowedFileTypes,
+    allowedFileTypes: mergedConfig.allowedFileTypes
   };
 };
 
@@ -104,7 +102,7 @@ export const getTusOptions = (config: UppyConfigOptions = {}) => {
     // Additional TUS-specific options
     chunkSize: 5 * 1024 * 1024, // 5MB chunks
     removeFingerprintOnSuccess: true,
-    withCredentials: false,
+    withCredentials: false
   };
 };
 
@@ -118,7 +116,7 @@ export const getDashboardOptions = () => ({
   showProgressDetails: true,
   note: 'Upload files using resumable TUS protocol',
   proudlyDisplayPoweredByUppy: false,
-  theme: 'light',
+  theme: 'light'
 });
 
 /**
@@ -136,8 +134,8 @@ export const createUppyInstance = (
     allowMultipleUploads: mergedConfig.allowMultipleUploads,
     restrictions: getUppyRestrictions(config),
     meta: {
-      source: 'formio-tus-uploader',
-    },
+      source: 'formio-tus-uploader'
+    }
   });
 };
 
@@ -152,7 +150,7 @@ export const FILE_TYPE_PRESETS = {
   archives: ['.zip', '.rar', '.7z', '.tar', '.gz'],
   videos: ['video/*'],
   audio: ['audio/*'],
-  all: null,
+  all: null
 } as const;
 
 /**
@@ -163,5 +161,5 @@ export const SIZE_PRESETS = {
   medium: 50 * 1024 * 1024, // 50MB
   large: 100 * 1024 * 1024, // 100MB
   xlarge: 500 * 1024 * 1024, // 500MB
-  xxlarge: 1024 * 1024 * 1024, // 1GB
+  xxlarge: 1024 * 1024 * 1024 // 1GB
 } as const;

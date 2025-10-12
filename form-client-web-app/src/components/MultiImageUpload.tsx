@@ -5,6 +5,8 @@ import Compressor from '@uppy/compressor';
 import Webcam from '@uppy/webcam';
 import GoldenRetriever from '@uppy/golden-retriever';
 import { Dashboard } from '@uppy/react';
+import '@uppy/core/css/style.css';
+import '@uppy/dashboard/css/style.css';
 import { verifyFileType } from '../../../packages/formio-file-upload/src/validators/magicNumbers';
 import { sanitizeFilename } from '../../../packages/formio-file-upload/src/validators/sanitizeFilename';
 import { logger } from '../utils/logger';

@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { describe, it, expect } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import FormViewer from './FormViewer';
 
@@ -35,7 +35,6 @@ describe('FormViewer', () => {
 
   it('renders form selector with all sample forms', () => {
     render(<FormViewer />);
-    const select = screen.getByRole('combobox');
 
     expect(screen.getByText('Simple Form (Name & Email)')).toBeInTheDocument();
     expect(screen.getByText(/Contact Form/)).toBeInTheDocument();
@@ -65,7 +64,9 @@ describe('FormViewer', () => {
     fireEvent.click(loadButton);
 
     // Check that textarea has content
-    const textarea = screen.getByPlaceholderText(/Paste your Form.io JSON here/) as HTMLTextAreaElement;
+    const textarea = screen.getByPlaceholderText(
+      /Paste your Form.io JSON here/
+    ) as HTMLTextAreaElement;
     expect(textarea.value).toContain('"display": "form"');
     expect(textarea.value).toContain('"components":');
   });
@@ -91,7 +92,6 @@ describe('FormViewer', () => {
 
     // Mock form submission by directly calling the submit handler
     // (Full integration test would require Form.io component testing)
-    const mockSubmission = { data: { firstName: 'John', lastName: 'Doe' } };
 
     // This is a simplified test - full test would require form interaction
     // For now, we verify the component structure exists

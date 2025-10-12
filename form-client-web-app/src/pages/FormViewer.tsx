@@ -392,6 +392,7 @@ export default function FormViewer() {
         >
           <Form
             form={getCurrentForm()}
+            src=""
             url={useServerMode ? formioServerUrl : undefined}
             onSubmit={handleSubmit}
             onError={handleError}

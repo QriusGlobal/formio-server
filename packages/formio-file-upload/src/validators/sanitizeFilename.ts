@@ -14,28 +14,64 @@
  */
 export const DANGEROUS_EXTENSIONS = [
   // Executables
-  '.exe', '.com', '.bat', '.cmd', '.sh', '.bash', '.zsh',
+  '.exe',
+  '.com',
+  '.bat',
+  '.cmd',
+  '.sh',
+  '.bash',
+  '.zsh',
 
   // Scripts
-  '.js', '.mjs', '.cjs', '.vbs', '.vbe', '.ps1', '.psm1',
+  '.js',
+  '.mjs',
+  '.cjs',
+  '.vbs',
+  '.vbe',
+  '.ps1',
+  '.psm1',
 
   // Server-side code
-  '.php', '.php3', '.php4', '.php5', '.phtml', '.phps',
-  '.asp', '.aspx', '.jsp', '.jspx',
-  '.cgi', '.pl', '.py', '.rb',
+  '.php',
+  '.php3',
+  '.php4',
+  '.php5',
+  '.phtml',
+  '.phps',
+  '.asp',
+  '.aspx',
+  '.jsp',
+  '.jspx',
+  '.cgi',
+  '.pl',
+  '.py',
+  '.rb',
 
   // Configuration files
-  '.htaccess', '.htpasswd', '.ini', '.conf',
+  '.htaccess',
+  '.htpasswd',
+  '.ini',
+  '.conf',
 
   // Compressed executables
-  '.scr', '.pif', '.application', '.gadget', '.msi', '.msp',
-  '.jar', '.war', '.ear',
+  '.scr',
+  '.pif',
+  '.application',
+  '.gadget',
+  '.msi',
+  '.msp',
+  '.jar',
+  '.war',
+  '.ear',
 
   // Links and shortcuts
-  '.lnk', '.url', '.desktop',
+  '.lnk',
+  '.url',
+  '.desktop',
 
   // Web archives that can execute
-  '.hta', '.htr',
+  '.hta',
+  '.htr',
 ];
 
 /**
@@ -57,9 +93,28 @@ export const MAX_FILENAME_LENGTH = 255;
  * Reserved Windows filenames
  */
 export const RESERVED_NAMES = [
-  'CON', 'PRN', 'AUX', 'NUL',
-  'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9',
-  'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9',
+  'CON',
+  'PRN',
+  'AUX',
+  'NUL',
+  'COM1',
+  'COM2',
+  'COM3',
+  'COM4',
+  'COM5',
+  'COM6',
+  'COM7',
+  'COM8',
+  'COM9',
+  'LPT1',
+  'LPT2',
+  'LPT3',
+  'LPT4',
+  'LPT5',
+  'LPT6',
+  'LPT7',
+  'LPT8',
+  'LPT9',
 ];
 
 export interface SanitizeOptions {
@@ -145,7 +200,7 @@ export function sanitizeFilename(filename: string, options: SanitizeOptions = {}
 
   // Check for dangerous double extensions
   if (!preserveExtension) {
-    const dangerousExtFound = DANGEROUS_EXTENSIONS.some(dangerousExt => {
+    const dangerousExtFound = DANGEROUS_EXTENSIONS.some((dangerousExt) => {
       const extLower = ext.toLowerCase();
       const nameLower = name.toLowerCase();
 
@@ -255,7 +310,7 @@ export interface ValidationOptions {
  */
 export function validateFilename(
   filename: string,
-  options: ValidationOptions = {}
+  _options: ValidationOptions = {}
 ): {
   valid: boolean;
   errors: string[];
@@ -284,8 +339,8 @@ export function validateFilename(
 
   // Check for dangerous extensions
   const filenameLower = filename.toLowerCase();
-  const hasDangerousExt = DANGEROUS_EXTENSIONS.some(ext =>
-    filenameLower.endsWith(ext) || filenameLower.includes(ext + '.')
+  const hasDangerousExt = DANGEROUS_EXTENSIONS.some(
+    (ext) => filenameLower.endsWith(ext) || filenameLower.includes(ext + '.')
   );
 
   if (hasDangerousExt) {
@@ -371,7 +426,7 @@ export function hasAllowedExtension(filename: string, allowedExtensions: string[
   const ext = extractExtension(filename);
   if (!ext) return false;
 
-  const normalizedAllowed = allowedExtensions.map(e =>
+  const normalizedAllowed = allowedExtensions.map((e) =>
     e.startsWith('.') ? e.toLowerCase() : '.' + e.toLowerCase()
   );
 
