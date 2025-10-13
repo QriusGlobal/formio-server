@@ -19692,15 +19692,20 @@ class MultiImageUploadComponent extends FileComponent {
                 hasReactDOM: !!ReactDOM,
                 hasMultiImageUpload: !!MultiImageUpload,
             });
-            console.log('🔴 [MultiImageUpload] loadReactComponent() creating React root', {
+            // ✅ Reuse existing React root or create new one
+            if (!this.mountedReactComponent) {
+                console.log('🔴 [MultiImageUpload] loadReactComponent() creating NEW React root', {
+                    timestamp: new Date().toISOString(),
+                });
+                this.mountedReactComponent = ReactDOM.createRoot(this.reactContainer);
+            }
+            else {
+                console.log('🔴 [MultiImageUpload] loadReactComponent() reusing existing React root', {
+                    timestamp: new Date().toISOString(),
+                });
+            }
+            console.log('🔴 [MultiImageUpload] loadReactComponent() preparing props for render', {
                 timestamp: new Date().toISOString(),
-                targetContainer: this.reactContainer,
-                containerStillInDocument: document.contains(this.reactContainer),
-            });
-            const root = ReactDOM.createRoot(this.reactContainer);
-            console.log('🔴 [MultiImageUpload] loadReactComponent() React root created, preparing props', {
-                timestamp: new Date().toISOString(),
-                root: root,
                 componentProps: {
                     formKey: this.component.key || 'site_images',
                     maxFiles: this.component.maxFiles || UPLOAD_CONSTANTS.DEFAULT_MAX_FILES,
@@ -19710,10 +19715,11 @@ class MultiImageUploadComponent extends FileComponent {
                     value: this.dataValue || [],
                 },
             });
-            console.log('🔴 [MultiImageUpload] loadReactComponent() calling root.render()', {
+            console.log('🔴 [MultiImageUpload] loadReactComponent() calling render()', {
                 timestamp: new Date().toISOString(),
             });
-            root.render(React.createElement(MultiImageUpload, {
+            // ✅ Update props on existing root
+            this.mountedReactComponent.render(React.createElement(MultiImageUpload, {
                 formKey: this.component.key || 'site_images',
                 maxFiles: this.component.maxFiles || UPLOAD_CONSTANTS.DEFAULT_MAX_FILES,
                 compressionQuality: this.component.compressionQuality || UPLOAD_CONSTANTS.DEFAULT_COMPRESSION_QUALITY,
@@ -19729,10 +19735,9 @@ class MultiImageUploadComponent extends FileComponent {
                 },
                 value: this.dataValue || [],
             }));
-            console.log('🔴 [MultiImageUpload] loadReactComponent() root.render() called, storing root', {
+            console.log('🔴 [MultiImageUpload] loadReactComponent() render() called', {
                 timestamp: new Date().toISOString(),
             });
-            this.mountedReactComponent = root;
             console.log('🔴 [MultiImageUpload] loadReactComponent() SUCCESS - React component mounted', {
                 timestamp: new Date().toISOString(),
                 mountedReactComponent: this.mountedReactComponent,
@@ -19839,13 +19844,11 @@ class MultiImageUploadComponent extends FileComponent {
                 willTriggerChange: true,
             });
             this.triggerChange();
-            if (this.mountedReactComponent && this.reactContainer) {
-                console.log('🔴 [MultiImageUpload] setValue() re-rendering React component with new value', {
-                    timestamp: new Date().toISOString(),
-                    reactComponentMounted: true,
-                });
-                this.loadReactComponent();
-            }
+            // ✅ React component will sync via useEffect - no need to remount
+            console.log('🔴 [MultiImageUpload] setValue() React will sync via useEffect', {
+                timestamp: new Date().toISOString(),
+                reactComponentMounted: !!this.mountedReactComponent,
+            });
         }
         return changed;
     }

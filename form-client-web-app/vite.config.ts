@@ -13,7 +13,17 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react({
         jsxRuntime: 'automatic',
-        fastRefresh: true
+        fastRefresh: true,
+        babel: {
+          plugins: [
+            [
+              'babel-plugin-react-compiler',
+              {
+                target: '19'
+              }
+            ]
+          ]
+        }
       }),
       obfuscateBundle &&
         replace({

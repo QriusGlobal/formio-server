@@ -252,36 +252,37 @@ export default class MultiImageUploadComponent extends FileComponent {
         hasMultiImageUpload: !!MultiImageUpload,
       });
 
-      console.log('🔴 [MultiImageUpload] loadReactComponent() creating React root', {
-        timestamp: new Date().toISOString(),
-        targetContainer: this.reactContainer,
-        containerStillInDocument: document.contains(this.reactContainer),
-      });
-
-      const root = ReactDOM.createRoot(this.reactContainer);
-
-      console.log(
-        '🔴 [MultiImageUpload] loadReactComponent() React root created, preparing props',
-        {
+      // ✅ Reuse existing React root or create new one
+      if (!this.mountedReactComponent) {
+        console.log('🔴 [MultiImageUpload] loadReactComponent() creating NEW React root', {
           timestamp: new Date().toISOString(),
-          root: root,
-          componentProps: {
-            formKey: this.component.key || 'site_images',
-            maxFiles: this.component.maxFiles || UPLOAD_CONSTANTS.DEFAULT_MAX_FILES,
-            compressionQuality:
-              this.component.compressionQuality || UPLOAD_CONSTANTS.DEFAULT_COMPRESSION_QUALITY,
-            autoNumbering: this.component.autoNumbering ?? true,
-            extractMetadata: this.component.extractMetadata ?? true,
-            value: this.dataValue || [],
-          },
-        }
-      );
+        });
+        this.mountedReactComponent = ReactDOM.createRoot(this.reactContainer);
+      } else {
+        console.log('🔴 [MultiImageUpload] loadReactComponent() reusing existing React root', {
+          timestamp: new Date().toISOString(),
+        });
+      }
 
-      console.log('🔴 [MultiImageUpload] loadReactComponent() calling root.render()', {
+      console.log('🔴 [MultiImageUpload] loadReactComponent() preparing props for render', {
+        timestamp: new Date().toISOString(),
+        componentProps: {
+          formKey: this.component.key || 'site_images',
+          maxFiles: this.component.maxFiles || UPLOAD_CONSTANTS.DEFAULT_MAX_FILES,
+          compressionQuality:
+            this.component.compressionQuality || UPLOAD_CONSTANTS.DEFAULT_COMPRESSION_QUALITY,
+          autoNumbering: this.component.autoNumbering ?? true,
+          extractMetadata: this.component.extractMetadata ?? true,
+          value: this.dataValue || [],
+        },
+      });
+
+      console.log('🔴 [MultiImageUpload] loadReactComponent() calling render()', {
         timestamp: new Date().toISOString(),
       });
 
-      root.render(
+      // ✅ Update props on existing root
+      this.mountedReactComponent.render(
         React.createElement(MultiImageUpload, {
           formKey: this.component.key || 'site_images',
           maxFiles: this.component.maxFiles || UPLOAD_CONSTANTS.DEFAULT_MAX_FILES,
@@ -302,11 +303,9 @@ export default class MultiImageUploadComponent extends FileComponent {
         })
       );
 
-      console.log('🔴 [MultiImageUpload] loadReactComponent() root.render() called, storing root', {
+      console.log('🔴 [MultiImageUpload] loadReactComponent() render() called', {
         timestamp: new Date().toISOString(),
       });
-
-      this.mountedReactComponent = root;
 
       console.log('🔴 [MultiImageUpload] loadReactComponent() SUCCESS - React component mounted', {
         timestamp: new Date().toISOString(),
@@ -432,17 +431,11 @@ export default class MultiImageUploadComponent extends FileComponent {
 
       this.triggerChange();
 
-      if (this.mountedReactComponent && this.reactContainer) {
-        console.log(
-          '🔴 [MultiImageUpload] setValue() re-rendering React component with new value',
-          {
-            timestamp: new Date().toISOString(),
-            reactComponentMounted: true,
-          }
-        );
-
-        this.loadReactComponent();
-      }
+      // ✅ React component will sync via useEffect - no need to remount
+      console.log('🔴 [MultiImageUpload] setValue() React will sync via useEffect', {
+        timestamp: new Date().toISOString(),
+        reactComponentMounted: !!this.mountedReactComponent,
+      });
     }
 
     return changed;
