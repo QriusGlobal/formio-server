@@ -3,6 +3,13 @@
 	"version": "6.1.0",
 	"description": "React renderer for form.io forms.",
 	"main": "lib/index.js",
+	"types": "lib/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./lib/index.d.ts",
+			"default": "./lib/index.js"
+		}
+	},
 	"scripts": {
 		"test": "jest",
 		"build": "tsc --project tsconfig.json",
@@ -28,8 +35,8 @@
 	},
 	"homepage": "https://github.com/formio/react#readme",
 	"dependencies": {
-		"@formio/core": "^2.4.0",
 		"@formio/js": "^5.1.1",
+		"@formio/core": "^2.4.0",
 		"@ungap/structured-clone": "^1.2.0",
 		"core-js": "^3.35.1",
 		"lodash": "^4.17.21",
@@ -41,6 +48,7 @@
 		"@testing-library/dom": "^10.4.0",
 		"@testing-library/jest-dom": "^6.6.2",
 		"@testing-library/react": "^16.1.1",
+		"@types/flatpickr": "^3.0.2",
 		"@types/jest": "^29.5.12",
 		"@types/lodash": "^4.14.202",
 		"@types/react": "^19.0.0",
