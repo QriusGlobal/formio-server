@@ -1,195 +1,346 @@
 # Qrius Patches for @qrius/formio-react
 
-This directory contains patch files documenting all customizations made to the upstream `@formio/react` repository.
+This directory contains documentation of all customizations made to the upstream `@formio/react` repository.
 
-## Current Patches
+## Patch Management Approach
 
-### 0001-bundle-dependencies.patch
+This is an **active development fork** with frequent customizations and regular upstream syncs. We use **StGit (Stacked Git)** for interactive patch management.
 
-**Status**: Active  
-**Created**: 2025-10-13  
-**Upstream Status**: Cannot contribute (Qrius-specific requirement)
+### Why StGit?
 
-**Changes**:
+**StGit** is the industry standard for active development forks:
 
-- Moved `@formio/js` and `@formio/core` from `peerDependencies` to `dependencies`
-- Updated package name from `@formio/react` to `@qrius/formio-react`
-- Added `publishConfig` for GitHub Packages
+- **Git-native**: Patches ARE commits, no separate patch files
+- **Interactive**: Update any patch, not just the topmost
+- **Reorderable**: Move patches up/down the stack
+- **Safe**: Full undo capability with `stg undo`
+- **Transparent**: Works with all git tools (gitk, git log, etc.)
 
-**Rationale**:
-The entire point of this private package is zero-dependency management for consuming apps. Apps should only install `@qrius/formio-react`, not manage Form.io dependencies separately.
+**Used By**: Linux kernel subsystem maintainers, QEMU, PostgreSQL, and thousands of active forks
 
-**Files Modified**:
-
-- `package.json`
-
----
-
-### 0002-export-formio-instance.patch
-
-**Status**: Active  
-**Created**: 2025-10-13  
-**Upstream Status**: Cannot contribute (Qrius-specific requirement)
-
-**Changes**:
-
-- Added `export { Formio } from '@formio/js'` to `src/index.ts`
-
-**Rationale**:
-Consuming apps need access to the `Formio` instance for:
-
-- Registering custom components: `Formio.Components.register()`
-- Using Form.io modules: `Formio.use(module)`
-- Accessing Form.io SDK: `new Formio(url)`
-
-**Files Modified**:
-
-- `src/index.ts`
-
----
-
-### 0003-github-packages-workflow.patch
-
-**Status**: Active  
-**Created**: 2025-10-13  
-**Upstream Status**: Cannot contribute (Qrius-specific infrastructure)
-
-**Changes**:
-
-- Added `.github/workflows/publish.yml` for automatic publishing to GitHub Packages
-
-**Rationale**:
-CI/CD pipeline for publishing private package to GitHub Packages on push to `main` branch.
-
-**Files Modified**:
-
-- `.github/workflows/publish.yml` (new file)
-
----
-
-## Patch Management
-
-### Generating Patches
+## Installation
 
 ```bash
-# Generate all patches from upstream/main
-cd formio-react/
-./scripts/manage-patches.sh generate
+# macOS
+brew install stgit
+
+# Debian/Ubuntu
+apt install stgit
+
+# Fedora/RHEL
+dnf install stgit
+
+# From source
+git clone https://github.com/stacked-git/stgit.git
+cd stgit && make install
 ```
 
-### Applying Patches
+## Basic Workflow
+
+### Initialize StGit
 
 ```bash
-# Apply all patches in sequence
-./scripts/manage-patches.sh apply
+# One-time setup in this repository
+stg init
 ```
 
-### Checking Patches
+### Create New Customization
 
 ```bash
-# Verify patches apply cleanly
-./scripts/manage-patches.sh check
+# Create new patch
+stg new feature-name -m "Add new feature"
+
+# Make changes to files
+vim src/index.ts
+
+# Capture changes in current patch
+stg refresh
+
+# View patch
+stg show
 ```
 
-### Listing Patches
+### View Patch Stack
 
 ```bash
-# List all current patches
-./scripts/manage-patches.sh list
+# List all patches
+stg series
+
+# Show detailed status
+stg series -d
+
+# View specific patch
+stg show patch-name
 ```
 
-## Upstream Merge Workflow
+### Navigate Patches
 
-When merging upstream changes:
+```bash
+# Jump to specific patch
+stg goto patch-name
 
-1. **Before merge**: Generate patches to save current state
+# Move to next/previous patch
+stg next
+stg prev
 
-    ```bash
-    ./scripts/manage-patches.sh generate
-    ```
+# Go to top (all patches applied)
+stg top
 
-2. **Merge upstream**: Pull changes from upstream
+# Go to bottom (no patches applied)
+stg pop -a
+```
 
-    ```bash
-    git fetch upstream
-    git merge upstream/main
-    ```
+### Modify Existing Patches
 
-3. **Resolve conflicts**: Handle any merge conflicts
-    - Always accept upstream's `Changelog.md`
-    - Carefully merge `package.json` (preserve Qrius customizations)
-    - Preserve Formio export in `src/index.ts`
+```bash
+# Jump to patch you want to modify
+stg goto old-patch-name
 
-4. **Verify changes**: Ensure customizations are intact
+# Make changes
+vim src/component.ts
 
-    ```bash
-    npm test
-    npm run build
-    ```
+# Update the patch
+stg refresh
 
-5. **Regenerate patches**: Update patch files
+# Return to top
+stg top
+```
 
-    ```bash
-    ./scripts/manage-patches.sh generate
-    ```
+### Reorder Patches
 
-6. **Update CHANGELOG**: Document merge in `CHANGELOG.QRIUS.md`
+```bash
+# Move patch to top of stack
+stg float patch-name
 
-## Patch File Format
+# Move patch to bottom
+stg sink patch-name
 
-Each patch file follows standard `git format-patch` format:
+# List patches to see new order
+stg series
+```
 
-```diff
-From <commit-hash> Mon Sep 17 00:00:00 2001
-From: Author Name <author@example.com>
-Date: Mon, 13 Oct 2025 13:00:00 +0000
-Subject: [PATCH] Short description
+## Upstream Merge Workflow with StGit
 
-Detailed explanation of change.
+### Before Merging Upstream
 
-Qrius-Specific: Reason for customization
+```bash
+# Check current patch stack
+stg series -d
+
+# Ensure all patches are applied and refreshed
+stg top
+stg refresh
+
+# Fetch upstream changes
+git fetch upstream
+```
+
+### Merge Upstream
+
+```bash
+# Rebase patch stack onto new upstream
+stg rebase upstream/main
+```
+
+**What happens:**
+
+- StGit temporarily pops all patches
+- Rebases to `upstream/main`
+- Reapplies patches one by one
+- Stops if conflicts occur
+
+### Handle Conflicts
+
+If rebase stops due to conflicts:
+
+```bash
+# Fix conflicts in affected files
+vim src/conflicted-file.ts
+
+# Mark as resolved
+git add src/conflicted-file.ts
+
+# Continue rebase
+stg refresh
+stg goto --next
+
+# Repeat until all patches applied
+```
+
+### Special Cases
+
+**Always Accept Upstream's Changelog:**
+
+```bash
+# During conflict resolution
+git checkout upstream/main -- Changelog.md
+git add Changelog.md
+stg refresh
+```
+
+**Preserve Qrius Customizations:**
+
+- `package.json` - Keep Qrius package name, dependencies, publishConfig
+- `src/index.ts` - Keep Formio export
+- `.github/workflows/publish.yml` - Keep Qrius publishing workflow
+
+### Verify After Merge
+
+```bash
+# Run tests
+npm test
+
+# Build package
+npm run build
+
+# Check patch stack integrity
+stg series -d
+
+# View all changes
+stg show --all
+```
+
+### Undo If Needed
+
+```bash
+# Undo last operation
+stg undo
+
+# Undo multiple operations
+stg undo --number 3
+
+# View undo history
+stg log
+```
+
+## Current Customizations (StGit Patches)
+
+**View live patch stack:** `stg series -d`
+
+### Expected Patches
+
+1. **bundle-dependencies**
+    - Moved `@formio/js` and `@formio/core` from `peerDependencies` to `dependencies`
+    - Updated package name to `@qrius/formio-react`
+    - Added `publishConfig` for GitHub Packages
+    - **Rationale**: Zero-dependency management for consuming apps
+    - **Upstream Status**: Cannot contribute (Qrius-specific requirement)
+
+2. **export-formio-instance**
+    - Added `export { Formio } from '@formio/js'` to `src/index.ts`
+    - **Rationale**: Apps need Formio instance for component registration
+    - **Upstream Status**: Cannot contribute (Qrius-specific requirement)
+
+3. **github-packages-workflow**
+    - Added `.github/workflows/publish.yml`
+    - **Rationale**: CI/CD for GitHub Packages publishing
+    - **Upstream Status**: Cannot contribute (Qrius infrastructure)
+
+**Note:** After StGit initialization, convert existing commits to patches using:
+
+```bash
+stg uncommit --number 3  # Uncommit last 3 commits as patches
+```
+
+## Adding New Customizations
+
+```bash
+# Create new patch
+stg new feature-name -m "feat(qrius): short description
+
+Detailed explanation.
+
+Qrius-Specific: Reason
+Upstream Status: Cannot contribute / Will contribute"
+
+# Make changes
+vim src/component.ts
+
+# Capture changes
+stg refresh
+
+# View what was captured
+stg show
+
+# Update CHANGELOG.QRIUS.md
+vim CHANGELOG.QRIUS.md
+
+# Add CHANGELOG to patch
+stg refresh
+```
+
+## Commit Message Format
+
+StGit patches follow standard commit format:
+
+```
+feat(qrius): short description
+
+Detailed explanation of changes and motivation.
+
+Qrius-Specific: Business/technical reason
 Upstream Status: Cannot contribute / Contributed (PR link)
-
----
- file.ts | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/file.ts b/file.ts
-index abc123..def456 100644
---- a/file.ts
-+++ b/file.ts
-@@ -1 +1 @@
--old line
-+new line
 ```
 
-## Contributing New Patches
+**Types**: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`
 
-When adding new customizations:
+## Advanced Operations
 
-1. **Make changes**: Edit files as needed
-2. **Commit**: Use structured commit message
+### Export Patches (Optional)
 
-    ```bash
-    git commit -m "feat(qrius): short description
+If you need patch files for documentation or sharing:
 
-    Detailed explanation.
+```bash
+# Export all patches to patches/ directory
+stg export --dir patches/
 
-    Qrius-Specific: Reason
-    Upstream Status: Cannot contribute / Will contribute
-    "
-    ```
+# Export specific patch
+stg export --dir patches/ patch-name
+```
 
-3. **Generate patch**: Create patch file
-    ```bash
-    ./scripts/manage-patches.sh generate
-    ```
-4. **Document**: Add entry to this README
-5. **Update CHANGELOG**: Add to `CHANGELOG.QRIUS.md`
+**Note:** This is optional - StGit doesn't require exporting patches to function.
+
+### Delete Patch
+
+```bash
+# Delete specific patch
+stg delete patch-name
+
+# Delete multiple patches
+stg delete patch1 patch2 patch3
+```
+
+### Rename Patch
+
+```bash
+# Rename patch
+stg rename old-name new-name
+```
+
+### Squash Patches
+
+```bash
+# Combine multiple patches into one
+stg squash patch1 patch2 --name combined-patch
+```
+
+## Comparison to Other Tools
+
+| Feature                | StGit           | Quilt          | git-rebase            |
+| ---------------------- | --------------- | -------------- | --------------------- |
+| **Active Development** | ✅ Best         | ❌ Static only | ⚠️ Manual             |
+| **Git Integration**    | ✅ Native       | ❌ Separate    | ✅ Native             |
+| **Update Any Patch**   | ✅ Yes          | ❌ Top only    | ❌ Complex            |
+| **Reorder Patches**    | ✅ Commands     | ⚠️ Manual edit | ⚠️ Interactive rebase |
+| **Undo Capability**    | ✅ Full history | ❌ None        | ⚠️ reflog only        |
+| **Conflict Detection** | ✅ Immediate    | ⚠️ On apply    | ✅ On rebase          |
+
+**Verdict:** StGit is superior for active development forks with frequent customizations.
 
 ## Links
 
+- **StGit Documentation**: https://stacked-git.github.io/
 - **Upstream Repository**: https://github.com/formio/react
 - **Qrius Fork**: https://github.com/QriusGlobal/formio-react
-- **Documentation**: See `../docs/FORK_MAINTENANCE_BEST_PRACTICES.md`
+- **Maintenance Guide**: See `../docs/FORK_MAINTENANCE_BEST_PRACTICES.md`
 - **CHANGELOG**: See `../CHANGELOG.QRIUS.md`

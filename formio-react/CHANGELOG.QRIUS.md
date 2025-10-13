@@ -44,9 +44,9 @@ This changelog follows [Keep a Changelog](https://keepachangelog.com/) format.
     - `CLAUDE.md` - AI assistant instructions for fork development
     - `CHANGELOG.QRIUS.md` - This file
 - Patch management system:
-    - `patches/` directory for tracking customizations
-    - `scripts/manage-patches.sh` - Patch management utility
-    - `patches/README.md` - Patch documentation
+    - StGit (Stacked Git) for interactive patch management
+    - `patches/` directory for optional patch exports
+    - `patches/README.md` - StGit workflow documentation
 - Development workflow documentation:
     - `docs/FORK_MAINTENANCE_BEST_PRACTICES.md` - Complete maintenance guide
 
@@ -54,10 +54,11 @@ This changelog follows [Keep a Changelog](https://keepachangelog.com/) format.
 
 - **Rationale**: Private package should bundle all dependencies for zero-config consumption by consuming applications
 - **Benefit**: Developers installing `@qrius/formio-react` get everything they need without managing peer dependencies
-- **Patches**:
-    - `0001-bundle-dependencies.patch` - Dependency bundling changes
-    - `0002-export-formio-instance.patch` - Formio export for component registration
-    - `0003-github-packages-workflow.patch` - CI/CD pipeline
+- **Patch Management**: StGit (Stacked Git) for active development fork management
+- **Customizations**:
+    - `bundle-dependencies` - Dependency bundling changes
+    - `export-formio-instance` - Formio export for component registration
+    - `github-packages-workflow` - CI/CD pipeline
 - **Upstream Status**: Cannot contribute (Qrius-specific business requirement)
 - **Integration**: Works with `@formio/file-upload` package in monorepo
 
@@ -102,14 +103,18 @@ Examples:
 
 When making Qrius-specific changes:
 
-1. **Make changes** in your feature branch
-2. **Update this CHANGELOG** under `[Unreleased]` section
-3. **Generate patch files**:
+1. **Create StGit patch**:
     ```bash
-    ./scripts/manage-patches.sh generate
+    stg new feature-name -m "feat(qrius): description"
     ```
-4. **Document patches** in `patches/README.md`
-5. **Commit** with structured message:
+2. **Make changes** in your files
+3. **Capture changes**:
+    ```bash
+    stg refresh
+    ```
+4. **Update this CHANGELOG** under `[Unreleased]` section
+5. **Document in patches/README.md** if adding new customization type
+6. **Commit message format**:
 
     ```
     feat(qrius): short description
@@ -118,10 +123,9 @@ When making Qrius-specific changes:
 
     Qrius-Specific: Business/technical reason
     Upstream Status: Cannot contribute / Contributed (PR link)
-    Patch: patches/NNNN-description.patch
     ```
 
-### Commit Message Format
+### Commit Message Format (StGit Patches)
 
 ```
 <type>(qrius): <subject>
@@ -130,10 +134,11 @@ When making Qrius-specific changes:
 
 Qrius-Specific: <reason>
 Upstream Status: <status>
-Patch: <patch-file>
 ```
 
 **Types**: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`
+
+**View patches**: `stg series` or `stg show patch-name`
 
 ---
 
@@ -143,15 +148,21 @@ Patch: <patch-file>
 
 When syncing with upstream:
 
-1. **Save patches**: `./scripts/manage-patches.sh generate`
-2. **Merge upstream**: `git merge upstream/main`
-3. **Resolve conflicts**:
+1. **Check patch stack**: `stg series -d`
+2. **Rebase onto upstream**:
+    ```bash
+    git fetch upstream
+    stg rebase upstream/main
+    ```
+3. **Resolve conflicts** (if any):
     - Accept upstream's `Changelog.md`
     - Preserve Qrius changes in `package.json`
     - Keep Formio export in `src/index.ts`
+    - Use `stg refresh` after fixing each conflict
 4. **Test**: `npm test && npm run build`
-5. **Regenerate patches**: `./scripts/manage-patches.sh generate`
-6. **Update this file** with new entry documenting upstream sync
+5. **Update this file** with new entry documenting upstream sync
+
+**Undo if needed**: `stg undo` (full undo history available)
 
 ### Release Process
 
