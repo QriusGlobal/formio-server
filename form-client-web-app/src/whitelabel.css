@@ -1,0 +1,73 @@
+/**
+ * Qrius Platform Whitelabel CSS
+ * Overrides Form.io branding with generic class names
+ */
+
+/* Rebrand Form.io form container */
+.formio-form {
+  /* Keep existing dark mode styles but rename conceptually */
+  --form-brand: 'qrius';
+}
+
+/* Create generic aliases for Form.io classes */
+.form-container {
+  background-color: rgb(17, 24, 39);
+  color: rgb(243, 244, 246);
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+}
+
+.form-field {
+  margin-bottom: 1rem;
+}
+
+.form-field-upload {
+  background-color: rgb(31, 41, 55);
+  border: 1px solid rgb(55, 65, 81);
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+.form-field-label {
+  color: white;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.form-field-input {
+  background-color: rgb(31, 41, 55);
+  border: 1px solid rgb(55, 65, 81);
+  color: white;
+  border-radius: 0.25rem;
+  padding: 0.75rem;
+  width: 100%;
+}
+
+/* Hide Form.io attribution if present */
+.formio-footer,
+.powered-by-formio,
+[data-powered-by] {
+  display: none !important;
+}
+
+/* Generic upload widget styling (replaces .formio-component-file) */
+.qrius-upload-container {
+  width: 100%;
+  min-height: 200px;
+}
+
+/* Uppy Dashboard custom styling to remove branding */
+.uppy-Dashboard-poweredBy {
+  display: none !important;
+}
+
+.uppy-Dashboard-poweredByUppy {
+  display: none !important;
+}
+
+/* Remove any "powered by" text */
+[class*='powered'],
+[class*='attribution'] {
+  display: none !important;
+}

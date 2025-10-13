@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Form } from '@formio/react';
-import type { Submission } from '@formio/react';
+import { Form } from '@qrius/formio-react';
+import type { Submission } from '@qrius/formio-react';
 import specialistReportForm from '../forms/specialist-report.json';
 
 // Sample form definitions
@@ -480,7 +480,8 @@ export default function FormViewer() {
               ) : (
                 <>
                   This is a <strong>client-side only</strong> form viewer. No data is sent to any
-                  server. All validation and rendering happens in your browser using @formio/react.
+                  server. All validation and rendering happens in your browser using
+                  @qrius/formio-react.
                 </>
               )}
             </p>

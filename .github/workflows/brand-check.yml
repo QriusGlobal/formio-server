@@ -1,0 +1,171 @@
+name: Brand Exposure & Security Check
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+
+jobs:
+  brand-security-check:
+    name: Brand Exposure & Security Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run ESLint Brand Check
+        id: eslint-brand
+        run: |
+          echo "Running ESLint with brand security rules..."
+          npx eslint . --config .eslintrc.brand-check.js --format json --output-file eslint-brand-report.json || true
+
+          if [ -f eslint-brand-report.json ]; then
+            ERROR_COUNT=$(cat eslint-brand-report.json | jq '[.[].errorCount] | add // 0')
+            WARNING_COUNT=$(cat eslint-brand-report.json | jq '[.[].warningCount] | add // 0')
+            
+            echo "errors=${ERROR_COUNT}" >> $GITHUB_OUTPUT
+            echo "warnings=${WARNING_COUNT}" >> $GITHUB_OUTPUT
+            
+            if [ "$ERROR_COUNT" -gt 0 ]; then
+              echo "❌ ESLint found ${ERROR_COUNT} brand exposure errors"
+              exit 1
+            fi
+          fi
+
+      - name: Run Brand Exposure Script
+        id: brand-script
+        run: |
+          echo "Running brand exposure detection script..."
+          bash scripts/check-brand-exposure.sh || echo "brand_check_failed=true" >> $GITHUB_OUTPUT
+
+      - name: Upload Brand Exposure Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: brand-exposure-report
+          path: |
+            brand-exposure-report.txt
+            eslint-brand-report.json
+          retention-days: 30
+
+      - name: Build Production Bundles
+        run: |
+          echo "Building production bundles..."
+          cd packages/formio-file-upload && npm run build || true
+          cd ../../form-client-web-app && npm run build || true
+
+      - name: Analyze Bundle Security
+        id: bundle-analysis
+        run: |
+          echo "Running bundle security analysis..."
+          bash scripts/analyze-bundle.sh || echo "bundle_check_failed=true" >> $GITHUB_OUTPUT
+
+      - name: Upload Bundle Analysis Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundle-security-report
+          path: bundle-security-report.txt
+          retention-days: 30
+
+      - name: Check for Secrets
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+
+      - name: Comment PR with Results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            let comment = '## 🔐 Brand Exposure & Security Check Report\n\n';
+
+            // ESLint results
+            if (fs.existsSync('eslint-brand-report.json')) {
+              const eslintReport = JSON.parse(fs.readFileSync('eslint-brand-report.json', 'utf8'));
+              const totalErrors = eslintReport.reduce((sum, file) => sum + file.errorCount, 0);
+              const totalWarnings = eslintReport.reduce((sum, file) => sum + file.warningCount, 0);
+              
+              comment += `### ESLint Brand Security\n`;
+              comment += `- ❌ Errors: ${totalErrors}\n`;
+              comment += `- ⚠️ Warnings: ${totalWarnings}\n\n`;
+              
+              if (totalErrors > 0) {
+                comment += `<details>\n<summary>View Errors</summary>\n\n`;
+                eslintReport.forEach(file => {
+                  if (file.errorCount > 0) {
+                    comment += `**${file.filePath}**\n`;
+                    file.messages.forEach(msg => {
+                      if (msg.severity === 2) {
+                        comment += `- Line ${msg.line}: ${msg.message}\n`;
+                      }
+                    });
+                  }
+                });
+                comment += `\n</details>\n\n`;
+              }
+            }
+
+            // Brand exposure script results
+            if (fs.existsSync('brand-exposure-report.txt')) {
+              const brandReport = fs.readFileSync('brand-exposure-report.txt', 'utf8');
+              const violations = (brandReport.match(/VIOLATION:/g) || []).length;
+              
+              comment += `### Brand Exposure Scan\n`;
+              comment += violations > 0 
+                ? `- ❌ Found ${violations} brand reference violations\n\n`
+                : `- ✅ No brand exposure detected\n\n`;
+            }
+
+            // Bundle analysis results
+            if (fs.existsSync('bundle-security-report.txt')) {
+              const bundleReport = fs.readFileSync('bundle-security-report.txt', 'utf8');
+              const issues = (bundleReport.match(/❌/g) || []).length;
+              
+              comment += `### Bundle Security Analysis\n`;
+              comment += issues > 0
+                ? `- ❌ Found ${issues} security issues in bundles\n\n`
+                : `- ✅ All bundle security checks passed\n\n`;
+            }
+
+            comment += `\n---\n📊 Full reports available in workflow artifacts\n`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+      - name: Final Status Check
+        run: |
+          if [ "${{ steps.eslint-brand.outputs.errors }}" -gt 0 ] || \
+             [ "${{ steps.brand-script.outputs.brand_check_failed }}" = "true" ] || \
+             [ "${{ steps.bundle-analysis.outputs.bundle_check_failed }}" = "true" ]; then
+            echo "❌ Brand exposure or security issues detected"
+            exit 1
+          else
+            echo "✅ All brand exposure and security checks passed"
+          fi

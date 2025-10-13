@@ -3,12 +3,82 @@
 
 echo "🔍 Running pre-commit checks..."
 
-# Check if services are running
+# Brand Exposure Check
+echo "Checking for brand exposure..."
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(js|ts|jsx|tsx)$' || true)
+
+if [ -n "$STAGED_FILES" ]; then
+  BRAND_VIOLATIONS=0
+  
+  for file in $STAGED_FILES; do
+    if [ -f "$file" ]; then
+      # Check for brand keywords
+      if grep -iqE '(formio|uppy|form\.io)' "$file"; then
+        # Exclude legitimate uses (imports, node_modules, config files)
+        if [[ ! "$file" =~ (node_modules|package.json|package-lock.json|.lock|.config.js|test|spec) ]]; then
+          echo "⚠️  Brand reference found in: $file"
+          BRAND_VIOLATIONS=$((BRAND_VIOLATIONS + 1))
+        fi
+      fi
+      
+      # Check for console.log statements
+      if grep -q 'console\.\(log\|debug\|info\)' "$file"; then
+        if [[ ! "$file" =~ (scripts/|test|spec|.config.js) ]]; then
+          echo "⚠️  Console statement found in: $file"
+        fi
+      fi
+    fi
+  done
+  
+  if [ $BRAND_VIOLATIONS -gt 0 ]; then
+    echo ""
+    echo "❌ Brand exposure detected in $BRAND_VIOLATIONS file(s)"
+    echo "   Run: npm run lint:brand to see full report"
+    echo "   Fix violations before committing"
+    exit 1
+  fi
+fi
+
+# Check for .env files
+if git diff --cached --name-only | grep -q '\.env$'; then
+  echo "❌ Error: Attempting to commit .env file"
+  echo "   Remove .env files from staging"
+  exit 1
+fi
+
+# Check for source map files
+if git diff --cached --name-only | grep -q '\.map$'; then
+  echo "❌ Error: Attempting to commit source map files"
+  echo "   Source maps should not be committed (security risk)"
+  exit 1
+fi
+
+# Check for secrets in staged files
+echo "Checking for exposed secrets..."
+STAGED_ALL=$(git diff --cached --name-only --diff-filter=ACM || true)
+
+if [ -n "$STAGED_ALL" ]; then
+  for file in $STAGED_ALL; do
+    if [ -f "$file" ]; then
+      # Check for potential secrets
+      if grep -qE '(api[_-]?key|apikey|password|secret|token).*["\047][a-zA-Z0-9]{20,}["\047]' "$file"; then
+        if [[ ! "$file" =~ (test|spec|mock|fixture) ]]; then
+          echo "❌ Error: Potential secret detected in: $file"
+          echo "   Use environment variables for sensitive data"
+          exit 1
+        fi
+      fi
+    fi
+  done
+fi
+
+# Check if services are running (optional E2E tests)
 echo "Checking if services are running..."
 if ! curl -sf http://localhost:3001/health > /dev/null 2>&1; then
   echo "⚠️  Warning: Form.io server is not running"
   echo "   E2E tests will be skipped"
   echo "   Run 'make upload-dev' to start services"
+  echo "✅ Pre-commit checks passed (E2E skipped)!"
   exit 0
 fi
 

@@ -1,0 +1,70 @@
+BRAND EXPOSURE DETECTION REPORT
+===============================
+
+Generated: Mon 13 Oct 2025 17:47:36 AEST
+Root Directory: /Users/mishal/code/worktrees/formio-monorepo-20251009
+
+Searched Locations:
+  - form-client-web-app/src
+  - test-app/src
+  - packages/*/lib
+  - packages/*/dist
+
+Brand Keywords:
+  - formio
+  - form\.io
+  - form-io
+  - uppy
+  - uppyjs
+  - uppy\.io
+
+===============================
+
+VIOLATION: Brand keyword 'formio' found in form-client-web-app/src
+---
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/config/uppy-config.ts:      source: 'formio-tus-uploader'
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/main.tsx:import '@qrius/formio-react/css';
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/main.tsx:import './formio-dark.css';
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/main.tsx:// CRITICAL: Import from @formio/js (bundled in @qrius/formio-react) to use the SAME Components registry!
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/main.tsx:import { Formio, Components } from '@formio/js';
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/main.tsx:import FormioFileUploadModule, {
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/main.tsx:} from '../../packages/formio-file-upload/src/index';
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/main.tsx:// CRITICAL: Register React component factory BEFORE Formio.use()
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/main.tsx:Formio.use(FormioFileUploadModule);
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/formio-dark.css:.formio-form {
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/formio-dark.css:.formio-dropzone,
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/formio-dark.css:.formio-dropzone:hover,
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/formio-dark.css:.formio-dropzone.dragover,
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/formio-dark.css:.formio-component {
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/formio-dark.css:  .formio-form {
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/formio-dark.css:  .formio-component {
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/formio-dark.css:  .formio-form {
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/types/formio.d.ts:export interface FormioComponent {
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/types/formio.d.ts:export interface FormioFileComponent extends FormioComponent {
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/types/formio.d.ts: * Use FormioFileComponent with storage: 'url' instead.
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/types/formio.d.ts: * For TUS uploads, use the FormioTusUploader component which
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/types/formio.d.ts:export interface FormioTusUploadComponent extends FormioFileComponent {
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/types/formio.d.ts:export interface FormioSchema {
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/types/formio.d.ts:  components: FormioComponent[];
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/types/formio.d.ts:export interface FormioSubmission {
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/types/formio.d.ts:export interface FormioSubmissionResult {
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/types/formio.d.ts:export interface FormioFile {
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/types/formio.d.ts:export interface FormioError {
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/types/formio.d.ts:export interface FormioEvent {
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/types/formio.d.ts:  component?: FormioComponent;
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/types/formio.d.ts:  error?: FormioError;
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/types/formio.d.ts:export interface FormioOptions {
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/whitelabel.css:.formio-form {
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/whitelabel.css:.formio-footer,
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/whitelabel.css:.powered-by-formio,
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/whitelabel.css:/* Generic upload widget styling (replaces .formio-component-file) */
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/components/MultiImageUpload.tsx:import { verifyFileType, sanitizeFilename, UPLOAD_CONSTANTS } from '@formio/file-upload';
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/pages/FormViewer.tsx:import { Form } from '@qrius/formio-react';
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/pages/FormViewer.tsx:import type { Submission } from '@qrius/formio-react';
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/pages/FormViewer.tsx:  const [formioServerUrl, setFormioServerUrl] = useState<string>('http://localhost:3001');
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/pages/FormViewer.tsx:                  value={formioServerUrl}
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/pages/FormViewer.tsx:                  onChange={e => setFormioServerUrl(e.target.value)}
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/pages/FormViewer.tsx:            url={useServerMode ? formioServerUrl : undefined}
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/pages/FormViewer.tsx:                  This submission was sent to the Form.io server at <code>{formioServerUrl}</code>.
+/Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/pages/FormViewer.tsx:                  @qrius/formio-react.
+

@@ -4,7 +4,7 @@ import MultiImageUploadTest from './pages/MultiImageUploadTest';
 import './App.css';
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'formviewer' | 'multiupload'>('multiupload');
+  const [activeTab, setActiveTab] = useState<'formviewer' | 'multiupload'>('formviewer');
 
   return (
     <div className="App">

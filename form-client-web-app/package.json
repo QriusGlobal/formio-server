@@ -1,12 +1,15 @@
 {
   "name": "form-client-web-app",
   "private": true,
-  "version": "1.0.0",
+  "version": "0.0.1",
   "type": "module",
   "description": "Simple web client for viewing and interacting with Form.io forms (no backend required)",
   "scripts": {
     "dev": "vite --port 64849",
-    "build": "tsc && vite build",
+    "build": "vite build",
+    "build:prod": "vite build --mode production",
+    "build:dev": "vite build --mode development",
+    "build:analyze": "vite build --mode analyze",
     "preview": "vite preview --port 64849",
     "lint": "eslint . --ext ts,tsx",
     "test": "vitest",
@@ -22,10 +25,11 @@
     "bun:test": "bun test"
   },
   "dependencies": {
-    "@formio/js": "^5.2.2",
-    "@formio/react": "file:../formio-react",
+    "@formio/file-upload": "workspace:*",
+    "@qrius/formio-react": "workspace:*",
     "@uppy/compressor": "^3.0.1",
     "@uppy/core": "^5.1.0",
+    "@uppy/dashboard": "^5.0.2",
     "@uppy/golden-retriever": "^5.1.0",
     "@uppy/react": "^5.1.0",
     "@uppy/tus": "^5.0.1",
@@ -35,6 +39,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.55.1",
+    "@rollup/plugin-replace": "^6.0.2",
     "@tailwindcss/forms": "^0.5.10",
     "@tailwindcss/postcss": "^4.1.14",
     "@testing-library/jest-dom": "^6.1.5",
@@ -53,6 +58,7 @@
     "jsdom": "^23.0.1",
     "postcss": "^8.5.6",
     "prettier": "^3.1.1",
+    "rollup-plugin-visualizer": "^6.0.4",
     "tailwindcss": "^4.1.14",
     "typescript": "^5.3.3",
     "vite": "^5.0.0",

@@ -1,6 +1,6 @@
 {
 	"name": "@qrius/formio-react",
-	"version": "6.1.0",
+	"version": "0.0.1",
 	"description": "React renderer for form.io forms.",
 	"main": "lib/index.js",
 	"types": "lib/index.d.ts",
@@ -8,7 +8,9 @@
 		".": {
 			"types": "./lib/index.d.ts",
 			"default": "./lib/index.js"
-		}
+		},
+		"./css": "./node_modules/@formio/js/dist/formio.full.css",
+		"./css/*": "./node_modules/@formio/js/dist/*.css"
 	},
 	"scripts": {
 		"test": "jest",

@@ -1,6 +1,6 @@
 {
   "name": "@formio/file-upload",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "File upload module for Form.io with TUS resumable uploads and Uppy.js integration",
   "type": "module",
   "module": "lib/index.esm.js",
@@ -18,6 +18,8 @@
   ],
   "scripts": {
     "build": "rollup -c",
+    "build:prod": "NODE_ENV=production rollup -c",
+    "build:dev": "NODE_ENV=development rollup -c",
     "dev": "rollup -c -w",
     "test": "jest --config=jest.config.parallel.js",
     "test:baseline": "jest --config=jest.config.js",
@@ -28,7 +30,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",
     "benchmark": "bun scripts/benchmark.js",
-    "prepublishOnly": "bun run build"
+    "prepublishOnly": "bun run build:prod"
   },
   "keywords": [
     "formio",
@@ -63,6 +65,7 @@
     "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-replace": "^6.0.2",
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^11.1.5",
     "@testing-library/react": "^14.1.2",

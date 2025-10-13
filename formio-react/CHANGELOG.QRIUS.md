@@ -20,8 +20,12 @@ This changelog follows [Keep a Changelog](https://keepachangelog.com/) format.
 
 ## [Unreleased]
 
+## [0.0.1] - 2025-10-13
+
 ### Changed
 
+- **BREAKING**: Version reset to 0.0.1 (pre-stable development)
+- Package not yet ready for production use
 - **2025-10-13**: Improved package.json with modern exports field
     - Added `types` field for better TypeScript IDE support
     - Added `exports` field for modern ESM/CJS resolution

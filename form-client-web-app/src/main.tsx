@@ -4,14 +4,17 @@ import App from './App.tsx';
 import './index.css';
 
 // Import Form.io CSS
-import '@formio/js/dist/formio.full.css';
+import '@qrius/formio-react/css';
 
 // Import Form.io Dark Mode Override
 import './formio-dark.css';
 
+// Import Whitelabel CSS (hides Form.io branding)
+import './whitelabel.css';
+
 // Register Form.io File Upload Module
-// CRITICAL: Import from @formio/react to use the SAME Components registry!
-import { Formio, Components } from '@formio/react';
+// CRITICAL: Import from @formio/js (bundled in @qrius/formio-react) to use the SAME Components registry!
+import { Formio, Components } from '@formio/js';
 import FormioFileUploadModule, {
   MultiImageUploadComponent
 } from '../../packages/formio-file-upload/src/index';
@@ -35,6 +38,18 @@ Formio.use(FormioFileUploadModule);
 // Debug: Verify component registration
 console.log('✅ MultiImageUpload component registered');
 console.log('Available components:', Object.keys((Components as any).components));
+console.log('multiimageupload registered?', (Components as any).components.multiimageupload);
+console.log('React factory registered?', MultiImageUploadComponent.reactComponentFactory !== null);
+
+// CRITICAL: Hook into Components.create to see if multiimageupload is being instantiated
+const originalCreate = (Components as any).create;
+(Components as any).create = function (component: any, options: any, data: any) {
+  console.log('🔍 Components.create() called for type:', component?.type, 'key:', component?.key);
+  if (component?.type === 'multiimageupload') {
+    console.log('🎯 CREATING multiimageupload component!', component);
+  }
+  return originalCreate.call(this, component, options, data);
+};
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
