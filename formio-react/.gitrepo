@@ -6,7 +6,7 @@
 [subrepo]
 	remote = https://github.com/QriusGlobal/formio-react.git
 	branch = main
-	commit = 6eba33b87feca76e7dd08e8da958ba6e89d57a13
-	parent = d691d4a5a08dca223a92525afea3f2ecf70c5c33
+	commit = 7c6907a5e68254d5c50e7d9768abfc4894f56fbf
+	parent = 143b05c10a145b72c58964fa7a8bbe23bc38b92a
 	method = merge
 	cmdver = 0.4.9
