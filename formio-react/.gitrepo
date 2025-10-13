@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/ingydotnet/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/QriusGlobal/formio-react.git
+	branch = main
+	commit = 063eea4e6bc12c63cedca950796bb890226e09ae
+	parent = 5144a83c0c3e4a453263359267cd1f6c073ab348
+	method = merge
+	cmdver = 0.4.9
