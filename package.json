@@ -5,7 +5,11 @@
   "description": "Form.io monorepo with file upload, React SDK, and cloud deployment",
   "workspaces": [
     "packages/*",
-    "apps/*"
+    "formio",
+    "formio-core",
+    "formio-react",
+    "test-app",
+    "form-client-web-app"
   ],
   "scripts": {
     "build": "turbo run build",
@@ -16,6 +20,11 @@
     "test:e2e": "turbo run test:e2e",
     "lint": "eslint . --ext .js,.ts,.tsx",
     "lint:fix": "eslint . --ext .js,.ts,.tsx --fix",
+    "lint:brand": "eslint . --config .eslintrc.brand-check.js",
+    "lint:brand:fix": "eslint . --config .eslintrc.brand-check.js --fix",
+    "check:brand": "bash scripts/check-brand-exposure.sh",
+    "analyze:bundle": "bash scripts/analyze-bundle.sh",
+    "security:check": "npm run lint:brand && npm run check:brand && npm run analyze:bundle",
     "typecheck": "tsc --noEmit",
     "clean": "turbo run clean && rm -rf node_modules .turbo",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
@@ -25,6 +34,7 @@
     "validate": "./scripts/validate-credentials.sh"
   },
   "devDependencies": {
+    "babel-plugin-react-compiler": "^1.0.0",
     "prettier": "^3.1.1",
     "turbo": "^1.13.0"
   },
