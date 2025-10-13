@@ -14,6 +14,7 @@
  */
 
 import xxhash from 'xxhash-wasm';
+import { logger } from '../utils/logger';
 
 /**
  * Singleton xxHash API instance for performance
@@ -103,7 +104,7 @@ export async function calculateFileChecksum(
 
     if (enableLogging && process.env.NODE_ENV !== 'production') {
       const throughput = fileSize / 1024 / 1024 / (processingTime / 1000);
-      console.log(
+      logger.info(
         `[xxHash] Processed ${(fileSize / 1024 / 1024).toFixed(2)} MB in ${processingTime.toFixed(2)}ms (~${throughput.toFixed(2)} MB/s)`
       );
     }

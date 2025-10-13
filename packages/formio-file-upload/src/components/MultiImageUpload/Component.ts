@@ -6,6 +6,8 @@
  */
 
 import { Components } from '@formio/js';
+import { logger } from '../../utils/logger';
+import { UPLOAD_CONSTANTS } from '../../config/constants';
 
 const FileComponent = (Components as any).components.file;
 
@@ -13,6 +15,10 @@ export default class MultiImageUploadComponent extends FileComponent {
   private reactContainer: HTMLElement | null = null;
   private mountedReactComponent: any = null;
   private static reactComponentFactory: any = null;
+
+  static get type() {
+    return 'multiimageupload';
+  }
 
   static registerReactComponent(factory: any) {
     MultiImageUploadComponent.reactComponentFactory = factory;
@@ -25,9 +31,9 @@ export default class MultiImageUploadComponent extends FileComponent {
         label: 'Multi-Image Upload',
         key: 'site_images',
         storage: 'url',
-        url: 'http://localhost:1080/files/',
-        maxFiles: 20,
-        compressionQuality: 0.8,
+        url: UPLOAD_CONSTANTS.DEFAULT_TUS_ENDPOINT,
+        maxFiles: UPLOAD_CONSTANTS.DEFAULT_MAX_FILES,
+        compressionQuality: UPLOAD_CONSTANTS.DEFAULT_COMPRESSION_QUALITY,
         autoNumbering: true,
         extractMetadata: true,
         filePattern: 'image/*,video/*',
@@ -79,8 +85,9 @@ export default class MultiImageUploadComponent extends FileComponent {
       root.render(
         React.createElement(MultiImageUpload, {
           formKey: this.component.key || 'site_images',
-          maxFiles: this.component.maxFiles || 20,
-          compressionQuality: this.component.compressionQuality || 0.8,
+          maxFiles: this.component.maxFiles || UPLOAD_CONSTANTS.DEFAULT_MAX_FILES,
+          compressionQuality:
+            this.component.compressionQuality || UPLOAD_CONSTANTS.DEFAULT_COMPRESSION_QUALITY,
           autoNumbering: this.component.autoNumbering ?? true,
           extractMetadata: this.component.extractMetadata ?? true,
           onChange: (files: any) => {
@@ -92,7 +99,11 @@ export default class MultiImageUploadComponent extends FileComponent {
 
       this.mountedReactComponent = root;
     } catch (error) {
-      console.error('Failed to load React component:', error);
+      logger.error('Failed to load React component', {
+        componentKey: this.component?.key,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
       if (this.reactContainer) {
         this.reactContainer.innerHTML = `
           <div class="alert alert-danger">
@@ -108,7 +119,10 @@ export default class MultiImageUploadComponent extends FileComponent {
       try {
         this.mountedReactComponent.unmount();
       } catch (error) {
-        console.warn('Error unmounting React component:', error);
+        logger.warn('Error unmounting React component', {
+          componentKey: this.component?.key,
+          error: error instanceof Error ? error.message : String(error),
+        });
       }
       this.mountedReactComponent = null;
     }

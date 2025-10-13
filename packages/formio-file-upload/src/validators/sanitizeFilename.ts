@@ -9,6 +9,8 @@
  * - XSS in filenames
  */
 
+import { logger } from '../utils/logger';
+
 /**
  * Dangerous file extensions that should never be allowed
  */
@@ -218,7 +220,7 @@ export function sanitizeFilename(filename: string, options: SanitizeOptions = {}
     });
 
     if (dangerousExtFound) {
-      console.warn(`[Security] Dangerous extension detected in: ${filename}`);
+      logger.warn(`[Security] Dangerous extension detected in: ${filename}`);
       // Replace dangerous extension with safe marker
       ext = ext.replace(/\./g, '_') + '.safe';
       name = name.replace(/\./g, '_');
@@ -244,7 +246,7 @@ export function sanitizeFilename(filename: string, options: SanitizeOptions = {}
   // Check for reserved Windows names
   const nameUpper = name.toUpperCase();
   if (RESERVED_NAMES.includes(nameUpper)) {
-    console.warn(`[Security] Reserved Windows filename detected: ${name}`);
+    logger.warn(`[Security] Reserved Windows filename detected: ${name}`);
     name = `file_${name}`;
   }
 
@@ -281,13 +283,13 @@ export function sanitizeFilename(filename: string, options: SanitizeOptions = {}
 
   // Final validation
   if (sanitized.length > MAX_FILENAME_LENGTH) {
-    console.warn(`[Security] Filename too long after sanitization: ${sanitized.length} bytes`);
+    logger.warn(`[Security] Filename too long after sanitization: ${sanitized.length} bytes`);
     return generateSafeFallbackName();
   }
 
   // Log if filename was changed significantly
   if (sanitized !== filename) {
-    console.info(`[Security] Filename sanitized: "${filename}" -> "${sanitized}"`);
+    logger.info(`[Security] Filename sanitized: "${filename}" -> "${sanitized}"`);
   }
 
   return sanitized;

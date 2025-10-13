@@ -16,6 +16,7 @@ import Audio from '@uppy/audio';
 import Url from '@uppy/url';
 import { ComponentSchema, UppyConfig, UploadFile, UploadStatus } from '../../types';
 import { verifyFileType, sanitizeFilename } from '../../validators';
+import { logger } from '../../utils/logger';
 
 // Import Uppy styles
 // NOTE: Uppy CSS imports removed - consuming apps must import Uppy styles
@@ -26,6 +27,15 @@ const FileComponent = Components.components.file;
 export default class UppyFileUploadComponent extends FileComponent {
   public uppy: Uppy | null = null;
   private dashboardElement: HTMLElement | null = null;
+
+  private handleFileAdded?: (file: any) => Promise<void>;
+  private handleUpload?: () => void;
+  private handleUploadProgress?: (file: any, progress: any) => void;
+  private handleUploadSuccess?: (file: any, response: any) => void;
+  private handleUploadError?: (file: any, error: any) => void;
+  private handleComplete?: (result: any) => void;
+  private handleError?: (error: any) => void;
+  private handleCancelAll?: () => void;
 
   static schema(...extend: any[]): ComponentSchema {
     return FileComponent.schema({
@@ -215,7 +225,7 @@ export default class UppyFileUploadComponent extends FileComponent {
       inline: this.component.uppyOptions?.inline !== false,
       height: this.component.uppyOptions?.height || 450,
       width: '100%',
-      showProgressDetails: this.component.uppyOptions?.showProgressDetails !== false,
+      hideProgressDetails: this.component.uppyOptions?.showProgressDetails === false,
       showLinkToFileUploadResult: this.component.uppyOptions?.showLinkToFileUploadResult !== false,
       proudlyDisplayPoweredByUppy: false,
       hideUploadButton: uppyConfig.autoProceed,
@@ -250,23 +260,23 @@ export default class UppyFileUploadComponent extends FileComponent {
     const plugins = this.component.uppyOptions?.plugins || [];
 
     if (plugins.includes('Webcam')) {
-      this.uppy.use(Webcam, { target: Dashboard });
+      (this.uppy as any).use(Webcam, { target: Dashboard });
     }
 
     if (plugins.includes('ScreenCapture')) {
-      this.uppy.use(ScreenCapture, { target: Dashboard });
+      (this.uppy as any).use(ScreenCapture, { target: Dashboard });
     }
 
     if (plugins.includes('ImageEditor')) {
-      this.uppy.use(ImageEditor, { target: Dashboard });
+      (this.uppy as any).use(ImageEditor, { target: Dashboard });
     }
 
     if (plugins.includes('Audio')) {
-      this.uppy.use(Audio, { target: Dashboard });
+      (this.uppy as any).use(Audio, { target: Dashboard });
     }
 
     if (plugins.includes('Url')) {
-      this.uppy.use(Url, {
+      (this.uppy as any).use(Url, {
         target: Dashboard,
         companionUrl: this.component.companionUrl || null,
       });
@@ -279,7 +289,7 @@ export default class UppyFileUploadComponent extends FileComponent {
   private setupUppyEventHandlers() {
     if (!this.uppy) return;
 
-    this.uppy.on('file-added', async (file: any) => {
+    this.handleFileAdded = async (file: any) => {
       // Security: Sanitize filename
       const safeName = sanitizeFilename(file.name, {
         addTimestamp: true,
@@ -289,7 +299,7 @@ export default class UppyFileUploadComponent extends FileComponent {
       // Security: Verify file type
       const isValidType = await verifyFileType(file.data, file.type);
       if (!isValidType) {
-        console.error('[Uppy Security] File type verification failed:', file.name);
+        logger.error('[Uppy Security] File type verification failed:', file.name);
         this.uppy?.info(
           `Security: File "${file.name}" content does not match declared type`,
           'error',
@@ -306,17 +316,17 @@ export default class UppyFileUploadComponent extends FileComponent {
       });
 
       this.emit('fileAdded', file);
-    });
+    };
 
-    this.uppy.on('upload', () => {
+    this.handleUpload = () => {
       this.emit('uploadStart');
-    });
+    };
 
-    this.uppy.on('upload-progress', (file: any, progress: any) => {
+    this.handleUploadProgress = (file: any, progress: any) => {
       this.emit('uploadProgress', { file, progress });
-    });
+    };
 
-    this.uppy.on('upload-success', (file: any, response: any) => {
+    this.handleUploadSuccess = (file: any, response: any) => {
       const uploadFile: UploadFile = {
         id: file.id,
         name: file.name,
@@ -338,35 +348,44 @@ export default class UppyFileUploadComponent extends FileComponent {
       }
 
       this.emit('uploadSuccess', uploadFile);
-    });
+    };
 
-    this.uppy.on('upload-error', (file: any, error: any, response: any) => {
-      console.error('[Uppy] Upload error:', file.name, error);
-      this.emit('uploadError', { file, error, response });
-    });
+    this.handleUploadError = (file: any, error: any) => {
+      logger.error('[Uppy] Upload error:', { fileName: file?.name, error });
+      this.emit('uploadError', { file, error });
+    };
 
-    this.uppy.on('complete', (result: any) => {
+    this.handleComplete = (result: any) => {
       // P3-T2: Clean up GoldenRetriever localStorage to prevent QuotaExceededError (critical for Safari 5MB limit)
       if (result.successful.length > 0 && result.failed.length === 0) {
         const uppyId = this.uppy!.getID();
         try {
           localStorage.removeItem(`uppy/${uppyId}`);
         } catch (error) {
-          console.warn('[Uppy] Failed to clean recovery state:', error);
+          logger.warn('[Uppy] Failed to clean recovery state:', { error });
         }
       }
 
       this.emit('uploadComplete', result);
-    });
+    };
 
-    this.uppy.on('error', (error: any) => {
-      console.error('[Uppy] Error:', error);
+    this.handleError = (error: any) => {
+      logger.error('[Uppy] Error:', { error });
       this.emit('error', error);
-    });
+    };
 
-    this.uppy.on('cancel-all', () => {
+    this.handleCancelAll = () => {
       this.emit('uploadCancelled');
-    });
+    };
+
+    this.uppy.on('file-added', this.handleFileAdded);
+    this.uppy.on('upload', this.handleUpload);
+    this.uppy.on('upload-progress', this.handleUploadProgress);
+    this.uppy.on('upload-success', this.handleUploadSuccess);
+    this.uppy.on('upload-error', this.handleUploadError);
+    this.uppy.on('complete', this.handleComplete);
+    this.uppy.on('error', this.handleError);
+    this.uppy.on('cancel-all', this.handleCancelAll);
   }
 
   private getHeaders(): Record<string, string> {
@@ -418,14 +437,14 @@ export default class UppyFileUploadComponent extends FileComponent {
   detach() {
     if (this.uppy) {
       // P1-T2: Remove all event listeners to prevent memory leaks
-      this.uppy.off('file-added');
-      this.uppy.off('upload');
-      this.uppy.off('upload-progress');
-      this.uppy.off('upload-success');
-      this.uppy.off('upload-error');
-      this.uppy.off('complete');
-      this.uppy.off('error');
-      this.uppy.off('cancel-all');
+      if (this.handleFileAdded) this.uppy.off('file-added', this.handleFileAdded);
+      if (this.handleUpload) this.uppy.off('upload', this.handleUpload);
+      if (this.handleUploadProgress) this.uppy.off('upload-progress', this.handleUploadProgress);
+      if (this.handleUploadSuccess) this.uppy.off('upload-success', this.handleUploadSuccess);
+      if (this.handleUploadError) this.uppy.off('upload-error', this.handleUploadError);
+      if (this.handleComplete) this.uppy.off('complete', this.handleComplete);
+      if (this.handleError) this.uppy.off('error', this.handleError);
+      if (this.handleCancelAll) this.uppy.off('cancel-all', this.handleCancelAll);
 
       this.uppy.cancelAll(); // Cancel all uploads (close() removed in Uppy v3+)
       this.uppy = null;
@@ -436,14 +455,14 @@ export default class UppyFileUploadComponent extends FileComponent {
   destroy() {
     if (this.uppy) {
       // P1-T2: Remove all event listeners to prevent memory leaks
-      this.uppy.off('file-added');
-      this.uppy.off('upload');
-      this.uppy.off('upload-progress');
-      this.uppy.off('upload-success');
-      this.uppy.off('upload-error');
-      this.uppy.off('complete');
-      this.uppy.off('error');
-      this.uppy.off('cancel-all');
+      if (this.handleFileAdded) this.uppy.off('file-added', this.handleFileAdded);
+      if (this.handleUpload) this.uppy.off('upload', this.handleUpload);
+      if (this.handleUploadProgress) this.uppy.off('upload-progress', this.handleUploadProgress);
+      if (this.handleUploadSuccess) this.uppy.off('upload-success', this.handleUploadSuccess);
+      if (this.handleUploadError) this.uppy.off('upload-error', this.handleUploadError);
+      if (this.handleComplete) this.uppy.off('complete', this.handleComplete);
+      if (this.handleError) this.uppy.off('error', this.handleError);
+      if (this.handleCancelAll) this.uppy.off('cancel-all', this.handleCancelAll);
 
       this.uppy.cancelAll(); // Cancel all uploads (close() removed in Uppy v3+)
       this.uppy = null;

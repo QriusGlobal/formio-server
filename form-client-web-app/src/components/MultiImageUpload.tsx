@@ -7,8 +7,7 @@ import GoldenRetriever from '@uppy/golden-retriever';
 import { Dashboard } from '@uppy/react';
 import '@uppy/core/css/style.css';
 import '@uppy/dashboard/css/style.css';
-import { verifyFileType } from '../../../packages/formio-file-upload/src/validators/magicNumbers';
-import { sanitizeFilename } from '../../../packages/formio-file-upload/src/validators/sanitizeFilename';
+import { verifyFileType, sanitizeFilename, UPLOAD_CONSTANTS } from '@formio/file-upload';
 import { logger } from '../utils/logger';
 
 export interface MultiImageUploadProps {
@@ -35,8 +34,8 @@ export interface UploadedFile {
 
 export function MultiImageUpload({
   formKey = 'site_images',
-  maxFiles = 20,
-  compressionQuality = 0.8,
+  maxFiles = UPLOAD_CONSTANTS.DEFAULT_MAX_FILES,
+  compressionQuality = UPLOAD_CONSTANTS.DEFAULT_COMPRESSION_QUALITY,
   autoNumbering = true,
   extractMetadata = true,
   onChange,
@@ -59,18 +58,18 @@ export function MultiImageUpload({
       }
     })
       .use(Tus, {
-        endpoint: 'http://localhost:1080/files/',
-        chunkSize: 5 * 1024 * 1024,
-        retryDelays: [0, 1000, 3000, 5000],
+        endpoint: UPLOAD_CONSTANTS.DEFAULT_TUS_ENDPOINT,
+        chunkSize: UPLOAD_CONSTANTS.DEFAULT_CHUNK_SIZE,
+        retryDelays: [...UPLOAD_CONSTANTS.RETRY_DELAYS],
         removeFingerprintOnSuccess: true,
         withCredentials: false
       })
       .use(Compressor, {
         quality: compressionQuality,
-        maxWidth: 1920,
-        maxHeight: 1080,
-        convertSize: 1000000,
-        mimeType: 'image/jpeg'
+        maxWidth: UPLOAD_CONSTANTS.MAX_IMAGE_WIDTH,
+        maxHeight: UPLOAD_CONSTANTS.MAX_IMAGE_HEIGHT,
+        convertSize: UPLOAD_CONSTANTS.COMPRESSION_CONVERT_SIZE,
+        mimeType: UPLOAD_CONSTANTS.COMPRESSION_MIME_TYPE
       })
       .use(Webcam, {
         modes: ['picture'],

@@ -9,6 +9,14 @@ declare const FileComponent: any;
 export default class UppyFileUploadComponent extends FileComponent {
     uppy: Uppy | null;
     private dashboardElement;
+    private handleFileAdded?;
+    private handleUpload?;
+    private handleUploadProgress?;
+    private handleUploadSuccess?;
+    private handleUploadError?;
+    private handleComplete?;
+    private handleError?;
+    private handleCancelAll?;
     static schema(...extend: any[]): ComponentSchema;
     static get builderInfo(): {
         title: string;

@@ -8,6 +8,7 @@ import { Components } from '@formio/js';
 import * as tus from 'tus-js-client';
 import { ComponentSchema, TusConfig, UploadFile, UploadStatus } from '../../types';
 import { verifyFileType, sanitizeFilename } from '../../validators';
+import { logger } from '../../utils/logger';
 
 const FileComponent = Components.components.file;
 
@@ -35,7 +36,7 @@ export default class TusFileUploadComponent extends FileComponent {
       fileMinSize: '0KB',
       fileMaxSize: '1GB',
       uploadOnly: false,
-      ...extend
+      ...extend,
     });
   }
 
@@ -46,7 +47,7 @@ export default class TusFileUploadComponent extends FileComponent {
       group: 'premium',
       documentation: '/userguide/forms/premium-components#file-upload',
       weight: 100,
-      schema: TusFileUploadComponent.schema()
+      schema: TusFileUploadComponent.schema(),
     };
   }
 
@@ -65,7 +66,7 @@ export default class TusFileUploadComponent extends FileComponent {
                 placeholder: 'https://example.com/files',
                 weight: 25,
                 tooltip: 'The TUS server endpoint for resumable uploads',
-                input: true
+                input: true,
               },
               {
                 type: 'number',
@@ -74,7 +75,7 @@ export default class TusFileUploadComponent extends FileComponent {
                 defaultValue: 8,
                 weight: 26,
                 tooltip: 'Size of each upload chunk in megabytes',
-                input: true
+                input: true,
               },
               {
                 type: 'checkbox',
@@ -83,11 +84,11 @@ export default class TusFileUploadComponent extends FileComponent {
                 defaultValue: true,
                 weight: 27,
                 tooltip: 'Allow uploads to resume after connection loss',
-                input: true
-              }
-            ]
-          }
-        ]
+                input: true,
+              },
+            ],
+          },
+        ],
       },
       {
         key: 'validation',
@@ -102,7 +103,7 @@ export default class TusFileUploadComponent extends FileComponent {
                 placeholder: '*.pdf,*.doc,*.docx',
                 weight: 10,
                 tooltip: 'Allowed file extensions',
-                input: true
+                input: true,
               },
               {
                 type: 'textfield',
@@ -111,7 +112,7 @@ export default class TusFileUploadComponent extends FileComponent {
                 placeholder: '1KB',
                 weight: 11,
                 tooltip: 'Minimum allowed file size',
-                input: true
+                input: true,
               },
               {
                 type: 'textfield',
@@ -120,12 +121,12 @@ export default class TusFileUploadComponent extends FileComponent {
                 placeholder: '10MB',
                 weight: 12,
                 tooltip: 'Maximum allowed file size',
-                input: true
-              }
-            ]
-          }
-        ]
-      }
+                input: true,
+              },
+            ],
+          },
+        ],
+      },
     ]);
   }
 
@@ -146,7 +147,7 @@ export default class TusFileUploadComponent extends FileComponent {
       endpoint: this.component.url || '/files',
       chunkSize: (this.component.chunkSize || 8) * 1024 * 1024,
       retryDelays: [0, 3000, 5000, 10000, 20000],
-      headers: this.getHeaders()
+      headers: this.getHeaders(),
     };
 
     // Will be initialized per upload
@@ -155,7 +156,7 @@ export default class TusFileUploadComponent extends FileComponent {
 
   private getHeaders(): Record<string, string> {
     const headers: Record<string, string> = {
-      'x-jwt-token': this.root?.token || ''
+      'x-jwt-token': this.root?.token || '',
     };
 
     // Add custom headers if provided
@@ -172,7 +173,7 @@ export default class TusFileUploadComponent extends FileComponent {
       filetype: '',
       formId: this.root?.formId || '',
       submissionId: this.root?.submissionId || '',
-      fieldKey: this.component.key || ''
+      fieldKey: this.component.key || '',
     };
   }
 
@@ -197,7 +198,7 @@ export default class TusFileUploadComponent extends FileComponent {
       fileUploadingStatus: 'multiple',
       fileProcessingStatus: 'multiple',
       fileProgress: 'multiple',
-      fileProgressInner: 'multiple'
+      fileProgressInner: 'multiple',
     });
 
     const superAttach = super.attach(element);
@@ -243,7 +244,7 @@ export default class TusFileUploadComponent extends FileComponent {
             this.emit('fileUploadComplete', result);
             return result;
           } catch (error) {
-            console.error('[TUS] Upload error:', error);
+            logger.error('[TUS] Upload error:', { error });
             this.emit('fileUploadError', error);
             return { error };
           }
@@ -269,14 +270,14 @@ export default class TusFileUploadComponent extends FileComponent {
     if (maxSize && file.size > maxSize) {
       return {
         valid: false,
-        error: `File size exceeds maximum allowed (${this.component.fileMaxSize})`
+        error: `File size exceeds maximum allowed (${this.component.fileMaxSize})`,
       };
     }
 
     if (minSize && file.size < minSize) {
       return {
         valid: false,
-        error: `File size is below minimum required (${this.component.fileMinSize})`
+        error: `File size is below minimum required (${this.component.fileMinSize})`,
       };
     }
 
@@ -284,7 +285,7 @@ export default class TusFileUploadComponent extends FileComponent {
     if (this.component.filePattern && this.component.filePattern !== '*') {
       const allowedTypes = this.parseFilePattern(this.component.filePattern);
       const fileExt = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
-      const isAllowed = allowedTypes.some(pattern => {
+      const isAllowed = allowedTypes.some((pattern) => {
         if (pattern.startsWith('.')) {
           return fileExt === pattern;
         }
@@ -297,7 +298,7 @@ export default class TusFileUploadComponent extends FileComponent {
       if (!isAllowed) {
         return {
           valid: false,
-          error: `File type not allowed. Allowed: ${this.component.filePattern}`
+          error: `File type not allowed. Allowed: ${this.component.filePattern}`,
         };
       }
     }
@@ -309,10 +310,10 @@ export default class TusFileUploadComponent extends FileComponent {
     if (!size) return null;
 
     const units: Record<string, number> = {
-      'B': 1,
-      'KB': 1024,
-      'MB': 1024 * 1024,
-      'GB': 1024 * 1024 * 1024
+      B: 1,
+      KB: 1024,
+      MB: 1024 * 1024,
+      GB: 1024 * 1024 * 1024,
     };
 
     const match = size.match(/^(\d+(?:\.\d+)?)\s*([KMGT]?B)$/i);
@@ -326,7 +327,7 @@ export default class TusFileUploadComponent extends FileComponent {
 
   private parseFilePattern(pattern: string): string[] {
     if (!pattern || pattern === '*') return ['*'];
-    return pattern.split(',').map(p => p.trim());
+    return pattern.split(',').map((p) => p.trim());
   }
 
   private async uploadFile(file: File): Promise<UploadFile> {
@@ -334,7 +335,7 @@ export default class TusFileUploadComponent extends FileComponent {
       // Security: Sanitize filename to prevent path traversal and XSS
       const safeName = sanitizeFilename(file.name, {
         addTimestamp: true,
-        preserveExtension: false
+        preserveExtension: false,
       });
 
       // Security: Verify file type matches content (magic number check)
@@ -349,10 +350,10 @@ export default class TusFileUploadComponent extends FileComponent {
           status: UploadStatus.FAILED,
           error: {
             code: 'INVALID_FILE_TYPE',
-            message: 'File content does not match declared type. This file may be dangerous.'
+            message: 'File content does not match declared type. This file may be dangerous.',
           },
           createdAt: new Date(),
-          updatedAt: new Date()
+          updatedAt: new Date(),
         });
         return;
       }
@@ -366,7 +367,7 @@ export default class TusFileUploadComponent extends FileComponent {
         storage: 'tus',
         status: UploadStatus.PENDING,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       // P3-T1: Use cached config to avoid object recreation (2-3ms saved per file)
@@ -376,14 +377,14 @@ export default class TusFileUploadComponent extends FileComponent {
           ...this.getMetadata(),
           filename: safeName,
           originalFilename: file.name,
-          filetype: file.type || 'application/octet-stream'
+          filetype: file.type || 'application/octet-stream',
         },
         onError: (error: Error) => {
-          console.error('[TUS] Upload failed:', error);
+          logger.error('[TUS] Upload failed:', { error: error.message, stack: error.stack });
           uploadFile.status = UploadStatus.FAILED;
           uploadFile.error = {
             code: 'UPLOAD_ERROR',
-            message: error.message
+            message: error.message,
           };
           reject(uploadFile);
         },
@@ -406,7 +407,7 @@ export default class TusFileUploadComponent extends FileComponent {
             url: uploadFile.url,
             storage: 'tus',
             originalName: file.name,
-            uploadId: uploadFile.uploadId
+            uploadId: uploadFile.uploadId,
           };
 
           // Update Form.io component value (handle single vs multiple files)
@@ -423,7 +424,7 @@ export default class TusFileUploadComponent extends FileComponent {
 
           this.updateProgress(uploadFile);
           resolve(uploadFile);
-        }
+        },
       });
 
       // Store reference for pause/resume
@@ -450,7 +451,7 @@ export default class TusFileUploadComponent extends FileComponent {
 
         this.emit('fileUploadProgress', {
           file,
-          progress: file.progress || 0
+          progress: file.progress || 0,
         });
 
         this.rafPending = false;
@@ -500,7 +501,7 @@ export default class TusFileUploadComponent extends FileComponent {
 
   getValueAsString(value: any): string {
     if (Array.isArray(value)) {
-      return value.map(val => val.name || val.url || '').join(', ');
+      return value.map((val) => val.name || val.url || '').join(', ');
     }
     return value?.name || value?.url || '';
   }
@@ -509,9 +510,12 @@ export default class TusFileUploadComponent extends FileComponent {
     if (!value) return '';
 
     if (Array.isArray(value)) {
-      return value.map(file =>
-        `<a href="${file.url}" target="_blank" rel="noopener noreferrer">${file.name}</a>`
-      ).join('<br>');
+      return value
+        .map(
+          (file) =>
+            `<a href="${file.url}" target="_blank" rel="noopener noreferrer">${file.name}</a>`
+        )
+        .join('<br>');
     }
 
     return `<a href="${value.url}" target="_blank" rel="noopener noreferrer">${value.name}</a>`;

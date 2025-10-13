@@ -8,6 +8,8 @@
  * the MIME type or file extension.
  */
 
+import { logger } from '../utils/logger';
+
 export interface FileSignature {
   mime: string;
   signatures: (number | null)[][];
@@ -23,136 +25,124 @@ export const FILE_SIGNATURES: Record<string, FileSignature> = {
   'image/jpeg': {
     mime: 'image/jpeg',
     signatures: [
-      [0xFF, 0xD8, 0xFF, 0xDB],  // JPEG raw
-      [0xFF, 0xD8, 0xFF, 0xE0],  // JPEG JFIF
-      [0xFF, 0xD8, 0xFF, 0xE1],  // JPEG EXIF
-      [0xFF, 0xD8, 0xFF, 0xE2],  // JPEG still
-      [0xFF, 0xD8, 0xFF, 0xE3],  // JPEG Samsung
+      [0xff, 0xd8, 0xff, 0xdb], // JPEG raw
+      [0xff, 0xd8, 0xff, 0xe0], // JPEG JFIF
+      [0xff, 0xd8, 0xff, 0xe1], // JPEG EXIF
+      [0xff, 0xd8, 0xff, 0xe2], // JPEG still
+      [0xff, 0xd8, 0xff, 0xe3], // JPEG Samsung
     ],
-    description: 'JPEG Image'
+    description: 'JPEG Image',
   },
   'image/png': {
     mime: 'image/png',
-    signatures: [
-      [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]
-    ],
-    description: 'PNG Image'
+    signatures: [[0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]],
+    description: 'PNG Image',
   },
   'image/gif': {
     mime: 'image/gif',
     signatures: [
-      [0x47, 0x49, 0x46, 0x38, 0x37, 0x61],  // GIF87a
-      [0x47, 0x49, 0x46, 0x38, 0x39, 0x61],  // GIF89a
+      [0x47, 0x49, 0x46, 0x38, 0x37, 0x61], // GIF87a
+      [0x47, 0x49, 0x46, 0x38, 0x39, 0x61], // GIF89a
     ],
-    description: 'GIF Image'
+    description: 'GIF Image',
   },
   'image/webp': {
     mime: 'image/webp',
-    signatures: [
-      [0x52, 0x49, 0x46, 0x46, null, null, null, null, 0x57, 0x45, 0x42, 0x50]
-    ],
-    description: 'WebP Image'
+    signatures: [[0x52, 0x49, 0x46, 0x46, null, null, null, null, 0x57, 0x45, 0x42, 0x50]],
+    description: 'WebP Image',
   },
   'image/bmp': {
     mime: 'image/bmp',
-    signatures: [
-      [0x42, 0x4D]
-    ],
-    description: 'BMP Image'
+    signatures: [[0x42, 0x4d]],
+    description: 'BMP Image',
   },
   'image/tiff': {
     mime: 'image/tiff',
     signatures: [
-      [0x49, 0x49, 0x2A, 0x00],  // Little-endian
-      [0x4D, 0x4D, 0x00, 0x2A],  // Big-endian
+      [0x49, 0x49, 0x2a, 0x00], // Little-endian
+      [0x4d, 0x4d, 0x00, 0x2a], // Big-endian
     ],
-    description: 'TIFF Image'
+    description: 'TIFF Image',
   },
 
   // Documents
   'application/pdf': {
     mime: 'application/pdf',
     signatures: [
-      [0x25, 0x50, 0x44, 0x46, 0x2D]  // %PDF-
+      [0x25, 0x50, 0x44, 0x46, 0x2d], // %PDF-
     ],
-    description: 'PDF Document'
+    description: 'PDF Document',
   },
 
   // Archives
   'application/zip': {
     mime: 'application/zip',
     signatures: [
-      [0x50, 0x4B, 0x03, 0x04],  // ZIP local file header
-      [0x50, 0x4B, 0x05, 0x06],  // ZIP empty archive
-      [0x50, 0x4B, 0x07, 0x08],  // ZIP spanned archive
+      [0x50, 0x4b, 0x03, 0x04], // ZIP local file header
+      [0x50, 0x4b, 0x05, 0x06], // ZIP empty archive
+      [0x50, 0x4b, 0x07, 0x08], // ZIP spanned archive
     ],
-    description: 'ZIP Archive'
+    description: 'ZIP Archive',
   },
   'application/x-rar-compressed': {
     mime: 'application/x-rar-compressed',
     signatures: [
-      [0x52, 0x61, 0x72, 0x21, 0x1A, 0x07, 0x00],  // RAR v1.5+
-      [0x52, 0x61, 0x72, 0x21, 0x1A, 0x07, 0x01, 0x00],  // RAR v5.0+
+      [0x52, 0x61, 0x72, 0x21, 0x1a, 0x07, 0x00], // RAR v1.5+
+      [0x52, 0x61, 0x72, 0x21, 0x1a, 0x07, 0x01, 0x00], // RAR v5.0+
     ],
-    description: 'RAR Archive'
+    description: 'RAR Archive',
   },
   'application/x-7z-compressed': {
     mime: 'application/x-7z-compressed',
-    signatures: [
-      [0x37, 0x7A, 0xBC, 0xAF, 0x27, 0x1C]
-    ],
-    description: '7-Zip Archive'
+    signatures: [[0x37, 0x7a, 0xbc, 0xaf, 0x27, 0x1c]],
+    description: '7-Zip Archive',
   },
 
   // Microsoft Office (ZIP-based)
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document': {
     mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     signatures: [
-      [0x50, 0x4B, 0x03, 0x04]  // ZIP (needs content inspection)
+      [0x50, 0x4b, 0x03, 0x04], // ZIP (needs content inspection)
     ],
-    description: 'Microsoft Word Document (DOCX)'
+    description: 'Microsoft Word Document (DOCX)',
   },
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': {
     mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     signatures: [
-      [0x50, 0x4B, 0x03, 0x04]  // ZIP (needs content inspection)
+      [0x50, 0x4b, 0x03, 0x04], // ZIP (needs content inspection)
     ],
-    description: 'Microsoft Excel Spreadsheet (XLSX)'
+    description: 'Microsoft Excel Spreadsheet (XLSX)',
   },
 
   // Video
   'video/mp4': {
     mime: 'video/mp4',
     signatures: [
-      [0x00, 0x00, 0x00, null, 0x66, 0x74, 0x79, 0x70]  // ftyp
+      [0x00, 0x00, 0x00, null, 0x66, 0x74, 0x79, 0x70], // ftyp
     ],
-    description: 'MP4 Video'
+    description: 'MP4 Video',
   },
   'video/webm': {
     mime: 'video/webm',
-    signatures: [
-      [0x1A, 0x45, 0xDF, 0xA3]
-    ],
-    description: 'WebM Video'
+    signatures: [[0x1a, 0x45, 0xdf, 0xa3]],
+    description: 'WebM Video',
   },
 
   // Audio
   'audio/mpeg': {
     mime: 'audio/mpeg',
     signatures: [
-      [0xFF, 0xFB],  // MP3 with MPEG-1 Layer 3
-      [0xFF, 0xF3],  // MP3 with MPEG-2 Layer 3
-      [0xFF, 0xF2],  // MP3 with MPEG-2.5 Layer 3
-      [0x49, 0x44, 0x33],  // MP3 with ID3v2
+      [0xff, 0xfb], // MP3 with MPEG-1 Layer 3
+      [0xff, 0xf3], // MP3 with MPEG-2 Layer 3
+      [0xff, 0xf2], // MP3 with MPEG-2.5 Layer 3
+      [0x49, 0x44, 0x33], // MP3 with ID3v2
     ],
-    description: 'MP3 Audio'
+    description: 'MP3 Audio',
   },
   'audio/wav': {
     mime: 'audio/wav',
-    signatures: [
-      [0x52, 0x49, 0x46, 0x46, null, null, null, null, 0x57, 0x41, 0x56, 0x45]
-    ],
-    description: 'WAV Audio'
+    signatures: [[0x52, 0x49, 0x46, 0x46, null, null, null, null, 0x57, 0x41, 0x56, 0x45]],
+    description: 'WAV Audio',
   },
 };
 
@@ -170,7 +160,7 @@ export async function verifyFileType(file: File, expectedType: string): Promise<
 
     // If no signature defined, allow the file (fallback to MIME check only)
     if (!signature) {
-      console.warn(`[Security] No signature defined for MIME type: ${expectedType}`);
+      logger.warn(`[Security] No signature defined for MIME type: ${expectedType}`);
       return true;
     }
 
@@ -179,23 +169,25 @@ export async function verifyFileType(file: File, expectedType: string): Promise<
     const bytes = new Uint8Array(buffer);
 
     // Check if file matches any of the valid signatures
-    const isValid = signature.signatures.some(sig =>
-      matchesSignature(bytes, sig)
-    );
+    const isValid = signature.signatures.some((sig) => matchesSignature(bytes, sig));
 
     if (!isValid) {
-      console.warn(`[Security] File signature mismatch for ${file.name}`, {
+      logger.warn(`[Security] File signature mismatch for ${file.name}`, {
         declaredType: expectedType,
-        fileBytes: Array.from(bytes.slice(0, 8)).map(b => `0x${b.toString(16).toUpperCase().padStart(2, '0')}`).join(' '),
-        expectedSignatures: signature.signatures.map(s =>
-          s.map(b => b === null ? 'XX' : `0x${b.toString(16).toUpperCase().padStart(2, '0')}`).join(' ')
-        )
+        fileBytes: Array.from(bytes.slice(0, 8))
+          .map((b) => `0x${b.toString(16).toUpperCase().padStart(2, '0')}`)
+          .join(' '),
+        expectedSignatures: signature.signatures.map((s) =>
+          s
+            .map((b) => (b === null ? 'XX' : `0x${b.toString(16).toUpperCase().padStart(2, '0')}`))
+            .join(' ')
+        ),
       });
     }
 
     return isValid;
   } catch (error) {
-    console.error('[Security] Error verifying file type:', error);
+    logger.error('[Security] Error verifying file type:', { error });
     // Fail securely: reject file if verification fails
     return false;
   }
@@ -236,9 +228,7 @@ export async function detectFileType(file: File, allowedTypes: string[]): Promis
       const signature = FILE_SIGNATURES[mimeType];
       if (!signature) continue;
 
-      const matches = signature.signatures.some(sig =>
-        matchesSignature(bytes, sig)
-      );
+      const matches = signature.signatures.some((sig) => matchesSignature(bytes, sig));
 
       if (matches) {
         return mimeType;
@@ -247,7 +237,7 @@ export async function detectFileType(file: File, allowedTypes: string[]): Promis
 
     return null;
   } catch (error) {
-    console.error('[Security] Error detecting file type:', error);
+    logger.error('[Security] Error detecting file type:', { error });
     return null;
   }
 }

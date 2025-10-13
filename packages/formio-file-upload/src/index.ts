@@ -23,6 +23,23 @@ export {
 // Export utility functions
 export { registerTemplates, registerValidators };
 
+// Export validators for use in React components
+export {
+  verifyFileType,
+  detectFileType,
+  hasSignatureSupport,
+  FILE_SIGNATURES,
+} from './validators/magicNumbers';
+export { sanitizeFilename } from './validators/sanitizeFilename';
+
+// Export logger utility
+export { logger } from './utils/logger';
+export type { LogMetadata } from './utils/logger';
+
+// Export upload constants
+export { UPLOAD_CONSTANTS } from './config/constants';
+export type { UploadConstants } from './config/constants';
+
 // Module definition following Form.io module specification
 // Form.io only supports 'components' property in modules
 const FormioFileUploadModule = {

@@ -12,6 +12,12 @@ import { registerTemplates } from './templates';
 import { registerValidators } from './validators';
 export { TusFileUploadComponent, UppyFileUploadComponent, MultiImageUploadComponent, FileStorageProvider, };
 export { registerTemplates, registerValidators };
+export { verifyFileType, detectFileType, hasSignatureSupport, FILE_SIGNATURES, } from './validators/magicNumbers';
+export { sanitizeFilename } from './validators/sanitizeFilename';
+export { logger } from './utils/logger';
+export type { LogMetadata } from './utils/logger';
+export { UPLOAD_CONSTANTS } from './config/constants';
+export type { UploadConstants } from './config/constants';
 declare const FormioFileUploadModule: {
     components: {
         tusupload: typeof TusFileUploadComponent;

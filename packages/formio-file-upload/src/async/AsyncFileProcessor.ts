@@ -6,6 +6,7 @@
  */
 
 import { UploadFile, UploadStatus } from '../types';
+import { logger } from '../utils/logger';
 
 /**
  * Job status from BullMQ API
@@ -58,14 +59,14 @@ export class AsyncFileProcessor {
     const response = await fetch(`${this.apiBaseUrl}/jobs`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         templateType,
         metadata,
         formId: formId || '',
-        submissionId: submissionId || ''
-      })
+        submissionId: submissionId || '',
+      }),
     });
 
     if (!response.ok) {
@@ -132,7 +133,6 @@ export class AsyncFileProcessor {
 
           // Continue polling
           setTimeout(poll, this.pollingInterval);
-
         } catch (error) {
           reject(error);
         }
@@ -167,7 +167,7 @@ export class AsyncFileProcessor {
    */
   async cancelJob(jobId: string): Promise<void> {
     const response = await fetch(`${this.apiBaseUrl}/jobs/${jobId}`, {
-      method: 'DELETE'
+      method: 'DELETE',
     });
 
     if (!response.ok) {
@@ -197,21 +197,21 @@ export class AsyncFileProcessor {
     if (options.maxSize && file.size > options.maxSize) {
       return {
         valid: false,
-        error: `File size exceeds maximum allowed (${this.formatFileSize(options.maxSize)})`
+        error: `File size exceeds maximum allowed (${this.formatFileSize(options.maxSize)})`,
       };
     }
 
     if (options.minSize && file.size < options.minSize) {
       return {
         valid: false,
-        error: `File size is below minimum required (${this.formatFileSize(options.minSize)})`
+        error: `File size is below minimum required (${this.formatFileSize(options.minSize)})`,
       };
     }
 
     // Type validation (synchronous, fast)
     if (options.allowedTypes && options.allowedTypes.length > 0) {
       const fileExt = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
-      const isAllowed = options.allowedTypes.some(pattern => {
+      const isAllowed = options.allowedTypes.some((pattern) => {
         if (pattern.startsWith('.')) {
           return fileExt === pattern;
         }
@@ -224,7 +224,7 @@ export class AsyncFileProcessor {
       if (!isAllowed) {
         return {
           valid: false,
-          error: `File type not allowed. Allowed: ${options.allowedTypes.join(', ')}`
+          error: `File type not allowed. Allowed: ${options.allowedTypes.join(', ')}`,
         };
       }
     }
@@ -236,11 +236,11 @@ export class AsyncFileProcessor {
         if (!isValid) {
           return {
             valid: false,
-            error: 'File content does not match declared type. This file may be dangerous.'
+            error: 'File content does not match declared type. This file may be dangerous.',
           };
         }
       } catch (error) {
-        console.warn('[AsyncFileProcessor] Magic number verification failed:', error);
+        logger.warn('[AsyncFileProcessor] Magic number verification failed:', { error });
         // Don't fail validation if magic number check errors
       }
     }
@@ -266,11 +266,11 @@ export class AsyncFileProcessor {
 
           // Check magic numbers for common file types
           const magicNumbers: Record<string, number[]> = {
-            'image/png': [0x89, 0x50, 0x4E, 0x47],
-            'image/jpeg': [0xFF, 0xD8, 0xFF],
+            'image/png': [0x89, 0x50, 0x4e, 0x47],
+            'image/jpeg': [0xff, 0xd8, 0xff],
             'application/pdf': [0x25, 0x50, 0x44, 0x46], // %PDF
-            'application/zip': [0x50, 0x4B, 0x03, 0x04],
-            'image/gif': [0x47, 0x49, 0x46, 0x38]
+            'application/zip': [0x50, 0x4b, 0x03, 0x04],
+            'image/gif': [0x47, 0x49, 0x46, 0x38],
           };
 
           const expectedMagic = magicNumbers[file.type];
@@ -284,7 +284,6 @@ export class AsyncFileProcessor {
           // Verify magic number matches
           const matches = expectedMagic.every((byte, index) => bytes[index] === byte);
           resolve(matches);
-
         } catch (error) {
           reject(error);
         }

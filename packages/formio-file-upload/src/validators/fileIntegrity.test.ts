@@ -16,7 +16,7 @@ import {
   validateFileIntegrity,
   calculateMultipleChecksums,
   fileIntegrityValidator,
-  addChecksumMetadata
+  addChecksumMetadata,
 } from './fileIntegrity';
 
 // Mock File API for testing
@@ -40,6 +40,7 @@ describe('fileIntegrity - xxHash Checksum Validation', () => {
       const file = new File(['Hello World'], 'test.txt', { type: 'text/plain' });
       const result = await calculateFileChecksum(file);
 
+      console.log('DEBUG: Result =', JSON.stringify(result, null, 2));
       expect(result.valid).toBe(true);
       expect(result.checksum).toBeTruthy();
       expect(result.checksum.length).toBeGreaterThan(0);
@@ -84,7 +85,7 @@ describe('fileIntegrity - xxHash Checksum Validation', () => {
 
       const result = await calculateFileChecksum(file, {
         chunkSize: 64 * 1024, // 64KB chunks
-        enableLogging: false
+        enableLogging: false,
       });
 
       expect(result.valid).toBe(true);
@@ -96,7 +97,7 @@ describe('fileIntegrity - xxHash Checksum Validation', () => {
       const file = new File(['0123456789'.repeat(1000)], 'test.txt');
 
       const result = await calculateFileChecksum(file, {
-        chunkSize: 100 // Small chunks
+        chunkSize: 100, // Small chunks
       });
 
       expect(result.valid).toBe(true);
@@ -113,7 +114,7 @@ describe('fileIntegrity - xxHash Checksum Validation', () => {
 
       // Then validate against it
       const validationResult = await validateFileIntegrity(file, {
-        expectedChecksum: checksumResult.checksum
+        expectedChecksum: checksumResult.checksum,
       });
 
       expect(validationResult.valid).toBe(true);
@@ -124,7 +125,7 @@ describe('fileIntegrity - xxHash Checksum Validation', () => {
       const file = new File(['Test Content'], 'test.txt');
 
       const result = await validateFileIntegrity(file, {
-        expectedChecksum: 'incorrect_checksum_12345'
+        expectedChecksum: 'incorrect_checksum_12345',
       });
 
       expect(result.valid).toBe(false);
@@ -138,7 +139,7 @@ describe('fileIntegrity - xxHash Checksum Validation', () => {
       const uppercaseChecksum = checksumResult.checksum.toUpperCase();
 
       const validationResult = await validateFileIntegrity(file, {
-        expectedChecksum: uppercaseChecksum
+        expectedChecksum: uppercaseChecksum,
       });
 
       expect(validationResult.valid).toBe(true);
@@ -147,9 +148,7 @@ describe('fileIntegrity - xxHash Checksum Validation', () => {
     it('should throw error if expectedChecksum is missing', async () => {
       const file = new File(['Test'], 'test.txt');
 
-      await expect(
-        validateFileIntegrity(file, {})
-      ).rejects.toThrow('expectedChecksum is required');
+      await expect(validateFileIntegrity(file, {})).rejects.toThrow('expectedChecksum is required');
     });
 
     it('should detect file corruption', async () => {
@@ -158,7 +157,7 @@ describe('fileIntegrity - xxHash Checksum Validation', () => {
 
       const originalChecksum = await calculateFileChecksum(originalFile);
       const validationResult = await validateFileIntegrity(corruptedFile, {
-        expectedChecksum: originalChecksum.checksum
+        expectedChecksum: originalChecksum.checksum,
       });
 
       expect(validationResult.valid).toBe(false);
@@ -171,19 +170,19 @@ describe('fileIntegrity - xxHash Checksum Validation', () => {
       const files = [
         new File(['File 1'], 'file1.txt'),
         new File(['File 2'], 'file2.txt'),
-        new File(['File 3'], 'file3.txt')
+        new File(['File 3'], 'file3.txt'),
       ];
 
       const results = await calculateMultipleChecksums(files);
 
       expect(results).toHaveLength(3);
-      results.forEach(result => {
+      results.forEach((result) => {
         expect(result.valid).toBe(true);
         expect(result.checksum).toBeTruthy();
       });
 
       // All checksums should be different
-      const checksums = results.map(r => r.checksum);
+      const checksums = results.map((r) => r.checksum);
       const uniqueChecksums = new Set(checksums);
       expect(uniqueChecksums.size).toBe(3);
     });
@@ -194,9 +193,7 @@ describe('fileIntegrity - xxHash Checksum Validation', () => {
     });
 
     it('should process large number of files efficiently', async () => {
-      const files = Array.from({ length: 50 }, (_, i) =>
-        new File([`File ${i}`], `file${i}.txt`)
-      );
+      const files = Array.from({ length: 50 }, (_, i) => new File([`File ${i}`], `file${i}.txt`));
 
       const startTime = performance.now();
       const results = await calculateMultipleChecksums(files);
@@ -211,7 +208,7 @@ describe('fileIntegrity - xxHash Checksum Validation', () => {
     it('should return true if validation is disabled', async () => {
       const context = {
         component: { validateChecksum: false },
-        value: new File(['Test'], 'test.txt')
+        value: new File(['Test'], 'test.txt'),
       };
 
       const result = await fileIntegrityValidator(context);
@@ -221,7 +218,7 @@ describe('fileIntegrity - xxHash Checksum Validation', () => {
     it('should return true if no value provided', async () => {
       const context = {
         component: { validateChecksum: true },
-        value: null
+        value: null,
       };
 
       const result = await fileIntegrityValidator(context);
@@ -233,12 +230,12 @@ describe('fileIntegrity - xxHash Checksum Validation', () => {
       const checksumResult = await calculateFileChecksum(file);
 
       const fileWithChecksum = Object.assign(file, {
-        checksum: checksumResult.checksum
+        checksum: checksumResult.checksum,
       });
 
       const context = {
         component: { validateChecksum: true },
-        value: fileWithChecksum
+        value: fileWithChecksum,
       };
 
       const result = await fileIntegrityValidator(context);
@@ -250,7 +247,7 @@ describe('fileIntegrity - xxHash Checksum Validation', () => {
 
       const context = {
         component: { validateChecksum: true },
-        value: file
+        value: file,
       };
 
       const result = await fileIntegrityValidator(context);
@@ -267,12 +264,12 @@ describe('fileIntegrity - xxHash Checksum Validation', () => {
 
       const filesWithChecksums = [
         Object.assign(file1, { checksum: checksum1.checksum }),
-        Object.assign(file2, { checksum: checksum2.checksum })
+        Object.assign(file2, { checksum: checksum2.checksum }),
       ];
 
       const context = {
         component: { validateChecksum: true },
-        value: filesWithChecksums
+        value: filesWithChecksums,
       };
 
       const result = await fileIntegrityValidator(context);
@@ -282,12 +279,12 @@ describe('fileIntegrity - xxHash Checksum Validation', () => {
     it('should fail validation if any file has incorrect checksum', async () => {
       const file = new File(['Test'], 'test.txt');
       const fileWithBadChecksum = Object.assign(file, {
-        checksum: 'wrong_checksum_12345'
+        checksum: 'wrong_checksum_12345',
       });
 
       const context = {
         component: { validateChecksum: true },
-        value: fileWithBadChecksum
+        value: fileWithBadChecksum,
       };
 
       const result = await fileIntegrityValidator(context);
@@ -337,7 +334,7 @@ describe('fileIntegrity - xxHash Checksum Validation', () => {
 
       const startTime = performance.now();
       const result = await calculateFileChecksum(file, {
-        enableLogging: true
+        enableLogging: true,
       });
       const duration = performance.now() - startTime;
 
@@ -345,14 +342,14 @@ describe('fileIntegrity - xxHash Checksum Validation', () => {
       expect(result.size).toBe(10 * 1024 * 1024);
 
       // Should process at least 50 MB/s (conservative estimate)
-      const throughputMBps = (result.size / 1024 / 1024) / (duration / 1000);
+      const throughputMBps = result.size / 1024 / 1024 / (duration / 1000);
       expect(throughputMBps).toBeGreaterThan(50);
     });
   });
 
   describe('Edge cases', () => {
     it('should handle binary data', async () => {
-      const binaryData = new Uint8Array([0x00, 0xFF, 0xAA, 0x55]);
+      const binaryData = new Uint8Array([0x00, 0xff, 0xaa, 0x55]);
       const file = new File([binaryData], 'binary.bin');
 
       const result = await calculateFileChecksum(file);
