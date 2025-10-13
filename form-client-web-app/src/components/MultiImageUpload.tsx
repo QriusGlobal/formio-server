@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Uppy from '@uppy/core';
 import Tus from '@uppy/tus';
 import Compressor from '@uppy/compressor';
@@ -83,6 +83,37 @@ export function MultiImageUpload({
     return uppyInstance;
   });
 
+  // ✅ Cache geolocation once
+  const geoLocationRef = useRef<{ latitude: number; longitude: number; accuracy: number } | null>(
+    null
+  );
+  const geoLocationFetchedRef = useRef(false);
+
+  // ✅ Fetch geolocation once on mount
+  useEffect(() => {
+    if (extractMetadata && 'geolocation' in navigator && !geoLocationFetchedRef.current) {
+      geoLocationFetchedRef.current = true;
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          geoLocationRef.current = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            accuracy: position.coords.accuracy
+          };
+          logger.info('Geolocation fetched', geoLocationRef.current);
+        },
+        error => {
+          logger.warn('Geolocation unavailable', { code: error.code });
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        }
+      );
+    }
+  }, [extractMetadata]);
+
   const handleFileAdded = useCallback(
     async (file: any) => {
       const files = uppy.getFiles();
@@ -117,28 +148,15 @@ export function MultiImageUpload({
         return;
       }
 
-      if (extractMetadata && 'geolocation' in navigator) {
-        navigator.geolocation.getCurrentPosition(
-          position => {
-            file.meta = {
-              ...file.meta,
-              latitude: position.coords.latitude,
-              longitude: position.coords.longitude,
-              accuracy: position.coords.accuracy
-            };
-          },
-          error => {
-            logger.warn('Geolocation unavailable', { code: error.code });
-          },
-          {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 0
-          }
-        );
+      // ✅ Use cached geolocation
+      if (geoLocationRef.current) {
+        file.meta = {
+          ...file.meta,
+          ...geoLocationRef.current
+        };
       }
     },
-    [uppy, autoNumbering, extractMetadata]
+    [uppy, autoNumbering]
   );
 
   const handleUploadSuccess = useCallback(
