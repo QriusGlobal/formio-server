@@ -1,16 +1,17 @@
 # Claude Code Instructions - Form.io Monorepo
 
-> **AI Assistant Guide**: Comprehensive codebase context and development patterns for effective assistance with the Form.io monorepo.
+> **AI Assistant Guide**: Comprehensive codebase context and development
+> patterns for effective assistance with the Form.io monorepo.
 
 ---
 
 ## 🎯 Project Identity
 
-**Name**: Form.io Monorepo
-**Type**: Enterprise form building platform with file upload capabilities
-**Primary Language**: TypeScript (ES2020+)
-**Architecture**: Monorepo with microservices, React applications, and infrastructure-as-code
-**Purpose**: Provide Form.io server, file upload module, React SDK, testing apps, and cloud deployment tooling
+**Name**: Form.io Monorepo **Type**: Enterprise form building platform with file
+upload capabilities **Primary Language**: TypeScript (ES2020+) **Architecture**:
+Monorepo with microservices, React applications, and infrastructure-as-code
+**Purpose**: Provide Form.io server, file upload module, React SDK, testing
+apps, and cloud deployment tooling
 
 ---
 
@@ -43,9 +44,9 @@ Total Size: 1.9GB (cleaned from 2.6GB)
 ### Package Boundaries
 
 #### `packages/formio-file-upload/` - File Upload Module
-**Status**: ✅ Production-ready
-**Entry Point**: `src/index.ts`
-**Exports**:
+
+**Status**: ✅ Production-ready **Entry Point**: `src/index.ts` **Exports**:
+
 - `TusFileUploadComponent` - TUS resumable upload component
 - `UppyFileUploadComponent` - Uppy.js UI component
 - `FileStorageProvider` - Storage abstraction layer
@@ -53,6 +54,7 @@ Total Size: 1.9GB (cleaned from 2.6GB)
 - `registerValidators()` - Validator registration utility
 
 **Key Directories**:
+
 - `src/components/` - Form.io components (TUS, Uppy)
 - `src/validators/` - File validation (magic numbers, integrity, sanitization)
 - `src/providers/` - Storage provider abstractions
@@ -61,11 +63,13 @@ Total Size: 1.9GB (cleaned from 2.6GB)
 - `src/async/` - Async file processing with BullMQ
 
 **Build Outputs**:
+
 - `lib/index.esm.js` - ES Module (833 KB)
 - `lib/index.cjs.js` - CommonJS (833 KB)
 - `dist/formio-file-upload.min.js` - UMD (377 KB minified, 111 KB gzipped)
 
 **Dependencies**:
+
 - `@formio/js` (peer) - Form.io core
 - `@uppy/core`, `@uppy/dashboard`, `@uppy/tus` - File upload UI
 - `tus-js-client` - TUS protocol client
@@ -73,6 +77,7 @@ Total Size: 1.9GB (cleaned from 2.6GB)
 - React 18/19 (peer) - UI components
 
 **Development Commands**:
+
 ```bash
 npm run dev        # Watch mode with auto-rebuild
 npm run build      # Production build
@@ -81,11 +86,12 @@ npm run benchmark  # Performance benchmarks
 ```
 
 #### `form-client-web-app/` - React Testing Application
-**Status**: ✅ Active development
-**Purpose**: Local development and testing environment
-**Entry Point**: `src/main.tsx`
+
+**Status**: ✅ Active development **Purpose**: Local development and testing
+environment **Entry Point**: `src/main.tsx`
 
 **Tech Stack**:
+
 - React 19 with TypeScript
 - Vite (dev server + build tool)
 - Vitest (unit testing)
@@ -93,21 +99,24 @@ npm run benchmark  # Performance benchmarks
 - React Router v7
 
 **Key Files**:
+
 - `src/App.tsx` - Main application with routing
 - `src/pages/FormioSubmissionTest.tsx` - Form submission testing
 - `src/pages/TusBulkUploadTest.tsx` - Bulk upload testing
 - `playwright.config.ts` - E2E test configuration
 
 **Module Integration**:
+
 ```typescript
-import { Formio } from '@formio/js'
-import FormioFileUploadModule from '@formio/file-upload'
+import { Formio } from '@formio/js';
+import FormioFileUploadModule from '@formio/file-upload';
 
 // Register module globally
-Formio.use(FormioFileUploadModule)
+Formio.use(FormioFileUploadModule);
 ```
 
 **Development Commands**:
+
 ```bash
 npm run dev              # Start dev server (port 64849)
 npm test                 # Run unit tests
@@ -116,10 +125,12 @@ npm run test:e2e:ui     # Interactive test UI
 ```
 
 #### `tests/` - E2E Test Framework
-**Status**: ✅ Comprehensive test suite
-**Framework**: Playwright with TypeScript
+
+**Status**: ✅ Comprehensive test suite **Framework**: Playwright with
+TypeScript
 
 **Test Categories**:
+
 - `e2e/` - End-to-end workflow tests
 - `integration/` - Service integration tests
 - `visual/` - Visual regression tests
@@ -128,6 +139,7 @@ npm run test:e2e:ui     # Interactive test UI
 - `reporters/` - Custom test reporters
 
 **Key Patterns**:
+
 - Page Object Model for maintainability
 - Fixtures for reusable test data
 - Visual regression with baseline snapshots
@@ -140,6 +152,7 @@ npm run test:e2e:ui     # Interactive test UI
 ### Docker Compose Services
 
 **Core Services** (always running):
+
 1. **MongoDB** (`mongodb:27017`)
    - Database for Form.io data
    - Health check: `mongosh --eval "db.adminCommand('ping')"`
@@ -164,6 +177,7 @@ npm run test:e2e:ui     # Interactive test UI
    - Upload directory: `/data/uploads`
 
 **Profile Services**:
+
 - **`--profile dev`**: Adds form-client-web-app container
 - **`--profile test`**: Adds Playwright container
 - **`--profile full`**: Adds nginx, upload-processor, webhook-handler
@@ -186,23 +200,26 @@ Test App → Form.io Server → MongoDB
 **Module System**: ES2020+ with `"type": "module"` in package.json
 
 **Import Patterns**:
+
 ```typescript
 // ✅ CORRECT - Use module imports
-import { Component } from './Component'
-import type { Props } from './types'
+import { Component } from './Component';
+import type { Props } from './types';
 
 // ❌ AVOID - CommonJS require
-const Component = require('./Component')
+const Component = require('./Component');
 ```
 
 **Type Exports**:
+
 ```typescript
 // Always export types separately
-export type { FileUploadConfig, ValidationOptions }
-export { TusFileUploadComponent }
+export type { FileUploadConfig, ValidationOptions };
+export { TusFileUploadComponent };
 ```
 
 **File Naming**:
+
 - Components: `PascalCase.ts` or `PascalCase.tsx`
 - Utilities: `camelCase.ts`
 - Types: `index.ts` or `types.ts`
@@ -211,11 +228,12 @@ export { TusFileUploadComponent }
 ### React Patterns
 
 **Component Structure**:
+
 ```typescript
 // Functional components with TypeScript
 interface Props {
-  onUpload: (file: File) => void
-  maxSize?: number
+  onUpload: (file: File) => void;
+  maxSize?: number;
 }
 
 export function FileUpload({ onUpload, maxSize = 10485760 }: Props) {
@@ -224,6 +242,7 @@ export function FileUpload({ onUpload, maxSize = 10485760 }: Props) {
 ```
 
 **Form.io Component Registration**:
+
 ```typescript
 // Form.io only recognizes 'components' property
 const FormioModule = {
@@ -231,56 +250,63 @@ const FormioModule = {
     tusupload: TusFileUploadComponent,
     uppyupload: UppyFileUploadComponent
   }
-}
+};
 
-export default FormioModule
+export default FormioModule;
 ```
 
 ### Testing Patterns
 
 **Unit Tests** (Vitest/Jest):
+
 ```typescript
-import { describe, it, expect } from 'vitest'
-import { validateMagicNumbers } from './magicNumbers'
+import { describe, it, expect } from 'vitest';
+import { validateMagicNumbers } from './magicNumbers';
 
 describe('validateMagicNumbers', () => {
   it('should validate PDF files', () => {
-    const pdfBuffer = new Uint8Array([0x25, 0x50, 0x44, 0x46])
-    expect(validateMagicNumbers(pdfBuffer, 'application/pdf')).toBe(true)
-  })
-})
+    const pdfBuffer = new Uint8Array([0x25, 0x50, 0x44, 0x46]);
+    expect(validateMagicNumbers(pdfBuffer, 'application/pdf')).toBe(true);
+  });
+});
 ```
 
 **E2E Tests** (Playwright):
+
 ```typescript
-import { test, expect } from '@playwright/test'
+import { test, expect } from '@playwright/test';
 
 test('should upload file via TUS', async ({ page }) => {
-  await page.goto('/upload')
-  await page.setInputFiles('input[type="file"]', 'test.pdf')
-  await expect(page.locator('.upload-success')).toBeVisible()
-})
+  await page.goto('/upload');
+  await page.setInputFiles('input[type="file"]', 'test.pdf');
+  await expect(page.locator('.upload-success')).toBeVisible();
+});
 ```
 
 **Performance Benchmarks**:
-```typescript
-import Benchmark from 'benchmark'
 
-const suite = new Benchmark.Suite()
-suite.add('magic number validation', () => {
-  validateMagicNumbers(buffer, mimeType)
-}).run()
+```typescript
+import Benchmark from 'benchmark';
+
+const suite = new Benchmark.Suite();
+suite
+  .add('magic number validation', () => {
+    validateMagicNumbers(buffer, mimeType);
+  })
+  .run();
 ```
 
 ### Build System
 
 **Rollup Configuration** (`packages/formio-file-upload/rollup.config.js`):
+
 - ES Module output: `lib/index.esm.js`
 - CommonJS output: `lib/index.cjs.js`
 - UMD bundle: `dist/formio-file-upload.min.js`
 - TypeScript declarations: `lib/index.d.ts`
 
 **Build Targets**:
+
 - **ESM**: Modern bundlers (Vite, Webpack 5+)
 - **CJS**: Legacy Node.js applications
 - **UMD**: Browser `<script>` tags
@@ -316,6 +342,7 @@ suite.add('magic number validation', () => {
 ### Running Tests
 
 **Parallel Execution** (recommended):
+
 ```bash
 # Run all tests in parallel across packages
 npm test
@@ -327,6 +354,7 @@ wait
 ```
 
 **Sequential Execution**:
+
 ```bash
 npm test && cd form-client-web-app && npm run test:e2e
 ```
@@ -334,6 +362,7 @@ npm test && cd form-client-web-app && npm run test:e2e
 ### Test Data
 
 **Fixtures** (`tests/fixtures/`, `form-client-web-app/tests/fixtures/`):
+
 - `test-files.ts` - Sample file generators
 - `mock-data.ts` - Form definitions
 - `test-data-generator.ts` - Dynamic test data
@@ -347,6 +376,7 @@ npm test && cd form-client-web-app && npm run test:e2e
 ### Local Development
 
 **Makefile Commands** (`Makefile.local`):
+
 ```bash
 make local-up        # Start all services
 make local-down      # Stop services (keep data)
@@ -356,6 +386,7 @@ make form-client-web-app        # Start test application
 ```
 
 **Docker Compose Profiles**:
+
 ```bash
 docker-compose up                    # Core services
 docker-compose --profile dev up      # + Test app
@@ -366,6 +397,7 @@ docker-compose --profile full up     # Full production stack
 ### Environment Configuration
 
 **Key Variables** (`.env`):
+
 ```bash
 # Database
 MONGO_DB_NAME=formioapp
@@ -395,6 +427,7 @@ CORS_ORIGIN=http://localhost:64849,http://localhost:3000
 ### Cloud Deployment (Planned)
 
 **GCP Cloud Run** (`dss-formio-service/` - TBD):
+
 - Terraform modules for infrastructure-as-code
 - Cloud SQL (PostgreSQL) for production database
 - Cloud Storage for file uploads
@@ -410,12 +443,14 @@ CORS_ORIGIN=http://localhost:64849,http://localhost:3000
 ### Entry Points
 
 **File Upload Module**:
+
 ```
 packages/formio-file-upload/src/index.ts
 └── Exports: TusFileUploadComponent, UppyFileUploadComponent, FileStorageProvider
 ```
 
 **Test Application**:
+
 ```
 form-client-web-app/src/main.tsx
 └── App.tsx (routing)
@@ -424,12 +459,14 @@ form-client-web-app/src/main.tsx
 ```
 
 **E2E Tests**:
+
 ```
 tests/playwright.config.ts
 └── tests/e2e/*.spec.ts
 ```
 
 **Docker Services**:
+
 ```
 docker-compose.yml
 ├── Core: mongodb, redis, gcs-emulator, formio-server, tus-server
@@ -440,20 +477,21 @@ docker-compose.yml
 
 ### Configuration Files
 
-| File | Purpose |
-|------|---------|
-| `tsconfig.json` | TypeScript configuration (ES2020, strict mode) |
-| `playwright.config.ts` | E2E test configuration (form-client-web-app/, tests/) |
-| `rollup.config.js` | Module bundling (file-upload package) |
-| `docker-compose.yml` | Service orchestration |
-| `.codecontext/config.yaml` | CodeContext MCP settings |
-| `.env.example` | Environment variable template |
-| `.eslintrc.js` | Linting rules |
-| `.prettierrc` | Code formatting |
+| File                       | Purpose                                               |
+| -------------------------- | ----------------------------------------------------- |
+| `tsconfig.json`            | TypeScript configuration (ES2020, strict mode)        |
+| `playwright.config.ts`     | E2E test configuration (form-client-web-app/, tests/) |
+| `rollup.config.js`         | Module bundling (file-upload package)                 |
+| `docker-compose.yml`       | Service orchestration                                 |
+| `.codecontext/config.yaml` | CodeContext MCP settings                              |
+| `.env.example`             | Environment variable template                         |
+| `.eslintrc.js`             | Linting rules                                         |
+| `.prettierrc`              | Code formatting                                       |
 
 ### Module Exports
 
 **File Upload Package** (`packages/formio-file-upload/package.json`):
+
 ```json
 {
   "name": "@formio/file-upload",
@@ -477,6 +515,7 @@ docker-compose.yml
 ### Adding a New File Validator
 
 1. **Create validator** in `packages/formio-file-upload/src/validators/`:
+
 ```typescript
 // newValidator.ts
 export function validateNewCheck(file: File): Promise<boolean> {
@@ -485,33 +524,37 @@ export function validateNewCheck(file: File): Promise<boolean> {
 ```
 
 2. **Add tests**:
+
 ```typescript
 // newValidator.test.ts
-import { describe, it, expect } from 'vitest'
-import { validateNewCheck } from './newValidator'
+import { describe, it, expect } from 'vitest';
+import { validateNewCheck } from './newValidator';
 
 describe('validateNewCheck', () => {
   it('should validate correctly', async () => {
-    const file = new File(['test'], 'test.txt')
-    expect(await validateNewCheck(file)).toBe(true)
-  })
-})
+    const file = new File(['test'], 'test.txt');
+    expect(await validateNewCheck(file)).toBe(true);
+  });
+});
 ```
 
 3. **Export** from `src/validators/index.ts`:
+
 ```typescript
-export { validateNewCheck } from './newValidator'
+export { validateNewCheck } from './newValidator';
 ```
 
 4. **Register** in validators registry:
+
 ```typescript
 // src/validators/index.ts
 export function registerValidators() {
-  Formio.registerValidator('newCheck', validateNewCheck)
+  Formio.registerValidator('newCheck', validateNewCheck);
 }
 ```
 
 5. **Build and test**:
+
 ```bash
 npm run build
 npm test
@@ -520,24 +563,27 @@ npm test
 ### Adding a New E2E Test
 
 1. **Create test** in `form-client-web-app/tests/e2e/`:
+
 ```typescript
 // new-feature.spec.ts
-import { test, expect } from '@playwright/test'
+import { test, expect } from '@playwright/test';
 
 test.describe('New Feature', () => {
   test('should work correctly', async ({ page }) => {
-    await page.goto('/new-feature')
-    await expect(page.locator('.success')).toBeVisible()
-  })
-})
+    await page.goto('/new-feature');
+    await expect(page.locator('.success')).toBeVisible();
+  });
+});
 ```
 
 2. **Run test**:
+
 ```bash
 npm run test:e2e -- new-feature.spec.ts
 ```
 
 3. **Debug if needed**:
+
 ```bash
 npm run test:e2e:debug -- new-feature.spec.ts
 ```
@@ -546,14 +592,19 @@ npm run test:e2e:debug -- new-feature.spec.ts
 
 1. **Edit** `docker-compose.yml`
 2. **Validate**:
+
 ```bash
 docker-compose config
 ```
+
 3. **Restart specific service**:
+
 ```bash
 docker-compose restart formio-server
 ```
+
 4. **View logs**:
+
 ```bash
 docker-compose logs -f formio-server
 ```
@@ -561,18 +612,21 @@ docker-compose logs -f formio-server
 ### Performance Optimization
 
 **Before optimizing**:
+
 ```bash
 cd packages/formio-file-upload
 npm run benchmark
 ```
 
 **After changes**:
+
 ```bash
 npm run benchmark
 # Compare results with baseline
 ```
 
 **Performance Targets**:
+
 - Magic number validation: < 5ms (current: 0.0002ms ✅)
 - Filename sanitization: < 1ms (current: 0.0004ms ✅)
 - Build time: < 30s (current: 4.71s ✅)
@@ -584,7 +638,8 @@ npm run benchmark
 
 ### All Packages Active
 
-All packages have been successfully migrated from git submodules to monorepo packages:
+All packages have been successfully migrated from git submodules to monorepo
+packages:
 
 - ✅ `formio/` - **Form.io Server v4.5.2** (19MB, Node.js >=20.0.0)
 - ✅ `formio-core/` - **Core Framework v2.5.1** (24MB, TypeScript)
@@ -594,16 +649,16 @@ All packages have been successfully migrated from git submodules to monorepo pac
 
 ### Migration Complete
 
-**Status**: All git submodules converted to regular packages
-**Commit**: `6ae1fb60` - "feat: convert submodules to monorepo packages"
-**Changes**: 799 files, 217,184 lines of code added
-**Cleanup**: Removed 1,119 node_modules directories (saved 1.2GB)
+**Status**: All git submodules converted to regular packages **Commit**:
+`6ae1fb60` - "feat: convert submodules to monorepo packages" **Changes**: 799
+files, 217,184 lines of code added **Cleanup**: Removed 1,119 node_modules
+directories (saved 1.2GB)
 
 ### No Workspace Configuration
 
-**Current**: Each package manages dependencies independently
-**Issue**: No shared dependencies, duplicate node_modules
-**Future**: Add `pnpm-workspace.yaml` for proper monorepo management
+**Current**: Each package manages dependencies independently **Issue**: No
+shared dependencies, duplicate node_modules **Future**: Add
+`pnpm-workspace.yaml` for proper monorepo management
 
 ```yaml
 # Proposed pnpm-workspace.yaml
@@ -685,17 +740,20 @@ When reviewing or suggesting code:
 ## 📚 Additional Resources
 
 ### Form.io Documentation
+
 - **Official Docs**: https://help.form.io/
 - **API Reference**: https://help.form.io/api/
 - **Component Guide**: https://help.form.io/userguide/forms/components/
 
 ### Libraries
+
 - **TUS Protocol**: https://tus.io/protocols/resumable-upload.html
 - **Uppy.js**: https://uppy.io/docs/
 - **BullMQ**: https://docs.bullmq.io/
 - **Playwright**: https://playwright.dev/
 
 ### Tooling
+
 - **Vite**: https://vitejs.dev/
 - **Vitest**: https://vitest.dev/
 - **Rollup**: https://rollupjs.org/
@@ -754,7 +812,9 @@ Deploy (if main branch)
 
 ### Strategic Direction
 
-This monorepo is evolving into the **Qrius Platform** - a proprietary form-building platform built on Form.io with:
+This monorepo is evolving into the **Qrius Platform** - a proprietary
+form-building platform built on Form.io with:
+
 - Custom components (LLM-powered, WebGPU, WASM)
 - Clean separation via Anti-Corruption Layer (ACL)
 - Controlled upstream dependency management via git-subrepo
@@ -763,14 +823,17 @@ This monorepo is evolving into the **Qrius Platform** - a proprietary form-build
 ### Architecture Documentation
 
 **Primary Documents**:
-- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Complete Qrius platform architecture
+
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Complete Qrius platform
+  architecture
   - Repository strategy with git-subrepo
   - Dual-track architecture (Runtime vs Admin paths)
   - Anti-Corruption Layer pattern
   - 5-week phased implementation plan
   - Risk mitigation and success metrics
 
-- **[docs/GIT_SUBREPO_WORKFLOW.md](./docs/GIT_SUBREPO_WORKFLOW.md)** - Git-subrepo workflow guide
+- **[docs/GIT_SUBREPO_WORKFLOW.md](./docs/GIT_SUBREPO_WORKFLOW.md)** -
+  Git-subrepo workflow guide
   - Upstream synchronization workflows
   - Conflict resolution strategies
   - Contributing back to upstream
@@ -807,23 +870,110 @@ packages/
 
 ### Implementation Status
 
-**Current Phase**: Phase 0 - Planning Complete ✅
-**Next Phase**: Git-Subrepo Setup (Awaiting approval)
+**Current Phase**: Phase 0 - Planning Complete ✅ **Next Phase**: Git-Subrepo
+Setup (Awaiting approval)
 
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for complete implementation plan with phase gates and success criteria.
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for complete implementation plan with
+phase gates and success criteria.
 
 ### AI Assistant Instructions for Qrius Development
 
 When working on Qrius-related tasks:
 
-1. **Respect the ACL boundary**: Qrius components should never import Form.io directly
-2. **Use git-subrepo commands**: See [docs/GIT_SUBREPO_WORKFLOW.md](./docs/GIT_SUBREPO_WORKFLOW.md)
+1. **Respect the ACL boundary**: Qrius components should never import Form.io
+   directly
+2. **Use git-subrepo commands**: See
+   [docs/GIT_SUBREPO_WORKFLOW.md](./docs/GIT_SUBREPO_WORKFLOW.md)
 3. **Test in isolation**: Qrius components must be testable without Form.io
 4. **Follow implementation phases**: Do not skip phase gates
 5. **Document architectural decisions**: Update ARCHITECTURE.md as needed
 
 ---
 
-**Last Updated**: 2025-01-10
-**Codebase Version**: formio-monorepo main branch (evolving to Qrius Platform)
-**AI Assistant**: Optimized for Claude Code with batch-mode execution patterns
+## 🔧 Fork Maintenance System
+
+### @qrius/formio-react Fork
+
+The `formio-react/` directory is a **git-subrepo** linked to our private fork at
+`QriusGlobal/formio-react`.
+
+**Key Customizations**:
+
+1. **Dependency Bundling**: `@formio/js` bundled as regular dependency (not peer
+   dependency)
+2. **Formio Export**: Exports `Formio` instance for component registration
+3. **GitHub Packages**: Auto-publishes to `@qrius/formio-react` on GitHub
+   Packages
+
+**Documentation**:
+
+- **Quick Reference**:
+  [docs/FORK_MAINTENANCE_SUMMARY.md](./docs/FORK_MAINTENANCE_SUMMARY.md)
+- **Complete Guide**:
+  [docs/FORK_MAINTENANCE_BEST_PRACTICES.md](./docs/FORK_MAINTENANCE_BEST_PRACTICES.md)
+- **Fork README**: [formio-react/README.FORK.md](./formio-react/README.FORK.md)
+- **AI Instructions**: [formio-react/CLAUDE.md](./formio-react/CLAUDE.md)
+- **Patch Documentation**:
+  [formio-react/patches/README.md](./formio-react/patches/README.md)
+
+**Patch Management**:
+
+```bash
+# Generate patches from customizations
+cd formio-react/
+./scripts/manage-patches.sh generate
+
+# Apply patches after upstream merge
+./scripts/manage-patches.sh apply
+
+# Check patch status
+./scripts/manage-patches.sh check
+
+# List all patches
+./scripts/manage-patches.sh list
+```
+
+**Dual CHANGELOG Strategy**:
+
+- `Changelog.md` - Upstream history (never modify, always accept theirs)
+- `CHANGELOG.QRIUS.md` - Qrius-specific changes (our customizations only)
+
+**Upstream Sync Workflow**:
+
+```bash
+# 1. Save current state
+./scripts/manage-patches.sh generate
+
+# 2. Merge upstream
+git fetch upstream
+git merge upstream/main
+
+# 3. Resolve conflicts (auto-resolve Changelog.md)
+git checkout upstream/main -- Changelog.md
+
+# 4. Reapply customizations if needed
+./scripts/manage-patches.sh apply
+
+# 5. Regenerate patches
+./scripts/manage-patches.sh generate
+
+# 6. Update CHANGELOG.QRIUS.md
+# Document upstream sync
+
+# 7. Push to fork
+git push origin main
+```
+
+**AI Assistant Guidelines**:
+
+- Always use `CHANGELOG.QRIUS.md` for our changes
+- Never modify upstream's `Changelog.md`
+- Generate patches after making customizations
+- Document all customizations in `patches/README.md`
+- Use structured commit messages with "Qrius-Specific" tag
+
+---
+
+**Last Updated**: 2025-10-13 **Codebase Version**: formio-monorepo main branch
+(evolving to Qrius Platform) **AI Assistant**: Optimized for Claude Code with
+batch-mode execution patterns
