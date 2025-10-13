@@ -20,9 +20,22 @@ This changelog follows [Keep a Changelog](https://keepachangelog.com/) format.
 
 ## [Unreleased]
 
+### Changed
+
+- **2025-10-13**: Improved package.json with modern exports field
+    - Added `types` field for better TypeScript IDE support
+    - Added `exports` field for modern ESM/CJS resolution
+    - Reordered dependencies for clarity
+    - Rebuilt lib/ directory with TypeScript 5.8.3
+    - Renamed git remote: `upstream` → `formio-upstream` for clarity
+    - Added `fork` remote pointing to QriusGlobal/formio-react
+
 ### Qrius
 
-- Planning next iteration of improvements
+- Confirmed bundled dependency strategy is working correctly
+    - @formio/js and @formio/core remain in `dependencies` (38MB total)
+    - Zero-config consumption for users (npm install @qrius/formio-react)
+    - Only React/React-DOM required as peer dependencies
 
 ---
 
