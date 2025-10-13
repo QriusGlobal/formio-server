@@ -10,7 +10,7 @@ import '@formio/js/dist/formio.full.css';
 import './formio-dark.css';
 
 // Register Form.io File Upload Module
-import { Formio } from '@formio/js';
+import { Formio, Components } from '@formio/js';
 import FormioFileUploadModule, {
   MultiImageUploadComponent
 } from '../../packages/formio-file-upload/src/index';
@@ -24,7 +24,12 @@ MultiImageUploadComponent.registerReactComponent(() => ({
   MultiImageUpload
 }));
 
+// Register module with Form.io
 Formio.use(FormioFileUploadModule);
+
+// REQUIRED: Explicit component registration for Form.io's component loader
+// Module registration alone doesn't make custom components discoverable
+(Components as any).setComponent('multiimageupload', MultiImageUploadComponent);
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

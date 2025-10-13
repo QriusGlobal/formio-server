@@ -14,4 +14,4 @@ export * from './constants';
 export * from './modules';
 export * from './types';
 export * from './utils';
-export { Components, Utils, Templates } from '@formio/js';
+export { Formio, Components, Utils, Templates } from '@formio/js';
