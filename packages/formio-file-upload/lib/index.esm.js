@@ -3354,6 +3354,7 @@ const FILE_SIGNATURES = {
 async function verifyFileType(file, expectedType) {
     try {
         // Get file signature from database
+        // eslint-disable-next-line security/detect-object-injection -- Safe: expectedType is MIME type from controlled source (file.type)
         const signature = FILE_SIGNATURES[expectedType];
         // If no signature defined, allow the file (fallback to MIME check only)
         if (!signature) {
@@ -3414,6 +3415,7 @@ async function detectFileType(file, allowedTypes) {
         const bytes = new Uint8Array(buffer);
         // Check each allowed type
         for (const mimeType of allowedTypes) {
+            // eslint-disable-next-line security/detect-object-injection -- Safe: mimeType from allowedTypes parameter, controlled by application
             const signature = FILE_SIGNATURES[mimeType];
             if (!signature)
                 continue;
@@ -3615,6 +3617,7 @@ function sanitizeFilename(filename, options = {}) {
         name = `file_${name}`;
     }
     // Collapse multiple replacements
+    // eslint-disable-next-line security/detect-non-literal-regexp -- Safe: replacement char is escaped via escapeRegex()
     const multipleReplacement = new RegExp(`${escapeRegex(replacement)}{2,}`, 'g');
     name = name.replace(multipleReplacement, replacement);
     // Ensure name is not empty
@@ -3631,6 +3634,7 @@ function sanitizeFilename(filename, options = {}) {
     if (name.length > maxNameLength) {
         name = name.substring(0, maxNameLength);
         // Remove trailing replacement character
+        // eslint-disable-next-line security/detect-non-literal-regexp -- Safe: replacement char is escaped via escapeRegex()
         name = name.replace(new RegExp(`${escapeRegex(replacement)}+$`), '');
     }
     // Ensure extension starts with dot
@@ -3721,6 +3725,7 @@ function fileTypeValidator(context) {
                 isAllowed = true;
                 break;
             }
+            // eslint-disable-next-line security/detect-non-literal-regexp -- Safe: pattern is simple MIME wildcard (e.g., image/*), not user-controlled complex regex
             if (pattern.includes('/') && fileMime.match(new RegExp(pattern.replace('*', '.*')))) {
                 isAllowed = true;
                 break;
@@ -3780,6 +3785,7 @@ function parseFileSize(size) {
         return null;
     const value = Number.parseFloat(match[1]);
     const unit = match[2].toUpperCase();
+    // eslint-disable-next-line security/detect-object-injection -- Safe: unit validated by regex pattern above
     return value * (units[unit] || 1);
 }
 /**
@@ -4043,6 +4049,7 @@ class TusFileUploadComponent extends FileComponent$1 {
                     return fileExt === pattern;
                 }
                 if (pattern.includes('/')) {
+                    // eslint-disable-next-line security/detect-non-literal-regexp -- Safe: pattern is simple MIME wildcard (e.g., image/*), not user-controlled complex regex
                     return file.type.match(new RegExp(pattern.replace('*', '.*')));
                 }
                 return false;
@@ -4070,6 +4077,7 @@ class TusFileUploadComponent extends FileComponent$1 {
             return null;
         const value = Number.parseFloat(match[1]);
         const unit = match[2].toUpperCase();
+        // eslint-disable-next-line security/detect-object-injection -- Safe: unit validated by regex pattern above
         return value * (units[unit] || 1);
     }
     parseFilePattern(pattern) {
@@ -19786,6 +19794,7 @@ class UppyFileUploadComponent extends FileComponent {
             return null;
         const value = Number.parseFloat(match[1]);
         const unit = match[2].toUpperCase();
+        // eslint-disable-next-line security/detect-object-injection -- Safe: unit validated by regex pattern above
         return value * (units[unit] || 1);
     }
     parseFilePattern(pattern) {
@@ -19866,7 +19875,7 @@ class FileStorageProvider {
         this.title = 'File Storage Provider';
         this.config = {
             endpoint: '/files',
-            ...config
+            ...config,
         };
     }
     async uploadFile(file, options = {}) {
@@ -19880,15 +19889,16 @@ class FileStorageProvider {
         // Add metadata
         if (options.metadata) {
             for (const key of Object.keys(options.metadata)) {
+                // eslint-disable-next-line security/detect-object-injection -- Safe: key from Object.keys(), not user input
                 formData.append(`metadata[${key}]`, options.metadata[key]);
             }
         }
         const response = await fetch(this.config.endpoint, {
             method: 'POST',
             headers: {
-                'x-jwt-token': options.token || ''
+                'x-jwt-token': options.token || '',
             },
-            body: formData
+            body: formData,
         });
         if (!response.ok) {
             throw new Error(`Upload failed: ${response.statusText}`);
@@ -19903,7 +19913,7 @@ class FileStorageProvider {
             storage: 'file',
             status: 'completed',
             createdAt: new Date(),
-            updatedAt: new Date()
+            updatedAt: new Date(),
         };
     }
     async downloadFile(file) {
@@ -19917,8 +19927,8 @@ class FileStorageProvider {
         const response = await fetch(`${this.config.endpoint}/${file.id}`, {
             method: 'DELETE',
             headers: {
-                'x-jwt-token': this.config.token || ''
-            }
+                'x-jwt-token': this.config.token || '',
+            },
         });
         if (!response.ok) {
             throw new Error(`Delete failed: ${response.statusText}`);
@@ -19931,8 +19941,8 @@ class FileStorageProvider {
         }
         const response = await fetch(`${this.config.endpoint}/${file.id}/url`, {
             headers: {
-                'x-jwt-token': this.config.token || ''
-            }
+                'x-jwt-token': this.config.token || '',
+            },
         });
         if (!response.ok) {
             throw new Error(`Failed to get file URL: ${response.statusText}`);

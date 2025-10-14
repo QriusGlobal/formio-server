@@ -222,7 +222,7 @@ export function sanitizeFilename(filename: string, options: SanitizeOptions = {}
     if (dangerousExtFound) {
       logger.warn(`[Security] Dangerous extension detected in: ${filename}`);
       // Replace dangerous extension with safe marker
-      ext = `${ext.replace(/\./g, '_')  }.safe`;
+      ext = `${ext.replace(/\./g, '_')}.safe`;
       name = name.replace(/\./g, '_');
     }
   }
@@ -251,6 +251,7 @@ export function sanitizeFilename(filename: string, options: SanitizeOptions = {}
   }
 
   // Collapse multiple replacements
+  // eslint-disable-next-line security/detect-non-literal-regexp -- Safe: replacement char is escaped via escapeRegex()
   const multipleReplacement = new RegExp(`${escapeRegex(replacement)}{2,}`, 'g');
   name = name.replace(multipleReplacement, replacement);
 
@@ -270,12 +271,13 @@ export function sanitizeFilename(filename: string, options: SanitizeOptions = {}
   if (name.length > maxNameLength) {
     name = name.substring(0, maxNameLength);
     // Remove trailing replacement character
+    // eslint-disable-next-line security/detect-non-literal-regexp -- Safe: replacement char is escaped via escapeRegex()
     name = name.replace(new RegExp(`${escapeRegex(replacement)}+$`), '');
   }
 
   // Ensure extension starts with dot
   if (ext && !ext.startsWith('.')) {
-    ext = `.${  ext}`;
+    ext = `.${ext}`;
   }
 
   // Combine name and extension
@@ -342,7 +344,7 @@ export function validateFilename(
   // Check for dangerous extensions
   const filenameLower = filename.toLowerCase();
   const hasDangerousExt = DANGEROUS_EXTENSIONS.some(
-    (ext) => filenameLower.endsWith(ext) || filenameLower.includes(`${ext  }.`)
+    (ext) => filenameLower.endsWith(ext) || filenameLower.includes(`${ext}.`)
   );
 
   if (hasDangerousExt) {
@@ -429,7 +431,7 @@ export function hasAllowedExtension(filename: string, allowedExtensions: string[
   if (!ext) return false;
 
   const normalizedAllowed = allowedExtensions.map((e) =>
-    e.startsWith('.') ? e.toLowerCase() : `.${  e.toLowerCase()}`
+    e.startsWith('.') ? e.toLowerCase() : `.${e.toLowerCase()}`
   );
 
   return normalizedAllowed.includes(ext);

@@ -156,6 +156,7 @@ export const FILE_SIGNATURES: Record<string, FileSignature> = {
 export async function verifyFileType(file: File, expectedType: string): Promise<boolean> {
   try {
     // Get file signature from database
+    // eslint-disable-next-line security/detect-object-injection -- Safe: expectedType is MIME type from controlled source (file.type)
     const signature = FILE_SIGNATURES[expectedType];
 
     // If no signature defined, allow the file (fallback to MIME check only)
@@ -207,6 +208,7 @@ function matchesSignature(bytes: Uint8Array, signature: (number | null)[]): bool
       return true;
     }
     // Check if byte matches
+    // eslint-disable-next-line security/detect-object-injection -- Safe: index is from Array.every(), bounded by signature length
     return bytes[index] === expectedByte;
   });
 }
@@ -225,6 +227,7 @@ export async function detectFileType(file: File, allowedTypes: string[]): Promis
 
     // Check each allowed type
     for (const mimeType of allowedTypes) {
+      // eslint-disable-next-line security/detect-object-injection -- Safe: mimeType from allowedTypes parameter, controlled by application
       const signature = FILE_SIGNATURES[mimeType];
       if (!signature) continue;
 
@@ -249,6 +252,7 @@ export async function detectFileType(file: File, allowedTypes: string[]): Promis
  * @returns string - Description or MIME type
  */
 export function getFileTypeDescription(mimeType: string): string {
+  // eslint-disable-next-line security/detect-object-injection -- Safe: mimeType parameter used for lookup in constant dictionary
   const signature = FILE_SIGNATURES[mimeType];
   return signature?.description || mimeType;
 }

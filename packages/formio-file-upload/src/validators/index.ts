@@ -63,6 +63,7 @@ function fileTypeValidator(context: any) {
         isAllowed = true;
         break;
       }
+      // eslint-disable-next-line security/detect-non-literal-regexp -- Safe: pattern is simple MIME wildcard (e.g., image/*), not user-controlled complex regex
       if (pattern.includes('/') && fileMime.match(new RegExp(pattern.replace('*', '.*')))) {
         isAllowed = true;
         break;
@@ -130,12 +131,14 @@ function parseFileSize(size: string): number | null {
     TB: 1024 * 1024 * 1024 * 1024,
   };
 
+  // eslint-disable-next-line security/detect-unsafe-regex -- Safe: regex is static with bounded quantifiers, no ReDoS risk
   const match = size.match(/^(\d+(?:\.\d+)?)\s*([gkmt]?b)$/i);
   if (!match) return null;
 
   const value = Number.parseFloat(match[1]);
   const unit = match[2].toUpperCase();
 
+  // eslint-disable-next-line security/detect-object-injection -- Safe: unit validated by regex pattern above
   return value * (units[unit] || 1);
 }
 

@@ -412,6 +412,7 @@ export default class UppyFileUploadComponent extends FileComponent {
     const value = Number.parseFloat(match[1]);
     const unit = match[2].toUpperCase();
 
+    // eslint-disable-next-line security/detect-object-injection -- Safe: unit validated by regex pattern above
     return value * (units[unit] || 1);
   }
 

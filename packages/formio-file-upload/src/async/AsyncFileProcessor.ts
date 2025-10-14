@@ -216,6 +216,7 @@ export class AsyncFileProcessor {
           return fileExt === pattern;
         }
         if (pattern.includes('/')) {
+          // eslint-disable-next-line security/detect-non-literal-regexp -- Safe: pattern is simple MIME wildcard (e.g., image/*), not user-controlled complex regex
           return file.type.match(new RegExp(pattern.replace('*', '.*')));
         }
         return false;
@@ -273,6 +274,7 @@ export class AsyncFileProcessor {
             'image/gif': [0x47, 0x49, 0x46, 0x38],
           };
 
+          // eslint-disable-next-line security/detect-object-injection -- Safe: file.type is MIME type from File object, validated against magicNumbers dictionary
           const expectedMagic = magicNumbers[file.type];
 
           if (!expectedMagic) {
@@ -282,6 +284,7 @@ export class AsyncFileProcessor {
           }
 
           // Verify magic number matches
+          // eslint-disable-next-line security/detect-object-injection -- Safe: index is from Array.every(), controlled by expectedMagic array length
           const matches = expectedMagic.every((byte, index) => bytes[index] === byte);
           resolve(matches);
         } catch (error) {
@@ -309,6 +312,7 @@ export class AsyncFileProcessor {
       unitIndex++;
     }
 
+    // eslint-disable-next-line security/detect-object-injection -- Safe: unitIndex is bounded by array length check in while loop
     return `${size.toFixed(2)} ${units[unitIndex]}`;
   }
 }

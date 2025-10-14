@@ -15,7 +15,7 @@ export default class FileStorageProvider implements StorageProvider {
   constructor(config: any = {}) {
     this.config = {
       endpoint: '/files',
-      ...config
+      ...config,
     };
   }
 
@@ -32,6 +32,7 @@ export default class FileStorageProvider implements StorageProvider {
     // Add metadata
     if (options.metadata) {
       for (const key of Object.keys(options.metadata)) {
+        // eslint-disable-next-line security/detect-object-injection -- Safe: key from Object.keys(), not user input
         formData.append(`metadata[${key}]`, options.metadata[key]);
       }
     }
@@ -39,9 +40,9 @@ export default class FileStorageProvider implements StorageProvider {
     const response = await fetch(this.config.endpoint, {
       method: 'POST',
       headers: {
-        'x-jwt-token': options.token || ''
+        'x-jwt-token': options.token || '',
       },
-      body: formData
+      body: formData,
     });
 
     if (!response.ok) {
@@ -59,7 +60,7 @@ export default class FileStorageProvider implements StorageProvider {
       storage: 'file',
       status: 'completed',
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     } as UploadFile;
   }
 
@@ -77,8 +78,8 @@ export default class FileStorageProvider implements StorageProvider {
     const response = await fetch(`${this.config.endpoint}/${file.id}`, {
       method: 'DELETE',
       headers: {
-        'x-jwt-token': this.config.token || ''
-      }
+        'x-jwt-token': this.config.token || '',
+      },
     });
 
     if (!response.ok) {
@@ -94,8 +95,8 @@ export default class FileStorageProvider implements StorageProvider {
 
     const response = await fetch(`${this.config.endpoint}/${file.id}/url`, {
       headers: {
-        'x-jwt-token': this.config.token || ''
-      }
+        'x-jwt-token': this.config.token || '',
+      },
     });
 
     if (!response.ok) {
