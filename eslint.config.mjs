@@ -484,6 +484,25 @@ export default [
       'sonarjs/no-duplicate-string': 'off',
       'import/no-extraneous-dependencies': 'off',
 
+      // Import rules - Allow test dependencies
+      'import/no-unresolved': [
+        'error',
+        {
+          // Ignore devDependencies in test files (playwright, faker, etc.)
+          ignore: [
+            '@playwright/test',
+            '@playwright/test/reporter',
+            '@axe-core/playwright',
+            '@faker-js/faker',
+            'tus-js-client',
+            'axios',
+            'dotenv',
+            'mongodb',
+            '@google-cloud/storage'
+          ]
+        }
+      ],
+
       // Jest rules
       'jest/consistent-test-it': ['error', { fn: 'test', withinDescribe: 'it' }],
       'jest/expect-expect': 'error',
@@ -558,6 +577,22 @@ export default [
       'import/no-extraneous-dependencies': 'off',
       'unicorn/prefer-module': 'off',
       'no-console': 'off'
+    }
+  },
+
+  // ========================================================================
+  // FORM CLIENT WEB APP - Allow CSS imports from external packages
+  // ========================================================================
+  {
+    files: ['form-client-web-app/src/**/*.{ts,tsx}'],
+    rules: {
+      'import/no-unresolved': [
+        'error',
+        {
+          // Allow CSS imports from @qrius/formio-react and @uppy packages
+          ignore: ['@qrius/formio-react/css', '@uppy/*/dist/style.min.css']
+        }
+      ]
     }
   },
 

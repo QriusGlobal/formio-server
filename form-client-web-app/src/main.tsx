@@ -1,26 +1,20 @@
+// External dependencies
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-
-import App from './App.tsx';
-import './index.css';
-
-// Import Form.io CSS
+import { Formio, Components } from '@qrius/formio-react';
 import '@qrius/formio-react/css';
 
-// Import Form.io Dark Mode Override
-import './formio-dark.css';
-
-// Import Whitelabel CSS (hides Form.io branding)
-import './whitelabel.css';
-
-// Register Form.io File Upload Module
-// CRITICAL: Import from @qrius/formio-react to use the SAME Components registry!
-import { Formio, Components } from '@qrius/formio-react';
-
+// Internal dependencies
+import App from './App.tsx';
 import { MultiImageUpload } from './components/MultiImageUpload';
 import FormioFileUploadModule, {
   MultiImageUploadComponent
 } from '../../packages/formio-file-upload/src/index';
+
+// Styles
+import './index.css';
+import './formio-dark.css';
+import './whitelabel.css';
 
 // CRITICAL: Register React component factory BEFORE Formio.use()
 // This enables the Form.io adapter to load the React component at runtime

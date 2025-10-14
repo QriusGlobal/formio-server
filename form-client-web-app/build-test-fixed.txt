@@ -1,0 +1,54 @@
+ WARN  Issue while reading "/Users/mishal/code/worktrees/formio-monorepo-20251009/.npmrc". Failed to replace env in config: ${GITHUB_TOKEN}
+ WARN  Issue while reading "/Users/mishal/code/worktrees/formio-monorepo-20251009/.npmrc". Failed to replace env in config: ${GITHUB_TOKEN}
+
+> form-client-web-app@0.0.1 build /Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app
+> vite build
+
+NODE_ENV=production is not supported in the .env file. Only NODE_ENV=development is supported to create a development build of your project. If you need to set process.env.NODE_ENV, you can set it in the Vite config instead.
+vite v5.4.20 building for production...
+transforming...
+[BABEL] Note: The code generator has deoptimised the styling of /Users/mishal/code/worktrees/formio-monorepo-20251009/packages/formio-file-upload/lib/index.esm.js as it exceeds the max of 500KB.
+✓ 2898 modules transformed.
+x Build failed in 2.23s
+error during build:
+src/pages/FormViewer.tsx (1:9): "Form" is not exported by "../formio-react/lib/index.js", imported by "src/pages/FormViewer.tsx".
+file: /Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app/src/pages/FormViewer.tsx:1:9
+
+1: import { Form } from '@qrius/formio-react';
+            ^
+2: import { useState } from 'react';
+
+    at getRollupError (file:///Users/mishal/code/worktrees/formio-monorepo-20251009/node_modules/.pnpm/rollup@4.52.4/node_modules/rollup/dist/es/shared/parseAst.js:401:41)
+    at error (file:///Users/mishal/code/worktrees/formio-monorepo-20251009/node_modules/.pnpm/rollup@4.52.4/node_modules/rollup/dist/es/shared/parseAst.js:397:42)
+    at Module.error (file:///Users/mishal/code/worktrees/formio-monorepo-20251009/node_modules/.pnpm/rollup@4.52.4/node_modules/rollup/dist/es/shared/node-entry.js:16939:16)
+    at Module.traceVariable (file:///Users/mishal/code/worktrees/formio-monorepo-20251009/node_modules/.pnpm/rollup@4.52.4/node_modules/rollup/dist/es/shared/node-entry.js:17391:29)
+    at ModuleScope.findVariable (file:///Users/mishal/code/worktrees/formio-monorepo-20251009/node_modules/.pnpm/rollup@4.52.4/node_modules/rollup/dist/es/shared/node-entry.js:15061:39)
+    at FunctionScope.findVariable (file:///Users/mishal/code/worktrees/formio-monorepo-20251009/node_modules/.pnpm/rollup@4.52.4/node_modules/rollup/dist/es/shared/node-entry.js:5642:38)
+    at FunctionBodyScope.findVariable (file:///Users/mishal/code/worktrees/formio-monorepo-20251009/node_modules/.pnpm/rollup@4.52.4/node_modules/rollup/dist/es/shared/node-entry.js:5642:38)
+    at TrackingScope.findVariable (file:///Users/mishal/code/worktrees/formio-monorepo-20251009/node_modules/.pnpm/rollup@4.52.4/node_modules/rollup/dist/es/shared/node-entry.js:5642:38)
+    at BlockScope.findVariable (file:///Users/mishal/code/worktrees/formio-monorepo-20251009/node_modules/.pnpm/rollup@4.52.4/node_modules/rollup/dist/es/shared/node-entry.js:5642:38)
+    at Identifier.bind (file:///Users/mishal/code/worktrees/formio-monorepo-20251009/node_modules/.pnpm/rollup@4.52.4/node_modules/rollup/dist/es/shared/node-entry.js:5413:40)
+    at CallExpression.bind (file:///Users/mishal/code/worktrees/formio-monorepo-20251009/node_modules/.pnpm/rollup@4.52.4/node_modules/rollup/dist/es/shared/node-entry.js:2800:28)
+    at CallExpression.bind (file:///Users/mishal/code/worktrees/formio-monorepo-20251009/node_modules/.pnpm/rollup@4.52.4/node_modules/rollup/dist/es/shared/node-entry.js:12108:15)
+    at Property.bind (file:///Users/mishal/code/worktrees/formio-monorepo-20251009/node_modules/.pnpm/rollup@4.52.4/node_modules/rollup/dist/es/shared/node-entry.js:2804:23)
+    at ObjectExpression.bind (file:///Users/mishal/code/worktrees/formio-monorepo-20251009/node_modules/.pnpm/rollup@4.52.4/node_modules/rollup/dist/es/shared/node-entry.js:2800:28)
+    at CallExpression.bind (file:///Users/mishal/code/worktrees/formio-monorepo-20251009/node_modules/.pnpm/rollup@4.52.4/node_modules/rollup/dist/es/shared/node-entry.js:2800:28)
+    at CallExpression.bind (file:///Users/mishal/code/worktrees/formio-monorepo-20251009/node_modules/.pnpm/rollup@4.52.4/node_modules/rollup/dist/es/shared/node-entry.js:12108:15)
+    at LogicalExpression.bind (file:///Users/mishal/code/worktrees/formio-monorepo-20251009/node_modules/.pnpm/rollup@4.52.4/node_modules/rollup/dist/es/shared/node-entry.js:2804:23)
+    at AssignmentExpression.bind (file:///Users/mishal/code/worktrees/formio-monorepo-20251009/node_modules/.pnpm/rollup@4.52.4/node_modules/rollup/dist/es/shared/node-entry.js:2804:23)
+    at ExpressionStatement.bind (file:///Users/mishal/code/worktrees/formio-monorepo-20251009/node_modules/.pnpm/rollup@4.52.4/node_modules/rollup/dist/es/shared/node-entry.js:2804:23)
+    at BlockStatement.bind (file:///Users/mishal/code/worktrees/formio-monorepo-20251009/node_modules/.pnpm/rollup@4.52.4/node_modules/rollup/dist/es/shared/node-entry.js:2800:28)
+    at IfStatement.bind (file:///Users/mishal/code/worktrees/formio-monorepo-20251009/node_modules/.pnpm/rollup@4.52.4/node_modules/rollup/dist/es/shared/node-entry.js:2804:23)
+    at BlockStatement.bind (file:///Users/mishal/code/worktrees/formio-monorepo-20251009/node_modules/.pnpm/rollup@4.52.4/node_modules/rollup/dist/es/shared/node-entry.js:2800:28)
+    at FunctionDeclaration.bind (file:///Users/mishal/code/worktrees/formio-monorepo-20251009/node_modules/.pnpm/rollup@4.52.4/node_modules/rollup/dist/es/shared/node-entry.js:2804:23)
+    at ExportDefaultDeclaration.bind (file:///Users/mishal/code/worktrees/formio-monorepo-20251009/node_modules/.pnpm/rollup@4.52.4/node_modules/rollup/dist/es/shared/node-entry.js:2804:23)
+    at Program.bind (file:///Users/mishal/code/worktrees/formio-monorepo-20251009/node_modules/.pnpm/rollup@4.52.4/node_modules/rollup/dist/es/shared/node-entry.js:2800:28)
+    at Module.bindReferences (file:///Users/mishal/code/worktrees/formio-monorepo-20251009/node_modules/.pnpm/rollup@4.52.4/node_modules/rollup/dist/es/shared/node-entry.js:16918:18)
+    at Graph.sortModules (file:///Users/mishal/code/worktrees/formio-monorepo-20251009/node_modules/.pnpm/rollup@4.52.4/node_modules/rollup/dist/es/shared/node-entry.js:22721:20)
+    at Graph.build (file:///Users/mishal/code/worktrees/formio-monorepo-20251009/node_modules/.pnpm/rollup@4.52.4/node_modules/rollup/dist/es/shared/node-entry.js:22619:14)
+    at async file:///Users/mishal/code/worktrees/formio-monorepo-20251009/node_modules/.pnpm/rollup@4.52.4/node_modules/rollup/dist/es/shared/node-entry.js:23310:13
+    at async catchUnfinishedHookActions (file:///Users/mishal/code/worktrees/formio-monorepo-20251009/node_modules/.pnpm/rollup@4.52.4/node_modules/rollup/dist/es/shared/node-entry.js:22780:16)
+    at async rollupInternal (file:///Users/mishal/code/worktrees/formio-monorepo-20251009/node_modules/.pnpm/rollup@4.52.4/node_modules/rollup/dist/es/shared/node-entry.js:23305:5)
+    at async build (file:///Users/mishal/code/worktrees/formio-monorepo-20251009/node_modules/.pnpm/vite@5.4.20_@types+node@20.19.21/node_modules/vite/dist/node/chunks/dep-D_zLpgQd.js:65708:14)
+    at async CAC.<anonymous> (file:///Users/mishal/code/worktrees/formio-monorepo-20251009/node_modules/.pnpm/vite@5.4.20_@types+node@20.19.21/node_modules/vite/dist/node/cli.js:829:5)
+ ELIFECYCLE  Command failed with exit code 1.

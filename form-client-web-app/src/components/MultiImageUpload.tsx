@@ -1,13 +1,13 @@
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { verifyFileType, sanitizeFilename, UPLOAD_CONSTANTS } from '@formio/file-upload';
 import Compressor from '@uppy/compressor';
 import Uppy from '@uppy/core';
+import '@uppy/core/css/style.css';
+import '@uppy/dashboard/css/style.css';
 import GoldenRetriever from '@uppy/golden-retriever';
 import { Dashboard } from '@uppy/react';
 import Tus from '@uppy/tus';
 import Webcam from '@uppy/webcam';
-import { useState, useEffect, useCallback, useRef } from 'react';
-import '@uppy/core/css/style.css';
-import '@uppy/dashboard/css/style.css';
-import { verifyFileType, sanitizeFilename, UPLOAD_CONSTANTS } from '@formio/file-upload';
 
 import { logger } from '../utils/logger';
 

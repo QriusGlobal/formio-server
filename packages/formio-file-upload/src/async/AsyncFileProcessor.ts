@@ -274,7 +274,7 @@ export class AsyncFileProcessor {
             'image/gif': [0x47, 0x49, 0x46, 0x38],
           };
 
-          // eslint-disable-next-line security/detect-object-injection -- Safe: file.type is MIME type from File object, validated against magicNumbers dictionary
+           
           const expectedMagic = magicNumbers[file.type];
 
           if (!expectedMagic) {
