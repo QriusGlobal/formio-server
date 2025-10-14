@@ -327,10 +327,10 @@ test.describe('Network Resilience Tests', () => {
 
         // Use MutationObserver for event-driven tracking
         const observer = new MutationObserver((mutations) => {
-          mutations.forEach((mutation) => {
+          for (const mutation of mutations) {
             if (mutation.type === 'attributes' && mutation.attributeName === 'data-progress') {
               const target = mutation.target as HTMLElement;
-              const progress = parseInt(target.getAttribute('data-progress') || '0');
+              const progress = Number.parseInt(target.getAttribute('data-progress') || '0');
 
               updates.push({
                 time: Date.now() - startTimestamp,
@@ -342,7 +342,7 @@ test.describe('Network Resilience Tests', () => {
                 resolve(updates);
               }
             }
-          });
+          }
         });
 
         // Start observing progress element
@@ -354,7 +354,7 @@ test.describe('Network Resilience Tests', () => {
           });
 
           // Also capture initial progress
-          const initialProgress = parseInt(progressElement.getAttribute('data-progress') || '0');
+          const initialProgress = Number.parseInt(progressElement.getAttribute('data-progress') || '0');
           updates.push({ time: 0, progress: initialProgress });
 
           // Safety timeout: resolve after 3 minutes if not completed

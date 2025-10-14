@@ -79,7 +79,7 @@ export const DANGEROUS_EXTENSIONS = [
 /**
  * Characters that are dangerous in filenames
  */
-export const DANGEROUS_CHARS = /[<>:"/\\|?*'\x00-\x1f\x7f]/g;
+export const DANGEROUS_CHARS = /[\x00-\x1F"'*/:<>?\\|\x7F]/g;
 
 /**
  * Path traversal patterns
@@ -222,7 +222,7 @@ export function sanitizeFilename(filename: string, options: SanitizeOptions = {}
     if (dangerousExtFound) {
       logger.warn(`[Security] Dangerous extension detected in: ${filename}`);
       // Replace dangerous extension with safe marker
-      ext = ext.replace(/\./g, '_') + '.safe';
+      ext = `${ext.replace(/\./g, '_')  }.safe`;
       name = name.replace(/\./g, '_');
     }
   }
@@ -240,8 +240,8 @@ export function sanitizeFilename(filename: string, options: SanitizeOptions = {}
   }
 
   // Remove leading/trailing dots and spaces (Windows compatibility)
-  name = name.replace(/^[.\s]+|[.\s]+$/g, '');
-  ext = ext.replace(/^[.\s]+|[.\s]+$/g, '');
+  name = name.replace(/^[\s.]+|[\s.]+$/g, '');
+  ext = ext.replace(/^[\s.]+|[\s.]+$/g, '');
 
   // Check for reserved Windows names
   const nameUpper = name.toUpperCase();
@@ -275,7 +275,7 @@ export function sanitizeFilename(filename: string, options: SanitizeOptions = {}
 
   // Ensure extension starts with dot
   if (ext && !ext.startsWith('.')) {
-    ext = '.' + ext;
+    ext = `.${  ext}`;
   }
 
   // Combine name and extension
@@ -342,7 +342,7 @@ export function validateFilename(
   // Check for dangerous extensions
   const filenameLower = filename.toLowerCase();
   const hasDangerousExt = DANGEROUS_EXTENSIONS.some(
-    (ext) => filenameLower.endsWith(ext) || filenameLower.includes(ext + '.')
+    (ext) => filenameLower.endsWith(ext) || filenameLower.includes(`${ext  }.`)
   );
 
   if (hasDangerousExt) {
@@ -384,7 +384,7 @@ export function generateSafeFallbackName(): string {
  * @returns Escaped string
  */
 function escapeRegex(str: string): string {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return str.replace(/[$()*+.?[\\\]^{|}]/g, '\\$&');
 }
 
 /**
@@ -429,7 +429,7 @@ export function hasAllowedExtension(filename: string, allowedExtensions: string[
   if (!ext) return false;
 
   const normalizedAllowed = allowedExtensions.map((e) =>
-    e.startsWith('.') ? e.toLowerCase() : '.' + e.toLowerCase()
+    e.startsWith('.') ? e.toLowerCase() : `.${  e.toLowerCase()}`
   );
 
   return normalizedAllowed.includes(ext);

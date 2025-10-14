@@ -5,9 +5,10 @@
  */
 
 import { test, expect } from '@playwright/test';
+
+import { E2E_CONFIG, getTimeout, getServiceUrl } from '../config/e2e-test.config';
 import { MockGCSProvider } from '../fixtures/mock-gcs-provider';
 import { QueueTestHelper } from '../fixtures/queue-test-helpers';
-import { E2E_CONFIG, getTimeout, getServiceUrl } from '../config/e2e-test.config';
 
 test.describe('Infrastructure Usage Examples', () => {
   test('Mock GCS Provider - Success scenario', async () => {

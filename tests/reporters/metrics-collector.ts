@@ -3,9 +3,10 @@
  * Tracks and reports upload performance metrics
  */
 
-import { Reporter, FullConfig, Suite, TestCase, TestResult } from '@playwright/test/reporter';
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+
+import { type Reporter, FullConfig, Suite, type TestCase, type TestResult } from '@playwright/test/reporter';
 
 export interface UploadMetrics {
   testName: string;
@@ -65,14 +66,14 @@ export class MetricsCollector implements Reporter {
     // Look for performance data in test attachments or metadata
     const perfAttachment = result.attachments.find((a) => a.name === 'performance-data');
 
-    if (perfAttachment && perfAttachment.body) {
+    if (perfAttachment?.body) {
       try {
         const data = JSON.parse(perfAttachment.body.toString());
         return {
           duration: data.duration || result.duration,
           fileSize: data.fileSize || 0,
         };
-      } catch (e) {
+      } catch {
         // Fall back to duration only
       }
     }

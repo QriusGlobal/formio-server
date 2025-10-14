@@ -4,9 +4,10 @@
  * Provides common functionality for all upload implementations
  */
 
-import { Page, Locator, expect } from '@playwright/test';
-import { UPPY_FILE_INPUT_SELECTOR } from '../utils/test-selectors';
+import { type Page, type Locator, expect } from '@playwright/test';
+
 import { FormioEventMonitor, FormioComponentHelper } from '../utils/formio-helpers';
+import { UPPY_FILE_INPUT_SELECTOR } from '../utils/test-selectors';
 
 export class FileUploadPage {
   readonly page: Page;
@@ -95,7 +96,7 @@ export class FileUploadPage {
     const progressEvents = await this.eventMonitor.monitorUploadProgress();
     if (progressEvents.length === 0) return 0;
 
-    const latest = progressEvents[progressEvents.length - 1];
+    const latest = progressEvents.at(-1);
     return latest.percentage;
   }
 
@@ -164,7 +165,7 @@ export class FileUploadPage {
     const path = await download.path();
     if (!path) throw new Error('Download failed');
 
-    const fs = await import('fs/promises');
+    const fs = await import('node:fs/promises');
     return await fs.readFile(path);
   }
 

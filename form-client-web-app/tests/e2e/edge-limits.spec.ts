@@ -11,10 +11,10 @@
  */
 
 import { test, expect } from '../fixtures/playwright-fixtures';
-import { UPPY_FILE_INPUT_SELECTOR } from '../utils/test-selectors';
 import { MemoryMonitor } from '../utils/memory-monitor';
-import { ConsoleMonitor } from '../utils/test-helpers';
 import { NetworkMonitor } from '../utils/network-simulator';
+import { ConsoleMonitor } from '../utils/test-helpers';
+import { UPPY_FILE_INPUT_SELECTOR } from '../utils/test-selectors';
 
 test.setTimeout(180000); // 3 minutes for resource-intensive tests
 

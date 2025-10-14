@@ -1,7 +1,10 @@
-import { useState } from 'react';
 import { Form } from '@qrius/formio-react';
-import type { Submission } from '@qrius/formio-react';
+import { useState } from 'react';
+
 import specialistReportForm from '../forms/specialist-report.json';
+
+import type { Submission } from '@qrius/formio-react';
+
 
 // Sample form definitions
 const SAMPLE_FORMS = {
@@ -164,7 +167,7 @@ export default function FormViewer() {
     if (useCustom && customJson) {
       try {
         return JSON.parse(customJson);
-      } catch (e) {
+      } catch {
         setError('Invalid JSON format');
         return SAMPLE_FORMS[selectedForm as keyof typeof SAMPLE_FORMS];
       }

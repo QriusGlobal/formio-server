@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "allowJs": true,
+    "checkJs": false,
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "jsx": "react-jsx",
+    "types": ["node"]
+  },
+  "references": [
+    { "path": "./packages/formio-file-upload" },
+    { "path": "./form-client-web-app" },
+    { "path": "./test-app" }
+  ],
+  "files": [],
+  "include": [],
+  "exclude": ["node_modules", "dist", "build", "lib", "coverage", ".next", ".turbo"]
+}

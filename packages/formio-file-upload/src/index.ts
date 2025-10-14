@@ -5,9 +5,9 @@
  * using TUS resumable upload protocol and Uppy.js UI
  */
 
+import MultiImageUploadComponent from './components/MultiImageUpload/Component';
 import TusFileUploadComponent from './components/TusFileUpload/Component';
 import UppyFileUploadComponent from './components/UppyFileUpload/Component';
-import MultiImageUploadComponent from './components/MultiImageUpload/Component';
 import FileStorageProvider from './providers/FileStorageProvider';
 import { registerTemplates } from './templates';
 import { registerValidators } from './validators';

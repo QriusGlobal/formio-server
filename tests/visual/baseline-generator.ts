@@ -3,8 +3,9 @@
  * Creates reference screenshots for visual regression testing
  */
 
-import { test, expect, Page } from '@playwright/test';
-import path from 'path';
+import path from 'node:path';
+
+import { test, expect, type Page } from '@playwright/test';
 
 export interface VisualTestCase {
   name: string;

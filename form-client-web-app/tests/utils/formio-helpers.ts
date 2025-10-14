@@ -4,7 +4,7 @@
  * Utilities for monitoring Form.io component events during testing
  */
 
-import { Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
 
 export interface FormioEvent {
   type: string;
@@ -54,7 +54,7 @@ export class FormioEventMonitor {
         'submitError'
       ];
 
-      eventTypes.forEach(eventType => {
+      for (const eventType of eventTypes) {
         document.addEventListener(eventType, (e: any) => {
           (window as any).__formioEvents.push({
             type: eventType,
@@ -62,7 +62,7 @@ export class FormioEventMonitor {
             data: e.detail || e.data || {}
           });
         });
-      });
+      }
     });
   }
 
@@ -102,7 +102,7 @@ export class FormioEventMonitor {
       );
 
       const events = await this.getEventsByType(eventType);
-      return events.length > 0 ? events[events.length - 1] : null;
+      return events.length > 0 ? events.at(-1) : null;
     } catch {
       return null;
     }
@@ -154,7 +154,7 @@ export class FormioComponentHelper {
       );
 
       return true;
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -281,7 +281,7 @@ export async function getUploadError(page: Page): Promise<string | null> {
 
   if (errorEvents.length === 0) return null;
 
-  const lastError = errorEvents[errorEvents.length - 1];
+  const lastError = errorEvents.at(-1);
   return lastError.data.message || 'Unknown upload error';
 }
 
@@ -294,7 +294,7 @@ export async function dragAndDropFile(
   filePath: string
 ): Promise<void> {
   // Read file as buffer
-  const fs = await import('fs/promises');
+  const fs = await import('node:fs/promises');
   const buffer = await fs.readFile(filePath);
   const filename = filePath.split('/').pop();
 
@@ -306,7 +306,7 @@ export async function dragAndDropFile(
 
       // Convert base64 to Uint8Array
       const byteCharacters = atob(fileContent);
-      const byteNumbers = new Array(byteCharacters.length);
+      const byteNumbers = Array.from({length: byteCharacters.length});
       for (let i = 0; i < byteCharacters.length; i++) {
         byteNumbers[i] = byteCharacters.charCodeAt(i);
       }

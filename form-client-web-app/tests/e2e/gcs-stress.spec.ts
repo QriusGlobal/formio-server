@@ -8,10 +8,11 @@
  * - Retry success rate validation
  */
 
-import { test, expect, Page } from '@playwright/test';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+
 import { faker } from '@faker-js/faker';
-import path from 'path';
-import fs from 'fs/promises';
+import { test, expect, type Page } from '@playwright/test';
 
 const FORMIO_URL = process.env.FORMIO_URL || 'http://localhost:3001';
 const TEST_APP_URL = process.env.TEST_APP_URL || 'http://localhost:64849';
@@ -293,8 +294,8 @@ test.describe('GCS Stress Test', () => {
         const successMatch = text.match(/(\d+)\s+successful/);
         const failedMatch = text.match(/(\d+)\s+failed/);
         return {
-          successful: successMatch ? parseInt(successMatch[1]) : 0,
-          failed: failedMatch ? parseInt(failedMatch[1]) : 0
+          successful: successMatch ? Number.parseInt(successMatch[1]) : 0,
+          failed: failedMatch ? Number.parseInt(failedMatch[1]) : 0
         };
       }
       return { successful: 0, failed: 0 };

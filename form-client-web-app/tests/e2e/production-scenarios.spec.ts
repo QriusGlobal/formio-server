@@ -6,10 +6,12 @@
  * and stress testing.
  */
 
+import path from 'node:path';
+
 import { test, expect, Page, BrowserContext } from '@playwright/test';
-import path from 'path';
-import { generateTestFile, cleanupTestFiles, type TestFile } from '../utils/file-helpers';
+
 import { FormioApiHelper, GCSApiHelper } from '../utils/api-helpers';
+import { generateTestFile, cleanupTestFiles, type TestFile } from '../utils/file-helpers';
 import { applyNetworkCondition, NETWORK_PRESETS } from '../utils/network-simulator';
 
 // Test configuration

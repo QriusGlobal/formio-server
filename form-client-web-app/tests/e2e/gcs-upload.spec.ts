@@ -5,10 +5,11 @@
  * React Form → TUS → BullMQ → GCS → MongoDB → Visual Validation
  */
 
-import { test, expect, Page } from '@playwright/test';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+
 import { faker } from '@faker-js/faker';
-import path from 'path';
-import fs from 'fs/promises';
+import { test, expect, type Page } from '@playwright/test';
 
 const FORMIO_URL = process.env.FORMIO_URL || 'http://localhost:3001';
 const TEST_APP_URL = process.env.TEST_APP_URL || 'http://localhost:64849';

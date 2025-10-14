@@ -8,7 +8,7 @@
  * - Queue cleanup
  */
 
-import { Queue, Worker, Job, QueueEvents } from 'bullmq';
+import { Queue, Worker, type Job, QueueEvents } from 'bullmq';
 import { Redis } from 'ioredis';
 
 export interface JobData {

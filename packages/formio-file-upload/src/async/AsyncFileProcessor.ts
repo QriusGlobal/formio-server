@@ -259,7 +259,7 @@ export class AsyncFileProcessor {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
 
-      reader.onload = (e) => {
+      reader.addEventListener('load', (e) => {
         try {
           const arrayBuffer = e.target?.result as ArrayBuffer;
           const bytes = new Uint8Array(arrayBuffer);
@@ -287,7 +287,7 @@ export class AsyncFileProcessor {
         } catch (error) {
           reject(error);
         }
-      };
+      });
 
       reader.onerror = () => reject(new Error('Failed to read file'));
 

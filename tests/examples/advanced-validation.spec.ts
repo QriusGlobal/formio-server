@@ -4,15 +4,16 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { gcsValidator } from '../utils/gcs-validator';
-import { formioValidator } from '../utils/formio-validator';
+
+import { testDataGenerator } from '../fixtures/test-data-generator';
 import {
   UploadProgressValidator,
   EventEmissionValidator,
   AccessibilityValidator,
   PerformanceValidator,
 } from '../utils/assertions';
-import { testDataGenerator } from '../fixtures/test-data-generator';
+import { formioValidator } from '../utils/formio-validator';
+import { gcsValidator } from '../utils/gcs-validator';
 
 test.describe('Advanced Validation Examples', () => {
   test('validate complete upload workflow', async ({ page }) => {
@@ -76,7 +77,7 @@ test.describe('Advanced Validation Examples', () => {
     const submissionId = await page.getAttribute('[data-submission-id]', 'data-submission-id');
     expect(submissionId).toBeTruthy();
 
-    const formioResult = await formioValidator.validateSubmission('upload-form', submissionId!, {
+    const formioResult = await formioValidator.validateSubmission('upload-form', submissionId, {
       checkFileReferences: true,
       checkDownloadable: true,
       checkPermissions: true,
@@ -184,7 +185,7 @@ test.describe('Advanced Validation Examples', () => {
 
     // Verify Form.io submission
     const submissionId = await page.getAttribute('[data-submission-id]', 'data-submission-id');
-    const formioResult = await formioValidator.validateSubmission('upload-form', submissionId!, {
+    const formioResult = await formioValidator.validateSubmission('upload-form', submissionId, {
       checkFileReferences: true,
       expectedFiles: files.map((f) => ({
         originalName: f.name,
@@ -253,7 +254,7 @@ test.describe('Advanced Validation Examples', () => {
 
     // Verify in Form.io
     const submissionId = await page.getAttribute('[data-submission-id]', 'data-submission-id');
-    const submission = await formioValidator.getSubmission('upload-form', submissionId!);
+    const submission = await formioValidator.getSubmission('upload-form', submissionId);
 
     expect(submission).toBeTruthy();
     const fileRefs = formioValidator.extractFileReferences(submission!);

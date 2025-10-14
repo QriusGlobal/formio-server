@@ -5,6 +5,52 @@
 
 ---
 
+## 🚨 CRITICAL: Package Manager Requirement
+
+**MANDATORY**: This project uses **pnpm ONLY**. Do not use npm.
+
+**Why pnpm?**
+
+- **3x faster** than npm for installs
+- **Workspace protocol** support (workspace:\*)
+- **Strict dependency resolution** prevents phantom dependencies
+- **Disk space efficiency** with content-addressable storage
+- **Monorepo-optimized** with proper hoisting
+
+**Commands:**
+
+```bash
+# ✅ CORRECT - Always use pnpm
+pnpm install
+pnpm add -D package-name
+pnpm add -w -D package-name  # Add to workspace root
+pnpm run lint
+pnpm test
+
+# ❌ WRONG - Never use npm
+npm install    # Will fail on workspace:* dependencies
+npm add        # Slower and creates phantom deps
+```
+
+**Installation:**
+
+```bash
+# Install pnpm globally (if not installed)
+npm install -g pnpm@8.15.0
+
+# Or use corepack (Node.js 16.13+)
+corepack enable
+corepack prepare pnpm@8.15.0 --activate
+```
+
+**Verification:**
+
+```bash
+pnpm --version  # Should show 8.15.0
+```
+
+---
+
 ## 🎯 Project Identity
 
 **Name**: Form.io Monorepo **Type**: Enterprise form building platform with file

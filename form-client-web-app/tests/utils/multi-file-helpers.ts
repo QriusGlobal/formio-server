@@ -5,7 +5,8 @@
  * Eliminates arbitrary timeouts with precise state monitoring
  */
 
-import { Page, Locator } from '@playwright/test';
+import { type Page, Locator } from '@playwright/test';
+
 import { getFileCount } from './uppy-helpers';
 
 /**
@@ -44,7 +45,7 @@ export async function waitForProgressStart(
       const match = text.match(/(\d+)%/);
       if (!match) return false;
 
-      const percentage = parseInt(match[1], 10);
+      const percentage = Number.parseInt(match[1], 10);
       return percentage > 0;
     },
     { timeout }
@@ -68,7 +69,7 @@ export async function waitForProgressThreshold(
       const match = text.match(/(\d+)%/);
       if (!match) return false;
 
-      const percentage = parseInt(match[1], 10);
+      const percentage = Number.parseInt(match[1], 10);
       return percentage >= targetProgress;
     },
     threshold,
@@ -115,7 +116,7 @@ export async function waitForFilesCompleted(
       const match = text.match(/(\d+)\s*(?:of|\/)\s*(\d+)/i);
       if (!match) return false;
 
-      const currentCompleted = parseInt(match[1], 10);
+      const currentCompleted = Number.parseInt(match[1], 10);
       return currentCompleted >= completed;
     },
     { completed: completedCount, total: totalCount },
@@ -136,7 +137,7 @@ export async function waitForSpeedIndicator(
       for (const indicator of indicators) {
         const text = indicator.textContent || '';
         // Match speed patterns: "5 KB/s", "1.2 MB/s", etc.
-        if (/\d+\.?\d*\s*(KB|MB|GB)\/s/i.test(text)) {
+        if (/\d+\.?\d*\s*(kb|mb|gb)\/s/i.test(text)) {
           return true;
         }
       }
@@ -160,7 +161,7 @@ export async function waitForETA(
         if (element instanceof HTMLElement && element.offsetParent !== null) {
           const text = element.textContent || '';
           // Match time patterns: "2m", "30s", "1m 30s", etc.
-          if (/\d+[smh]/i.test(text)) {
+          if (/\d+[hms]/i.test(text)) {
             return true;
           }
         }

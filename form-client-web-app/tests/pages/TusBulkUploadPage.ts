@@ -4,9 +4,11 @@
  * Page object model for bulk upload test page interactions
  */
 
-import { Page, Locator, expect } from '@playwright/test';
-import { TestFile } from '../utils/file-helpers';
+import { type Page, type Locator, expect } from '@playwright/test';
+
 import { BulkUploadMetrics } from '../utils/bulk-upload-helpers';
+
+import type { TestFile } from '../utils/file-helpers';
 
 export class TusBulkUploadPage {
   readonly page: Page;
@@ -195,21 +197,21 @@ export class TusBulkUploadPage {
       };
 
       const cards = document.querySelectorAll('[style*="grid"] > div');
-      cards.forEach((card) => {
+      for (const card of cards) {
         const text = card.textContent || '';
         const valueElement = card.querySelector('div:first-child');
         const value = valueElement?.textContent || '0';
 
         if (text.includes('Files Uploaded')) {
-          stats.filesUploaded = parseInt(value, 10);
+          stats.filesUploaded = Number.parseInt(value, 10);
         } else if (text.includes('Total Size')) {
-          stats.totalSizeMB = parseFloat(value);
+          stats.totalSizeMB = Number.parseFloat(value);
         } else if (text.includes('Chunk Size')) {
-          stats.chunkSizeMB = parseFloat(value);
+          stats.chunkSizeMB = Number.parseFloat(value);
         } else if (text.includes('Parallel Uploads')) {
-          stats.parallelUploads = parseInt(value, 10);
+          stats.parallelUploads = Number.parseInt(value, 10);
         }
-      });
+      }
 
       return stats;
     });
@@ -276,7 +278,7 @@ export class TusBulkUploadPage {
       const files: Array<{ name: string; size: number; type: string; url: string }> = [];
 
       const fileElements = document.querySelectorAll('[href*="http"]');
-      fileElements.forEach((element) => {
+      for (const element of fileElements) {
         const text = element.textContent || '';
         const url = (element as HTMLAnchorElement).href;
 
@@ -285,12 +287,12 @@ export class TusBulkUploadPage {
         if (match) {
           files.push({
             name: match[1].trim(),
-            size: parseFloat(match[2]) * 1024, // Convert KB to bytes
+            size: Number.parseFloat(match[2]) * 1024, // Convert KB to bytes
             type: 'unknown',
             url
           });
         }
-      });
+      }
 
       return files;
     });
@@ -322,7 +324,7 @@ export class TusBulkUploadPage {
    * Take screenshot with timestamp
    */
   async takeScreenshot(name: string): Promise<void> {
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const timestamp = new Date().toISOString().replace(/[.:]/g, '-');
     await this.page.screenshot({
       path: `test-results/screenshots/${name}-${timestamp}.png`,
       fullPage: true
@@ -343,7 +345,7 @@ export class TusBulkUploadPage {
         // Try to extract progress from UI
         const progressText = document.body.textContent || '';
         const match = progressText.match(/(\d+)%/);
-        return match ? parseInt(match[1], 10) : 0;
+        return match ? Number.parseInt(match[1], 10) : 0;
       });
 
       progressValues.push(progress);

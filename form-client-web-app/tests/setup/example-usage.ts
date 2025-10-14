@@ -4,7 +4,7 @@
  * Demonstrates common patterns for programmatic Form.io interactions
  */
 
-import { FormioAPI, createFileUploadForm, FormioForm, FormioComponent } from './formio-api';
+import { FormioAPI, createFileUploadForm, type FormioForm, FormioComponent } from './formio-api';
 
 /**
  * Example 1: Basic Authentication and Form Creation
@@ -20,7 +20,7 @@ async function example1_BasicSetup() {
 
   // Login
   const auth = await api.login('admin@example.com', 'CHANGEME');
-  console.log('✅ Authenticated:', auth.token.substring(0, 30) + '...');
+  console.log('✅ Authenticated:', `${auth.token.substring(0, 30)  }...`);
 
   // Create a simple form
   const form: FormioForm = {
@@ -69,7 +69,7 @@ async function example2_FileUploadForm() {
 
   // Use helper to create file upload form
   const formDef = createFileUploadForm('http://localhost:1080/files/');
-  formDef.name = 'fileupload-' + Date.now();
+  formDef.name = `fileupload-${  Date.now()}`;
   formDef.path = formDef.name;
 
   const form = await api.createForm(formDef);

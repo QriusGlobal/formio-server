@@ -3,7 +3,10 @@
  * Generates comprehensive HTML reports with metrics
  */
 
-import {
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+
+import type {
   Reporter,
   FullConfig,
   Suite,
@@ -11,8 +14,6 @@ import {
   TestResult,
   FullResult,
 } from '@playwright/test/reporter';
-import * as fs from 'fs';
-import * as path from 'path';
 
 interface TestMetrics {
   duration: number;
@@ -443,6 +444,6 @@ export default class HtmlReporter implements Reporter {
       '"': '&quot;',
       "'": '&#039;',
     };
-    return text.replace(/[&<>"']/g, (m) => map[m]);
+    return text.replace(/["&'<>]/g, (m) => map[m]);
   }
 }

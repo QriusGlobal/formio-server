@@ -14,16 +14,6 @@
 
 import { test, expect } from '../fixtures/playwright-fixtures';
 import {
-  waitForUppyReady,
-  uploadFiles,
-  verifyFileInList,
-  getFileCount,
-  clickUploadButton,
-  waitForUploadComplete,
-  getUploadProgress,
-  removeFile,
-} from '../utils/uppy-helpers';
-import {
   setupTestFilesDir,
   cleanupTestFilesDir,
   createMultipleImages,
@@ -43,6 +33,16 @@ import {
   waitForBatchError,
   waitForRetryAvailable,
 } from '../utils/multi-file-helpers';
+import {
+  waitForUppyReady,
+  uploadFiles,
+  verifyFileInList,
+  getFileCount,
+  clickUploadButton,
+  waitForUploadComplete,
+  getUploadProgress,
+  removeFile,
+} from '../utils/uppy-helpers';
 
 test.describe('Uppy Multi-file Upload', () => {
   let testFilesDir: string;
@@ -113,7 +113,7 @@ test.describe('Uppy Multi-file Upload', () => {
       if (await statusBar.isVisible({ timeout: 2000 }).catch(() => false)) {
         const text = await statusBar.textContent();
         // Should mention size (KB, MB, etc.)
-        expect(text).toMatch(/\d+\s*(KB|MB|bytes)/i);
+        expect(text).toMatch(/\d+\s*(kb|mb|bytes)/i);
       }
     });
   });

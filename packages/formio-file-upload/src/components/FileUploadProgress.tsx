@@ -6,7 +6,8 @@
  */
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { AsyncFileProcessor, JobStatus } from '../async/AsyncFileProcessor';
+
+import { AsyncFileProcessor, type JobStatus } from '../async/AsyncFileProcessor';
 
 interface FileUploadProgressProps {
   jobId: string;
@@ -48,9 +49,9 @@ export const FileUploadProgress: React.FC<FileUploadProgressProps> = ({
             onComplete(result);
           }
         }
-      } catch (err) {
+      } catch (error_) {
         if (!cancelled) {
-          const error = err instanceof Error ? err : new Error('Unknown error');
+          const error = error_ instanceof Error ? error_ : new Error('Unknown error');
           setError(error);
           if (onError) {
             onError(error);
@@ -75,15 +76,15 @@ export const FileUploadProgress: React.FC<FileUploadProgressProps> = ({
       if (onCancel) {
         onCancel();
       }
-    } catch (err) {
-      console.error('Failed to cancel job:', err);
-      setError(err instanceof Error ? err : new Error('Failed to cancel job'));
+    } catch (error_) {
+      console.error('Failed to cancel job:', error_);
+      setError(error_ instanceof Error ? error_ : new Error('Failed to cancel job'));
     }
   }, [jobId, processor, onCancel]);
 
   // Handle download
   const handleDownload = useCallback(async () => {
-    if (!status || status.status !== 'completed') {
+    if (status?.status !== 'completed') {
       return;
     }
 
@@ -97,9 +98,9 @@ export const FileUploadProgress: React.FC<FileUploadProgressProps> = ({
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-    } catch (err) {
-      console.error('Failed to download file:', err);
-      setError(err instanceof Error ? err : new Error('Failed to download file'));
+    } catch (error_) {
+      console.error('Failed to download file:', error_);
+      setError(error_ instanceof Error ? error_ : new Error('Failed to download file'));
     }
   }, [status, jobId, processor]);
 
@@ -122,7 +123,7 @@ export const FileUploadProgress: React.FC<FileUploadProgressProps> = ({
   if (!status) {
     return (
       <div className="file-upload-progress loading">
-        <div className="progress-spinner"></div>
+        <div className="progress-spinner" />
         <div className="progress-message">Initializing...</div>
       </div>
     );
@@ -181,7 +182,7 @@ export const FileUploadProgress: React.FC<FileUploadProgressProps> = ({
         <div
           className="progress-bar-fill"
           style={{ width: `${status.progress}%` }}
-        ></div>
+         />
       </div>
 
       <div className="progress-actions">

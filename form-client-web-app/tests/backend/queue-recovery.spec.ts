@@ -10,10 +10,12 @@
  * - Mock GCS provider for failure simulation
  */
 
-import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll, vi } from 'vitest';
 import { Queue, Worker, QueueEvents, Job } from 'bullmq';
 import IORedis from 'ioredis';
+import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll, vi } from 'vitest';
+
 import { processGCSUpload } from '../../../formio/src/upload/workers/gcsUploadWorker';
+
 import type { IUploadJob, IUploadResult } from '../../../formio/src/upload/contracts/IUploadJob';
 
 // Redis connection configuration
@@ -189,9 +191,9 @@ describe('BullMQ Queue Recovery & Resilience', () => {
         'uploadedAt'
       ];
 
-      requiredFields.forEach(field => {
+      for (const field of requiredFields) {
         expect(job.data).toHaveProperty(field);
-      });
+      }
     });
   });
 

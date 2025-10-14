@@ -3,7 +3,7 @@
  * Validates submissions and file references in Form.io
  */
 
-import axios, { AxiosInstance } from 'axios';
+import axios, { type AxiosInstance } from 'axios';
 
 export interface FormioFileReference {
   name: string;
@@ -116,13 +116,13 @@ export class FormioValidator {
 
     const extractFromValue = (value: any) => {
       if (Array.isArray(value)) {
-        value.forEach((item) => {
+        for (const item of value) {
           if (this.isFileReference(item)) {
             files.push(item);
           } else {
             extractFromValue(item);
           }
-        });
+        }
       } else if (typeof value === 'object' && value !== null) {
         if (this.isFileReference(value)) {
           files.push(value);
@@ -262,7 +262,7 @@ export class FormioValidator {
     try {
       const response = await axios.head(fileUrl, { timeout: 5000 });
       return response.status === 200;
-    } catch (error) {
+    } catch {
       return false;
     }
   }

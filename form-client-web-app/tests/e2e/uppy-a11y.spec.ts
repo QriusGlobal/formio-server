@@ -13,16 +13,9 @@
  * @group a11y
  */
 
-import { test, expect } from '../fixtures/playwright-fixtures';
-import { UPPY_FILE_INPUT_SELECTOR } from '../utils/test-selectors';
 import AxeBuilder from '@axe-core/playwright';
-import {
-  waitForUppyReady,
-  uploadFiles,
-  clickUploadButton,
-  waitForUploadComplete,
-  verifyFileInList,
-} from '../utils/uppy-helpers';
+
+import { test, expect } from '../fixtures/playwright-fixtures';
 import {
   setupTestFilesDir,
   cleanupTestFilesDir,
@@ -38,6 +31,14 @@ import {
   waitForFileCountUpdate,
   hasFocusIndicator,
 } from '../utils/a11y-helpers';
+import { UPPY_FILE_INPUT_SELECTOR } from '../utils/test-selectors';
+import {
+  waitForUppyReady,
+  uploadFiles,
+  clickUploadButton,
+  waitForUploadComplete,
+  verifyFileInList,
+} from '../utils/uppy-helpers';
 
 test.describe('Uppy Accessibility', () => {
   let testFilesDir: string;
@@ -130,7 +131,7 @@ test.describe('Uppy Accessibility', () => {
       await waitForFocusChange(page, 1000);
 
       // Get focused element
-      let focusedElement = await page.evaluate(() => {
+      const focusedElement = await page.evaluate(() => {
         return document.activeElement?.tagName;
       });
 

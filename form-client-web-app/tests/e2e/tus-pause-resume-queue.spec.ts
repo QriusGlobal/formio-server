@@ -5,8 +5,9 @@
  * Tests against localhost:1080 (TUS server) and validates queue job creation
  */
 
-import { test, expect, Page } from '@playwright/test';
-import path from 'path';
+import path from 'node:path';
+
+import { test, expect, type Page } from '@playwright/test';
 
 /**
  * Helper function to get TUS component instance from Form.io

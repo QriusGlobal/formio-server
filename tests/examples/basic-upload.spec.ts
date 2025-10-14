@@ -4,9 +4,10 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { gcsValidator } from '../utils/gcs-validator';
-import { formioValidator } from '../utils/formio-validator';
+
 import { expectFileExists, expectSubmissionValid } from '../utils/assertions';
+import { formioValidator } from '../utils/formio-validator';
+import { gcsValidator } from '../utils/gcs-validator';
 
 test.describe('Basic Upload Examples', () => {
   test('upload single file', async ({ page }) => {
@@ -35,7 +36,7 @@ test.describe('Basic Upload Examples', () => {
     const submissionId = await page.getAttribute('[data-submission-id]', 'data-submission-id');
 
     // Verify submission in Form.io
-    await expectSubmissionValid('upload-form', submissionId!, {
+    await expectSubmissionValid('upload-form', submissionId, {
       hasFileReferences: true,
       expectedFileCount: 1,
     });

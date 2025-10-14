@@ -11,6 +11,7 @@
  */
 
 import { test, expect } from '@playwright/test';
+
 import { TusUploadPage } from '../page-objects/TusUploadPage';
 import { TestHelpers } from '../utils/test-helpers';
 
@@ -106,7 +107,7 @@ test.describe('TUS Basic Upload Tests', () => {
 
     // Verify progress increased over time
     expect(progressSnapshots.length).toBeGreaterThan(0);
-    expect(progressSnapshots[progressSnapshots.length - 1]).toBe(100);
+    expect(progressSnapshots.at(-1)).toBe(100);
 
     // Verify status
     const status = await uploadPage.getFileStatus(fileName);
@@ -256,7 +257,7 @@ test.describe('TUS Basic Upload Tests', () => {
 
     // Verify progress increases
     if (capturedEvents.length > 1) {
-      expect(capturedEvents[capturedEvents.length - 1].progress).toBeGreaterThan(
+      expect(capturedEvents.at(-1).progress).toBeGreaterThan(
         capturedEvents[0].progress
       );
     }

@@ -14,6 +14,7 @@
  */
 
 import xxhash from 'xxhash-wasm';
+
 import { logger } from '../utils/logger';
 
 /**

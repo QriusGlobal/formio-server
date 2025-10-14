@@ -15,11 +15,13 @@
  * 8. Concurrent form submissions
  */
 
+import * as crypto from 'node:crypto';
+import * as fs from 'node:fs';
+import path from 'node:path';
+
 import { test, expect } from '../fixtures/formio.fixture';
-import { TestFile } from '../fixtures/upload.fixture';
-import path from 'path';
-import * as fs from 'fs';
-import * as crypto from 'crypto';
+
+import type { TestFile } from '../fixtures/upload.fixture';
 
 // Test configuration
 const FORMIO_URL = process.env.FORMIO_URL || 'http://localhost:3001';
@@ -41,7 +43,7 @@ test.describe('Form Submission with File Upload Integration', () => {
     await page.waitForSelector('.formio-component', { state: 'visible', timeout: 15000 });
     await page.waitForFunction(() => {
       const formio = (window as any).Formio?.forms?.[0];
-      return formio && formio.ready;
+      return formio?.ready;
     }, { timeout: 5000 });
 
     console.log('✅ Test page loaded and Form.io initialized');
@@ -54,8 +56,8 @@ test.describe('Form Submission with File Upload Integration', () => {
         try {
           await formio.formioAPI.deleteSubmission(submissionId);
           console.log(`✅ Deleted test submission: ${submissionId}`);
-        } catch (err) {
-          console.warn(`⚠️ Failed to delete submission ${submissionId}:`, err);
+        } catch (error) {
+          console.warn(`⚠️ Failed to delete submission ${submissionId}:`, error);
         }
       })
     );
@@ -66,7 +68,7 @@ test.describe('Form Submission with File Upload Integration', () => {
       testFiles.map(async (file) => {
         try {
           await fs.promises.unlink(file.path);
-        } catch (err) {
+        } catch {
           // File might already be deleted
         }
       })
@@ -98,7 +100,7 @@ test.describe('Form Submission with File Upload Integration', () => {
     await page.waitForSelector('text=/✓|complete|uploaded/i', { timeout: 30000 });
     await page.waitForFunction(() => {
       const component = (window as any).Formio?.forms?.[0]?.getComponent('resume');
-      return component && component.dataValue && component.dataValue.url;
+      return component?.dataValue?.url;
     }, { timeout: 5000 });
 
     // Submit form
@@ -247,7 +249,7 @@ test.describe('Form Submission with File Upload Integration', () => {
     // EVENT-DRIVEN: Wait for photo upload
     await page.waitForFunction(() => {
       const comp = (window as any).Formio?.forms?.[0]?.getComponent('profilePhoto');
-      return comp && comp.dataValue && comp.dataValue.url;
+      return comp?.dataValue?.url;
     }, { timeout: 30000 });
 
     // Wait for all uploads to complete
@@ -308,7 +310,7 @@ test.describe('Form Submission with File Upload Integration', () => {
     await page.waitForFunction(() => {
       const errors = document.querySelectorAll('.formio-error, [role="alert"]');
       const formio = (window as any).Formio?.forms?.[0];
-      return errors.length > 0 || (formio && formio.errors && formio.errors.length > 0);
+      return errors.length > 0 || (formio?.errors && formio.errors.length > 0);
     }, { timeout: 5000 });
 
     // Verify validation error is displayed
@@ -386,7 +388,7 @@ test.describe('Form Submission with File Upload Integration', () => {
         // Verify content length header exists
         const contentLength = response.headers()['content-length'];
         expect(contentLength).toBeDefined();
-        expect(parseInt(contentLength!)).toBeGreaterThan(0);
+        expect(Number.parseInt(contentLength)).toBeGreaterThan(0);
 
         console.log(`✅ URL accessible: ${url} (${contentLength} bytes)`);
       })
@@ -554,7 +556,7 @@ test.describe('Form Submission with File Upload Integration', () => {
         // EVENT-DRIVEN: Wait for Form.io to initialize
         await page.waitForFunction(() => {
           const formio = (window as any).Formio?.forms?.[0];
-          return formio && formio.ready;
+          return formio?.ready;
         }, { timeout: 5000 });
 
         // Fill form

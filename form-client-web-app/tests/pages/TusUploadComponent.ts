@@ -4,7 +4,7 @@
  * Encapsulates TUS upload component interactions
  */
 
-import { Page, Locator, expect } from '@playwright/test';
+import { type Page, type Locator, expect } from '@playwright/test';
 
 export class TusUploadComponent {
   readonly page: Page;
@@ -84,7 +84,7 @@ export class TusUploadComponent {
     // Try to get from aria-valuenow attribute
     const ariaValue = await this.progressBar.getAttribute('aria-valuenow');
     if (ariaValue) {
-      return parseFloat(ariaValue);
+      return Number.parseFloat(ariaValue);
     }
 
     // Try to get from style width
@@ -92,7 +92,7 @@ export class TusUploadComponent {
     if (style) {
       const match = style.match(/width:\s*(\d+(?:\.\d+)?)/);
       if (match) {
-        return parseFloat(match[1]);
+        return Number.parseFloat(match[1]);
       }
     }
 
@@ -101,7 +101,7 @@ export class TusUploadComponent {
     if (text) {
       const match = text.match(/(\d+(?:\.\d+)?)\s*%/);
       if (match) {
-        return parseFloat(match[1]);
+        return Number.parseFloat(match[1]);
       }
     }
 
@@ -123,10 +123,10 @@ export class TusUploadComponent {
         const progressBar = component.querySelector('.progress-bar, [role="progressbar"]') as HTMLElement;
         if (progressBar) {
           const ariaValue = progressBar.getAttribute('aria-valuenow');
-          if (ariaValue && parseFloat(ariaValue) >= 100) return true;
+          if (ariaValue && Number.parseFloat(ariaValue) >= 100) return true;
 
           const style = progressBar.style.width;
-          if (style && parseFloat(style) >= 100) return true;
+          if (style && Number.parseFloat(style) >= 100) return true;
         }
 
         return false;
@@ -152,8 +152,8 @@ export class TusUploadComponent {
       const item = fileItems.nth(i);
       const name = await item.locator('.file-name').textContent() || '';
       const size = await item.locator('.file-size').textContent() || '';
-      const url = await item.locator('.file-url').getAttribute('href').catch(() => undefined);
-      const id = await item.getAttribute('data-file-id').catch(() => undefined);
+      const url = await item.locator('.file-url').getAttribute('href').catch(() => {});
+      const id = await item.getAttribute('data-file-id').catch(() => {});
 
       files.push({
         name: name.trim(),
@@ -172,7 +172,7 @@ export class TusUploadComponent {
     uploadedChunks: number;
   }> {
     // Extract chunk information from the component or network
-    const chunkInfo = await this.page.evaluate(() => {
+    return await this.page.evaluate(() => {
       const tusUpload = (window as any).activeTusUpload;
       if (!tusUpload) {
         return { chunkSize: 0, totalChunks: 0, uploadedChunks: 0 };
@@ -188,8 +188,6 @@ export class TusUploadComponent {
         uploadedChunks: Math.ceil(offset / chunkSize)
       };
     });
-
-    return chunkInfo;
   }
 
   async simulateNetworkInterruption(): Promise<void> {
@@ -267,11 +265,11 @@ export class TusUploadComponent {
     this.page.on('request', (request) => {
       if (request.url().includes('/files') && request.method() === 'POST') {
         const reqHeaders = request.headers();
-        Object.keys(reqHeaders).forEach(key => {
+        for (const key of Object.keys(reqHeaders)) {
           if (key.toLowerCase().startsWith('tus-')) {
             headers[key] = reqHeaders[key];
           }
-        });
+        }
       }
     });
 
@@ -283,7 +281,7 @@ export class TusUploadComponent {
 
   async getUploadMetadata(): Promise<any> {
     return await this.page.evaluate(() => {
-      const component = document.querySelector(`[data-key]`) as any;
+      const component = document.querySelector(`[data-key]`);
       if (component?._component) {
         return component._component.getValue();
       }

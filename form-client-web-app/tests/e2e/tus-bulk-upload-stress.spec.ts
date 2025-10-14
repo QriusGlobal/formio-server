@@ -10,6 +10,13 @@
  */
 
 import { test, expect } from '@playwright/test';
+
+import {
+  BULK_TEST_SCENARIOS,
+  PERFORMANCE_BENCHMARKS,
+  MIXED_SIZE_SCENARIOS,
+  PERFORMANCE_THRESHOLDS
+} from '../fixtures/bulk-test-data';
 import { TusBulkUploadPage } from '../pages/TusBulkUploadPage';
 import {
   generateBulkTestFiles,
@@ -20,12 +27,6 @@ import {
   generateBenchmarkReport,
   type BenchmarkResult
 } from '../utils/bulk-upload-helpers';
-import {
-  BULK_TEST_SCENARIOS,
-  PERFORMANCE_BENCHMARKS,
-  MIXED_SIZE_SCENARIOS,
-  PERFORMANCE_THRESHOLDS
-} from '../fixtures/bulk-test-data';
 
 test.describe('TUS Bulk Upload Stress Tests', () => {
   let uploadPage: TusBulkUploadPage;
@@ -224,7 +225,7 @@ test.describe('TUS Bulk Upload Stress Tests', () => {
       }
 
       const report = generateBenchmarkReport(results);
-      console.log('\n' + report + '\n');
+      console.log(`\n${  report  }\n`);
 
       // Verify at least 3 scenarios completed
       expect(results.length).toBeGreaterThanOrEqual(3);

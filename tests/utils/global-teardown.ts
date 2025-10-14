@@ -8,9 +8,10 @@
  * - Archive test artifacts
  */
 
-import { FullConfig } from '@playwright/test';
-import fs from 'fs/promises';
-import path from 'path';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+
+import type { FullConfig } from '@playwright/test';
 
 async function globalTeardown(config: FullConfig) {
   console.log('\n🧹 Starting E2E Test Environment Teardown...\n');
@@ -49,7 +50,7 @@ async function cleanupTestFiles() {
     for (const file of testFiles) {
       try {
         await fs.unlink(path.join('/tmp', file));
-      } catch (error) {
+      } catch {
         // Ignore errors for individual files
       }
     }
@@ -86,7 +87,7 @@ async function cleanupGCSData() {
     for (const file of files) {
       try {
         await file.delete();
-      } catch (error) {
+      } catch {
         // Ignore errors for individual files
       }
     }
@@ -189,7 +190,7 @@ async function archiveArtifacts() {
     await fs.mkdir(archiveDir, { recursive: true });
 
     // Get timestamp
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const timestamp = new Date().toISOString().replace(/[.:]/g, '-');
 
     // Check if artifacts exist
     try {
@@ -212,7 +213,7 @@ async function archiveArtifacts() {
 
       try {
         await fs.copyFile(src, dest);
-      } catch (error) {
+      } catch {
         // Ignore copy errors
       }
     }

@@ -4,11 +4,12 @@
  * Tests the @formio/file-upload module's TUS upload functionality
  */
 
+import * as path from 'node:path';
+
 import { test, expect } from '../../fixtures/formio.fixture';
+import { monitorUploadRequests, verifyServerFile } from '../../fixtures/upload.fixture';
 import { FormioModulePage } from '../../pages/FormioModulePage';
 import { TusUploadComponent } from '../../pages/TusUploadComponent';
-import { monitorUploadRequests, verifyServerFile } from '../../fixtures/upload.fixture';
-import * as path from 'path';
 
 test.describe('Form.io TUS Upload Component', () => {
   let formPage: FormioModulePage;
@@ -98,7 +99,7 @@ trailer << /Root 1 0 R >>
       const observer = new MutationObserver(() => {
         const progressElement = document.querySelector('[data-progress]');
         if (progressElement) {
-          const progress = parseInt(progressElement.getAttribute('data-progress') || '0');
+          const progress = Number.parseInt(progressElement.getAttribute('data-progress') || '0');
           if (progress > 0 && !progressValues.includes(progress)) {
             progressValues.push(progress);
           }
@@ -127,7 +128,7 @@ trailer << /Root 1 0 R >>
 
     // Verify progress increased incrementally
     expect(progressValues.length).toBeGreaterThan(2);
-    expect(progressValues[progressValues.length - 1]).toBe(100);
+    expect(progressValues.at(-1)).toBe(100);
 
     // Verify progress was incremental
     for (let i = 1; i < progressValues.length; i++) {
@@ -236,7 +237,7 @@ trailer << /Root 1 0 R >>
 
     // Check for size validation error
     const validationError = await tusComponent.getFileValidationError();
-    expect(validationError).toMatch(/size|10MB|too large/i);
+    expect(validationError).toMatch(/size|10mb|too large/i);
   });
 
   test('should handle multiple file uploads', async ({ page, upload }) => {

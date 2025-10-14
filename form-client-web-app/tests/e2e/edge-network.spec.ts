@@ -12,7 +12,6 @@
  */
 
 import { test, expect } from '../fixtures/playwright-fixtures';
-import { UPPY_FILE_INPUT_SELECTOR } from '../utils/test-selectors';
 import {
   applyNetworkCondition,
   simulatePacketLoss,
@@ -24,6 +23,7 @@ import {
   NETWORK_PRESETS,
 } from '../utils/network-simulator';
 import { ConsoleMonitor, waitForUploadCompletion } from '../utils/test-helpers';
+import { UPPY_FILE_INPUT_SELECTOR } from '../utils/test-selectors';
 
 test.describe('Network Failure Scenarios - TUS Upload', () => {
   let consoleMonitor: ConsoleMonitor;
@@ -98,7 +98,7 @@ test.describe('Network Failure Scenarios - TUS Upload', () => {
       const text = await progressText.textContent();
       const match = text?.match(/(\d+)%/);
       if (match) {
-        progressUpdates.push(parseInt(match[1]));
+        progressUpdates.push(Number.parseInt(match[1]));
       }
 
       // Wait for progress state change or completion instead of timeout
@@ -109,13 +109,13 @@ test.describe('Network Failure Scenarios - TUS Upload', () => {
               const progressEl = document.querySelector('.progress-text');
               const currentText = progressEl?.textContent || '';
               const currentMatch = currentText.match(/(\d+)%/);
-              const currentProgress = currentMatch ? parseInt(currentMatch[1]) : 0;
+              const currentProgress = currentMatch ? Number.parseInt(currentMatch[1]) : 0;
               return currentProgress !== lastProgress;
             },
-            progressUpdates[progressUpdates.length - 1] || 0,
+            progressUpdates.at(-1) || 0,
             { timeout: 3000 }
           ),
-          page.locator('.upload-complete').waitFor({ state: 'visible', timeout: 3000 })
+          await page.locator('.upload-complete').waitFor({ state: 'visible', timeout: 3000 })
         ]);
       } catch {
         // Continue if no change detected
@@ -129,7 +129,7 @@ test.describe('Network Failure Scenarios - TUS Upload', () => {
 
     // Verify progress was tracked
     expect(progressUpdates.length).toBeGreaterThan(0);
-    expect(progressUpdates[progressUpdates.length - 1]).toBeGreaterThan(0);
+    expect(progressUpdates.at(-1)).toBeGreaterThan(0);
 
     // Check network requests
     const uploadRequests = networkMonitor.getRequests(/upload/);
@@ -293,7 +293,7 @@ test.describe('Network Failure Scenarios - TUS Upload', () => {
         const progressEl = document.querySelector('.progress-text');
         const text = progressEl?.textContent || '';
         const match = text.match(/(\d+)%/);
-        return match && parseInt(match[1]) > 0;
+        return match && Number.parseInt(match[1]) > 0;
       },
       { timeout: 5000 }
     );
@@ -346,7 +346,7 @@ test.describe('Network Failure Scenarios - TUS Upload', () => {
         const progressEl = document.querySelector('.progress-text');
         const text = progressEl?.textContent || '';
         const match = text.match(/(\d+)%/);
-        return match && parseInt(match[1]) > 0;
+        return match && Number.parseInt(match[1]) > 0;
       },
       { timeout: 3000 }
     );
@@ -354,7 +354,7 @@ test.describe('Network Failure Scenarios - TUS Upload', () => {
       const progressEl = document.querySelector('.progress-text');
       const text = progressEl?.textContent || '';
       const match = text.match(/(\d+)%/);
-      return match ? parseInt(match[1]) : 0;
+      return match ? Number.parseInt(match[1]) : 0;
     });
 
     // Switch to 3G
@@ -366,7 +366,7 @@ test.describe('Network Failure Scenarios - TUS Upload', () => {
         const progressEl = document.querySelector('.progress-text');
         const text = progressEl?.textContent || '';
         const match = text.match(/(\d+)%/);
-        const currentProgress = match ? parseInt(match[1]) : 0;
+        const currentProgress = match ? Number.parseInt(match[1]) : 0;
         return currentProgress > prevProgress; // Still progressing despite network change
       },
       initialProgress,

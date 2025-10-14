@@ -14,6 +14,13 @@
 
 import { test, expect } from '../fixtures/playwright-fixtures';
 import {
+  setupTestFilesDir,
+  cleanupTestFilesDir,
+  createMultipleImages,
+  createPNGFile,
+  createJPEGFile,
+} from '../fixtures/test-files';
+import {
   waitForUppyReady,
   uploadFiles,
   clickUploadButton,
@@ -23,13 +30,6 @@ import {
   waitForValidationError,
   waitForFileError,
 } from '../utils/uppy-helpers';
-import {
-  setupTestFilesDir,
-  cleanupTestFilesDir,
-  createMultipleImages,
-  createPNGFile,
-  createJPEGFile,
-} from '../fixtures/test-files';
 
 test.describe('Uppy Integration Tests', () => {
   let testFilesDir: string;
@@ -290,7 +290,7 @@ test.describe('Uppy Integration Tests', () => {
       const fileUrls: string[] = [];
 
       await page.route('**/upload', async (route) => {
-        const url = 'https://storage.googleapis.com/bucket/file-' + Date.now() + '.png';
+        const url = `https://storage.googleapis.com/bucket/file-${  Date.now()  }.png`;
         fileUrls.push(url);
 
         await route.fulfill({
@@ -494,7 +494,7 @@ test.describe('Uppy Integration Tests', () => {
       await uploadFiles(page, files.map(f => f.path));
 
       // Verify files added
-      let fileCount = await getFileCount(page);
+      const fileCount = await getFileCount(page);
       expect(fileCount).toBe(3);
 
       // 2. Upload files

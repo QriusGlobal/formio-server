@@ -4,7 +4,7 @@
  * Abstract provider interface for different storage backends
  */
 
-import { StorageProvider, UploadFile } from '../types';
+import type { StorageProvider, UploadFile } from '../types';
 
 export default class FileStorageProvider implements StorageProvider {
   name = 'file';
@@ -31,9 +31,9 @@ export default class FileStorageProvider implements StorageProvider {
 
     // Add metadata
     if (options.metadata) {
-      Object.keys(options.metadata).forEach(key => {
+      for (const key of Object.keys(options.metadata)) {
         formData.append(`metadata[${key}]`, options.metadata[key]);
-      });
+      }
     }
 
     const response = await fetch(this.config.endpoint, {

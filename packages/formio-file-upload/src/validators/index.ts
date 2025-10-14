@@ -130,10 +130,10 @@ function parseFileSize(size: string): number | null {
     TB: 1024 * 1024 * 1024 * 1024,
   };
 
-  const match = size.match(/^(\d+(?:\.\d+)?)\s*([KMGT]?B)$/i);
+  const match = size.match(/^(\d+(?:\.\d+)?)\s*([gkmt]?b)$/i);
   if (!match) return null;
 
-  const value = parseFloat(match[1]);
+  const value = Number.parseFloat(match[1]);
   const unit = match[2].toUpperCase();
 
   return value * (units[unit] || 1);

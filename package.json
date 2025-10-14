@@ -18,23 +18,46 @@
     "test:unit": "turbo run test:unit",
     "test:integration": "turbo run test:integration",
     "test:e2e": "turbo run test:e2e",
-    "lint": "eslint . --ext .js,.ts,.tsx",
-    "lint:fix": "eslint . --ext .js,.ts,.tsx --fix",
-    "lint:brand": "eslint . --config .eslintrc.brand-check.js",
-    "lint:brand:fix": "eslint . --config .eslintrc.brand-check.js --fix",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "lint:cache": "eslint . --cache --cache-location .eslintcache",
     "check:brand": "bash scripts/check-brand-exposure.sh",
     "analyze:bundle": "bash scripts/analyze-bundle.sh",
-    "security:check": "npm run lint:brand && npm run check:brand && npm run analyze:bundle",
+    "security:check": "pnpm lint && pnpm check:brand && pnpm analyze:bundle",
     "typecheck": "tsc --noEmit",
-    "clean": "turbo run clean && rm -rf node_modules .turbo",
+    "clean": "turbo run clean && rm -rf node_modules .turbo .eslintcache",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "docker:up": "cd infrastructure/local && docker-compose up -d",
     "docker:down": "cd infrastructure/local && docker-compose down",
     "docker:reset": "cd infrastructure/local && docker-compose down -v",
-    "validate": "./scripts/validate-credentials.sh"
+    "validate": "./scripts/validate-credentials.sh",
+    "prepare": "husky"
   },
   "devDependencies": {
+    "@eslint/js": "9.17.0",
+    "@typescript-eslint/eslint-plugin": "8.46.1",
+    "@typescript-eslint/parser": "8.46.1",
     "babel-plugin-react-compiler": "^1.0.0",
+    "eslint": "9.17.0",
+    "eslint-config-prettier": "10.1.8",
+    "eslint-import-resolver-typescript": "4.4.4",
+    "eslint-plugin-import": "2.32.0",
+    "eslint-plugin-jest": "29.0.1",
+    "eslint-plugin-jest-dom": "5.5.0",
+    "eslint-plugin-jsx-a11y": "6.10.2",
+    "eslint-plugin-no-secrets": "2.2.1",
+    "eslint-plugin-no-unsanitized": "4.1.4",
+    "eslint-plugin-promise": "7.2.1",
+    "eslint-plugin-react": "7.37.5",
+    "eslint-plugin-react-hooks": "7.0.0",
+    "eslint-plugin-react-refresh": "0.4.23",
+    "eslint-plugin-security": "3.0.1",
+    "eslint-plugin-sonarjs": "3.0.5",
+    "eslint-plugin-testing-library": "7.13.2",
+    "eslint-plugin-unicorn": "56.0.1",
+    "husky": "9.1.7",
+    "lint-staged": "15.2.11",
     "prettier": "^3.1.1",
     "turbo": "^1.13.0"
   },
@@ -49,5 +72,13 @@
     "node": ">=20.0.0",
     "pnpm": ">=8.0.0"
   },
-  "packageManager": "pnpm@8.15.0"
+  "packageManager": "pnpm@8.15.0",
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "eslint --fix --max-warnings=0"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
+  }
 }

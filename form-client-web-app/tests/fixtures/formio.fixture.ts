@@ -5,7 +5,8 @@
  * Refactored to avoid browser-only imports at Node.js level
  */
 
-import { test as base, expect, Page } from '@playwright/test';
+import { test as base, expect, type Page } from '@playwright/test';
+
 import { test as uploadTest, UploadFixture } from './upload.fixture';
 
 export interface FormioFixture {

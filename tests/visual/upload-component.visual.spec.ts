@@ -3,6 +3,7 @@
  */
 
 import { test, expect } from '@playwright/test';
+
 import {
   uploadComponentStates,
   themeVariants,

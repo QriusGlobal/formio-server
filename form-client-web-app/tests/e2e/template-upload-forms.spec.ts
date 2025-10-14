@@ -17,6 +17,7 @@
  * @group template-forms
  */
 
+
 import { test, expect } from '../fixtures/playwright-fixtures';
 import {
   setupTestFilesDir,
@@ -30,7 +31,8 @@ import {
   TestFile
 } from '../fixtures/test-files';
 import { GCSApiHelper, FormioApiHelper } from '../utils/api-helpers';
-import { Page } from '@playwright/test';
+
+import type { Page } from '@playwright/test';
 
 /**
  * Helper: Wait for upload progress indicator
@@ -52,7 +54,7 @@ async function waitForUploadProgress(
       const match = progressText.match(/(\d+)%/);
       if (!match) return null;
 
-      const currentPercentage = parseInt(match[1]);
+      const currentPercentage = Number.parseInt(match[1]);
       if (!expected || currentPercentage >= expected) {
         return currentPercentage;
       }
@@ -215,7 +217,7 @@ test.describe('Template Upload Forms - Accessibility', () => {
     );
 
     // Assertions after parallel execution
-    validationResults.forEach(result => {
+    for (const result of validationResults) {
       expect(result.hasFormComponent).toBe(true);
       expect(result.hasFileUpload).toBe(true);
 
@@ -223,7 +225,7 @@ test.describe('Template Upload Forms - Accessibility', () => {
         expect(result.formData).toBeDefined();
         expect(result.formData.path).toContain(result.formPath.split('/')[1]);
       }
-    });
+    }
   });
 });
 
@@ -315,7 +317,7 @@ test.describe('Template Upload Forms - Single File Upload', () => {
       const progressText = document.querySelector('[data-testid="upload-progress"], .uppy-StatusBar-progress')?.textContent;
       if (!progressText) return false;
       const match = progressText.match(/(\d+)%/);
-      return match && parseInt(match[1]) > 0;
+      return match && Number.parseInt(match[1]) > 0;
     }, { timeout: 5000 });
 
     uploadPaused = true;
@@ -345,7 +347,7 @@ test.describe('Template Upload Forms - Single File Upload', () => {
         console.log('Resume button not found, upload may have auto-resumed');
       });
 
-    } catch (error) {
+    } catch {
       console.log('Pause/resume UI not available, continuing with upload test');
       uploadPaused = false;
     }
@@ -573,8 +575,8 @@ test.describe('Template Upload Forms - Submission Integration', () => {
 
     // Fill any required text fields
     const textFields = await page.locator('input[type="text"], input[type="email"]').all();
-    for (let i = 0; i < textFields.length; i++) {
-      await textFields[i].fill(`Test Value ${i + 1}`);
+    for (const [i, textField] of textFields.entries()) {
+      await textField.fill(`Test Value ${i + 1}`);
     }
 
     // Submit form

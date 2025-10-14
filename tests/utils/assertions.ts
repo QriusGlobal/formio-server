@@ -4,9 +4,11 @@
  */
 
 import { expect } from '@playwright/test';
-import type { Page, Locator } from '@playwright/test';
-import { gcsValidator, GCSFile } from './gcs-validator';
+
 import { formioValidator, FormioFileReference } from './formio-validator';
+import { gcsValidator, GCSFile } from './gcs-validator';
+
+import type { Page, Locator } from '@playwright/test';
 
 /**
  * Custom matcher for file existence in GCS
@@ -67,8 +69,7 @@ export class UploadProgressValidator {
    * Get collected progress values
    */
   async getProgressValues(): Promise<number[]> {
-    const values = await this.page.evaluate(() => (window as any).__uploadProgress || []);
-    return values;
+    return await this.page.evaluate(() => (window as any).__uploadProgress || []);
   }
 
   /**
@@ -88,13 +89,13 @@ export class UploadProgressValidator {
     }
 
     // Progress should be between 0 and 100
-    values.forEach((value, index) => {
+    for (const [index, value] of values.entries()) {
       expect(value, `Progress value at index ${index}`).toBeGreaterThanOrEqual(0);
       expect(value, `Progress value at index ${index}`).toBeLessThanOrEqual(100);
-    });
+    }
 
     // Last value should be 100
-    const lastValue = values[values.length - 1];
+    const lastValue = values.at(-1);
     expect(lastValue, 'Final progress should be 100').toBe(100);
   }
 
@@ -131,7 +132,7 @@ export class EventEmissionValidator {
     await this.page.evaluate((types) => {
       (window as any).__testEvents = [];
 
-      types.forEach((type) => {
+      for (const type of types) {
         window.addEventListener(type, ((event: CustomEvent) => {
           (window as any).__testEvents.push({
             type: event.type,
@@ -139,7 +140,7 @@ export class EventEmissionValidator {
             timestamp: Date.now(),
           });
         }) as EventListener);
-      });
+      }
     }, eventTypes);
   }
 
@@ -147,8 +148,7 @@ export class EventEmissionValidator {
    * Get collected events
    */
   async getEvents(): Promise<Array<{ type: string; detail: any; timestamp: number }>> {
-    const events = await this.page.evaluate(() => (window as any).__testEvents || []);
-    return events;
+    return await this.page.evaluate(() => (window as any).__testEvents || []);
   }
 
   /**
@@ -272,7 +272,7 @@ export class AccessibilityValidator {
     // Check tabindex
     const tabindex = await element.getAttribute('tabindex');
     if (tabindex !== null) {
-      const tabindexValue = parseInt(tabindex, 10);
+      const tabindexValue = Number.parseInt(tabindex, 10);
       expect(
         tabindexValue,
         `Element ${selector} tabindex should be >= -1`
@@ -379,7 +379,7 @@ export class PerformanceValidator {
     firstPaint: number;
     firstContentfulPaint: number;
   }> {
-    const metrics = await this.page.evaluate(() => {
+    return await this.page.evaluate(() => {
       const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
       const paint = performance.getEntriesByType('paint');
 
@@ -390,8 +390,6 @@ export class PerformanceValidator {
         firstContentfulPaint: paint.find((p) => p.name === 'first-contentful-paint')?.startTime || 0,
       };
     });
-
-    return metrics;
   }
 }
 

@@ -4,10 +4,11 @@
  * Verifies files are properly stored on the server after upload
  */
 
+import * as crypto from 'node:crypto';
+
 import { test, expect } from '../../fixtures/formio.fixture';
 import { FormioModulePage } from '../../pages/FormioModulePage';
 import { TusUploadComponent } from '../../pages/TusUploadComponent';
-import * as crypto from 'crypto';
 
 test.describe('Server Storage Verification', () => {
   let formPage: FormioModulePage;

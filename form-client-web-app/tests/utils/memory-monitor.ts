@@ -5,7 +5,7 @@
  * particularly useful for large file upload tests.
  */
 
-import { Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
 
 export interface MemoryMetrics {
   usedJSHeapSize: number;
@@ -50,7 +50,7 @@ export class MemoryMonitor {
    * Collect current memory metrics
    */
   async collectMetrics(): Promise<MemoryMetrics> {
-    const metrics = await this.page.evaluate(() => {
+    return await this.page.evaluate(() => {
       if (!performance.memory) {
         throw new Error('performance.memory not available');
       }
@@ -62,8 +62,6 @@ export class MemoryMonitor {
         timestamp: Date.now(),
       };
     });
-
-    return metrics;
   }
 
   /**
@@ -96,7 +94,7 @@ export class MemoryMonitor {
   getMemoryIncrease(): number {
     if (this.metrics.length < 2) return 0;
     const first = this.metrics[0].usedJSHeapSize;
-    const last = this.metrics[this.metrics.length - 1].usedJSHeapSize;
+    const last = this.metrics.at(-1).usedJSHeapSize;
     return last - first;
   }
 

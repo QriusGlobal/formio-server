@@ -5,11 +5,11 @@
  * for file uploads using the TUS (resumable upload) protocol.
  */
 
-import { useState, useCallback, useEffect, useRef } from 'react';
 import { Form } from '@formio/react';
 import Uppy from '@uppy/core';
-import Tus from '@uppy/tus';
 import { Dashboard } from '@uppy/react';
+import Tus from '@uppy/tus';
+import { useState, useCallback, useEffect, useRef } from 'react';
 
 // Uppy styles
 import '@uppy/core/css/style.min.css';
@@ -25,6 +25,7 @@ import {
   getDashboardOptions,
   type UppyConfigOptions,
 } from '../config/uppy-config';
+
 import type {
   FormioSchema,
   FormioSubmission,
@@ -345,17 +346,17 @@ export function FormioTusUploader({
             onChange={(e) => {
               if (e.target.files && uppyRef.current) {
                 const filesArray = Array.from(e.target.files);
-                filesArray.forEach(file => {
+                for (const file of filesArray) {
                   try {
                     uppyRef.current?.addFile({
                       name: file.name,
                       type: file.type,
                       data: file,
                     });
-                  } catch (err) {
-                    console.error('Error adding file to Uppy:', err);
+                  } catch (error) {
+                    console.error('Error adding file to Uppy:', error);
                   }
-                });
+                }
               }
             }}
             aria-hidden="true"

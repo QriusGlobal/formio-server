@@ -5,7 +5,7 @@
  * including offline mode, slow connections, packet loss, and timeouts.
  */
 
-import { Page, Route } from '@playwright/test';
+import type { Page, Route } from '@playwright/test';
 
 export interface NetworkCondition {
   downloadThroughput: number; // bytes per second

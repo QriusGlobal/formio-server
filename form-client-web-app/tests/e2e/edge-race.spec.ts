@@ -12,9 +12,9 @@
  */
 
 import { test, expect } from '../fixtures/playwright-fixtures';
-import { UPPY_FILE_INPUT_SELECTOR } from '../utils/test-selectors';
-import { ConsoleMonitor } from '../utils/test-helpers';
 import { NetworkMonitor } from '../utils/network-simulator';
+import { ConsoleMonitor } from '../utils/test-helpers';
+import { UPPY_FILE_INPUT_SELECTOR } from '../utils/test-selectors';
 
 test.describe('Race Condition Tests - TUS Upload', () => {
   let consoleMonitor: ConsoleMonitor;
@@ -216,7 +216,7 @@ test.describe('Race Condition Tests - TUS Upload', () => {
       const progress = document.querySelector('.progress-bar');
       if (!progress) return false;
       const width = (progress as HTMLElement).style.width;
-      const percentage = parseInt(width) || 0;
+      const percentage = Number.parseInt(width) || 0;
       return percentage > 10; // Upload has started and made progress
     }, { timeout: 10000 });
 

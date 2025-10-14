@@ -3,7 +3,7 @@
  *
  * Extends Form.io's base File component to provide TUS resumable upload capabilities
  */
-import { ComponentSchema, UploadFile } from '../../types';
+import { type ComponentSchema, type UploadFile } from '../../types';
 declare const FileComponent: any;
 export default class TusFileUploadComponent extends FileComponent {
     tusUpload: any;

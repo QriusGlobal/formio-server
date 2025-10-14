@@ -5,7 +5,7 @@
  * and accessibility event monitoring.
  */
 
-import { Page, Locator } from '@playwright/test';
+import { type Page, Locator } from '@playwright/test';
 
 /**
  * Wait for ARIA busy state to clear (upload/processing completion)
@@ -191,7 +191,7 @@ export async function waitForUploadProgress(
       // Check for aria-valuenow on progress bars
       const progressBars = document.querySelectorAll('[role="progressbar"]');
       for (const bar of progressBars) {
-        const value = parseInt(bar.getAttribute('aria-valuenow') || '0');
+        const value = Number.parseInt(bar.getAttribute('aria-valuenow') || '0');
         if (value >= target) return true;
       }
 
@@ -199,7 +199,7 @@ export async function waitForUploadProgress(
       const percentageElements = document.querySelectorAll('.uppy-StatusBar-percentage, .uppy-ProgressBar-percentage');
       for (const el of percentageElements) {
         const match = (el.textContent || '').match(/(\d+)%/);
-        if (match && parseInt(match[1]) >= target) return true;
+        if (match && Number.parseInt(match[1]) >= target) return true;
       }
 
       return false;
@@ -221,7 +221,7 @@ export async function waitForUploadCompleteAria(
       // Check for aria-valuenow=100 on progress bars
       const progressBars = document.querySelectorAll('[role="progressbar"]');
       for (const bar of progressBars) {
-        const value = parseInt(bar.getAttribute('aria-valuenow') || '0');
+        const value = Number.parseInt(bar.getAttribute('aria-valuenow') || '0');
         if (value === 100) return true;
       }
 
@@ -279,7 +279,7 @@ export async function waitForFileCountUpdate(
       for (const region of statusRegions) {
         const text = region.textContent || '';
         const match = text.match(/(\d+)\s+file/);
-        if (match && parseInt(match[1]) === count) return true;
+        if (match && Number.parseInt(match[1]) === count) return true;
       }
       return false;
     },
@@ -355,7 +355,7 @@ export async function waitForScreenReaderAnnouncement(
       const liveRegions = document.querySelectorAll('[aria-live]');
 
       const observer = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
+        for (const mutation of mutations) {
           if (mutation.type === 'characterData' || mutation.type === 'childList') {
             const target = mutation.target as Element;
             const text = target.textContent || '';
@@ -363,16 +363,16 @@ export async function waitForScreenReaderAnnouncement(
               announcements.push(text.trim());
             }
           }
-        });
+        }
       });
 
-      liveRegions.forEach((region) => {
+      for (const region of liveRegions) {
         observer.observe(region, {
           characterData: true,
           childList: true,
           subtree: true
         });
-      });
+      }
 
       setTimeout(() => {
         observer.disconnect();

@@ -9,8 +9,9 @@
  * - UI responsiveness under load
  */
 
+import { performance } from 'node:perf_hooks';
+
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { performance } from 'perf_hooks';
 
 describe('Upload Performance Tests', () => {
   describe('Large File Upload Performance', () => {
@@ -123,9 +124,9 @@ describe('Upload Performance Tests', () => {
 
       // Update progress for all uploads
       for (let progress = 0; progress <= 100; progress += 10) {
-        uploadsMetadata.forEach(upload => {
+        for (const upload of uploadsMetadata) {
           upload.progress = progress;
-        });
+        }
       }
 
       expect(uploadsMetadata).toHaveLength(10);
@@ -140,7 +141,7 @@ describe('Upload Performance Tests', () => {
 
       const startTime = performance.now();
 
-      const uploads = Array(uploadCount).fill(null).map((_, i) => {
+      const uploads = Array.from({length: uploadCount}).fill(null).map((_, i) => {
         return {
           id: `upload-${i}`,
           size: fileSize,
@@ -150,9 +151,9 @@ describe('Upload Performance Tests', () => {
 
       // Simulate concurrent progress updates
       for (let progress = 0; progress <= 100; progress += 10) {
-        uploads.forEach(upload => {
+        for (const upload of uploads) {
           upload.progress = progress;
-        });
+        }
       }
 
       const duration = performance.now() - startTime;
@@ -175,9 +176,9 @@ describe('Upload Performance Tests', () => {
       }
 
       // Update all uploads
-      uploads.forEach((upload, id) => {
+      for (const [id, upload] of uploads.entries()) {
         upload.progress = 50;
-      });
+      }
 
       const duration = performance.now() - startTime;
 
@@ -234,10 +235,10 @@ describe('Upload Performance Tests', () => {
 
       const startTime = performance.now();
 
-      fileSizes.forEach(({ size, optimal }) => {
+      for (const { size, optimal } of fileSizes) {
         const calculated = calculateOptimalChunkSize(size);
         expect(calculated).toBeLessThanOrEqual(optimal);
-      });
+      }
 
       const duration = performance.now() - startTime;
       expect(duration).toBeLessThan(5);
@@ -289,7 +290,7 @@ describe('Upload Performance Tests', () => {
 
   describe('Progress Calculation Performance', () => {
     it('should calculate progress efficiently for multiple files', () => {
-      const files = Array(20).fill(null).map((_, i) => ({
+      const files = Array.from({length: 20}).fill(null).map((_, i) => ({
         id: `file-${i}`,
         size: 10 * 1024 * 1024,
         uploaded: Math.random() * 10 * 1024 * 1024
@@ -324,8 +325,8 @@ describe('Upload Performance Tests', () => {
 
       // Calculate speed from last 10 measurements
       const recent = measurements.slice(-10);
-      const bytesChange = recent[recent.length - 1].bytes - recent[0].bytes;
-      const timeChange = recent[recent.length - 1].timestamp - recent[0].timestamp;
+      const bytesChange = recent.at(-1).bytes - recent[0].bytes;
+      const timeChange = recent.at(-1).timestamp - recent[0].timestamp;
       const speed = bytesChange / (timeChange / 1000); // bytes per second
 
       const duration = performance.now() - startTime;
@@ -382,9 +383,9 @@ describe('Upload Performance Tests', () => {
       const startTime = performance.now();
 
       // Simulate rapid file additions
-      const files = Array(100).fill(null).map((_, i) => `file-${i}.png`);
+      const files = Array.from({length: 100}).fill(null).map((_, i) => `file-${i}.png`);
 
-      files.forEach(file => {
+      for (const file of files) {
         fileList.push(file);
 
         if (!updateScheduled) {
@@ -394,7 +395,7 @@ describe('Upload Performance Tests', () => {
             updateScheduled = false;
           }, 50);
         }
-      });
+      }
 
       const duration = performance.now() - startTime;
 

@@ -5,9 +5,11 @@
  * Run with: npx tsx tests/setup/test-bootstrap.ts
  */
 
-import { FormioAPI, createFileUploadForm, loadFormioConfig } from './formio-api';
+import * as path from 'node:path';
+
 import * as dotenv from 'dotenv';
-import * as path from 'path';
+
+import { FormioAPI, createFileUploadForm, loadFormioConfig } from './formio-api';
 
 // Load environment variables
 dotenv.config({ path: path.join(__dirname, '../../.env.test') });
@@ -73,7 +75,7 @@ async function testBootstrap() {
     const testFormDef = createFileUploadForm(
       process.env.TUS_ENDPOINT || 'http://localhost:1080/files/'
     );
-    testFormDef.name = 'bootstrap-test-' + Date.now();
+    testFormDef.name = `bootstrap-test-${  Date.now()}`;
     testFormDef.path = testFormDef.name;
     testFormDef.title = 'Bootstrap Test Form';
 
@@ -106,7 +108,7 @@ async function testBootstrap() {
     console.log('🚀 Next Steps:');
     console.log('   1. Run E2E tests: npm run test:e2e');
     console.log('   2. View .env.test: cat .env.test');
-    console.log('   3. Access form: ' + config.baseURL + '/form/' + config.formId);
+    console.log(`   3. Access form: ${  config.baseURL  }/form/${  config.formId}`);
 
   } catch (error) {
     console.error('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');

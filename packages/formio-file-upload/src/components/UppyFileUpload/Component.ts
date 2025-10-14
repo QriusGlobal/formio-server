@@ -5,18 +5,19 @@
  */
 
 import { Components } from '@formio/js';
+import Audio from '@uppy/audio';
 import Uppy from '@uppy/core';
 import Dashboard from '@uppy/dashboard';
-import Tus from '@uppy/tus';
 import GoldenRetriever from '@uppy/golden-retriever';
-import Webcam from '@uppy/webcam';
-import ScreenCapture from '@uppy/screen-capture';
 import ImageEditor from '@uppy/image-editor';
-import Audio from '@uppy/audio';
+import ScreenCapture from '@uppy/screen-capture';
+import Tus from '@uppy/tus';
 import Url from '@uppy/url';
-import { ComponentSchema, UppyConfig, UploadFile, UploadStatus } from '../../types';
-import { verifyFileType, sanitizeFilename } from '../../validators';
+import Webcam from '@uppy/webcam';
+
+import { type ComponentSchema, type UppyConfig, type UploadFile, UploadStatus } from '../../types';
 import { logger } from '../../utils/logger';
+import { verifyFileType, sanitizeFilename } from '../../validators';
 
 // Import Uppy styles
 // NOTE: Uppy CSS imports removed - consuming apps must import Uppy styles
@@ -405,10 +406,10 @@ export default class UppyFileUploadComponent extends FileComponent {
       GB: 1024 * 1024 * 1024,
     };
 
-    const match = size.match(/^(\d+(?:\.\d+)?)\s*([KMGT]?B)$/i);
+    const match = size.match(/^(\d+(?:\.\d+)?)\s*([gkmt]?b)$/i);
     if (!match) return null;
 
-    const value = parseFloat(match[1]);
+    const value = Number.parseFloat(match[1]);
     const unit = match[2].toUpperCase();
 
     return value * (units[unit] || 1);

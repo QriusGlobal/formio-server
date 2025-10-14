@@ -4,11 +4,13 @@
  * Runs once after all tests complete
  */
 
-import { FullConfig, chromium } from '@playwright/test';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+
+import { type FullConfig, chromium } from '@playwright/test';
+
 import { GCSApiHelper, FormioApiHelper } from './api-helpers';
 import { cleanupTestFiles } from './file-helpers';
-import fs from 'fs/promises';
-import path from 'path';
 
 async function globalTeardown(config: FullConfig) {
   console.log('\n🧹 Starting Playwright Test Cleanup...');

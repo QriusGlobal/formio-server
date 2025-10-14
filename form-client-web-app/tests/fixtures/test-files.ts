@@ -4,9 +4,9 @@
  * Generate test files for upload testing
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
-import * as os from 'os';
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
 
 export interface TestFile {
   path: string;
@@ -19,8 +19,7 @@ export interface TestFile {
  * Setup test files directory
  */
 export function setupTestFilesDir(): string {
-  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'uppy-test-'));
-  return tmpDir;
+  return fs.mkdtempSync(path.join(os.tmpdir(), 'uppy-test-'));
 }
 
 /**
@@ -51,7 +50,7 @@ export async function createPNGFile(dir: string, filename: string = 'test.png'):
     0x42, 0x60, 0x82
   ]);
 
-  const fsPromises = await import('fs/promises');
+  const fsPromises = await import('node:fs/promises');
   await fsPromises.writeFile(filepath, pngData);
 
   return {
@@ -92,7 +91,7 @@ export async function createJPEGFile(dir: string, filename: string = 'test.jpg')
     0x00, 0x00, 0x3F, 0x00, 0x37, 0xFF, 0xD9
   ]);
 
-  const fsPromises = await import('fs/promises');
+  const fsPromises = await import('node:fs/promises');
   await fsPromises.writeFile(filepath, jpegData);
 
   return {
@@ -110,7 +109,7 @@ export async function createInvalidFile(dir: string, filename: string = 'test.tx
   const filepath = path.join(dir, filename);
   const data = Buffer.from('This is a text file, not an image');
 
-  const fsPromises = await import('fs/promises');
+  const fsPromises = await import('node:fs/promises');
   await fsPromises.writeFile(filepath, data);
 
   return {
@@ -137,7 +136,7 @@ export async function createLargeFile(dir: string, sizeInMB: number, filename: s
   const data = Buffer.alloc(dataSize, 0xFF);
 
   const fullData = Buffer.concat([header, data]);
-  const fsPromises = await import('fs/promises');
+  const fsPromises = await import('node:fs/promises');
   await fsPromises.writeFile(filepath, fullData);
 
   return {
@@ -166,7 +165,7 @@ export async function createGIFFile(dir: string, filename: string = 'test.gif'):
     0x3B // Trailer
   ]);
 
-  const fsPromises = await import('fs/promises');
+  const fsPromises = await import('node:fs/promises');
   await fsPromises.writeFile(filepath, gifData);
 
   return {
@@ -227,7 +226,7 @@ export async function createWebPFile(dir: string, filename: string = 'test.webp'
     0x00, 0x00, 0x00, 0x00
   ]);
 
-  const fsPromises = await import('fs/promises');
+  const fsPromises = await import('node:fs/promises');
   await fsPromises.writeFile(filepath, webpData);
 
   return {
@@ -258,7 +257,7 @@ export async function createFileWithSize(
   const padding = Buffer.alloc(Math.max(0, remaining), 0);
 
   const fileData = Buffer.concat([header, padding]);
-  const fsPromises = await import('fs/promises');
+  const fsPromises = await import('node:fs/promises');
   await fsPromises.writeFile(filepath, fileData);
 
   return {
@@ -292,7 +291,7 @@ export async function createMultipleTestFiles(
     sizeInMB?: number;
   }>
 ): Promise<TestFile[]> {
-  const fsPromises = await import('fs/promises');
+  const fsPromises = await import('node:fs/promises');
 
   // Map file type to data generator
   const getFileData = (type: 'png' | 'jpeg' | 'gif' | 'webp', sizeInMB?: number): Buffer => {

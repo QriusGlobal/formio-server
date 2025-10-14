@@ -10,6 +10,7 @@
  */
 
 import { test, expect } from '@playwright/test';
+
 import { TusUploadPage } from '../page-objects/TusUploadPage';
 import { TestHelpers } from '../utils/test-helpers';
 
@@ -165,7 +166,7 @@ test.describe('TUS Concurrent Upload Tests', () => {
 
     // Track progress for each file
     const progressHistory = new Map<string, number[]>();
-    fileNames.forEach(name => progressHistory.set(name, []));
+    for (const name of fileNames) progressHistory.set(name, []);
 
     // Monitor progress for 30 seconds or until all complete
     const monitorDuration = 30000;
@@ -201,7 +202,7 @@ test.describe('TUS Concurrent Upload Tests', () => {
       }
 
       // Should reach 100%
-      expect(history[history.length - 1]).toBe(100);
+      expect(history.at(-1)).toBe(100);
 
       console.log(`${fileName}: Progress snapshots: ${history.slice(0, 10).join('% -> ')}%`);
     }
@@ -446,8 +447,8 @@ test.describe('TUS Concurrent Upload Tests', () => {
     // Verify files appear in order in the UI
     const allInfo = await uploadPage.getAllFileInfo();
 
-    for (let i = 0; i < files.length; i++) {
-      expect(allInfo[i].name).toBe(files[i].name);
+    for (const [i, file] of files.entries()) {
+      expect(allInfo[i].name).toBe(file.name);
     }
 
     // Wait for all to complete

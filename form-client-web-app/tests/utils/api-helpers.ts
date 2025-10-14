@@ -4,7 +4,7 @@
  * Utilities for verifying GCS storage and Form.io API interactions
  */
 
-import { APIRequestContext } from '@playwright/test';
+import type { APIRequestContext } from '@playwright/test';
 
 export interface GCSUploadVerification {
   exists: boolean;
@@ -56,11 +56,11 @@ export class GCSApiHelper {
 
       return {
         exists: true,
-        size: parseInt(data.size),
+        size: Number.parseInt(data.size),
         contentType: data.contentType,
         metadata: data.metadata || {}
       };
-    } catch (error) {
+    } catch {
       return { exists: false };
     }
   }
@@ -80,7 +80,7 @@ export class GCSApiHelper {
       if (!response.ok()) return null;
 
       return await response.body();
-    } catch (error) {
+    } catch {
       return null;
     }
   }
@@ -98,7 +98,7 @@ export class GCSApiHelper {
       );
 
       return response.ok();
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -120,7 +120,7 @@ export class GCSApiHelper {
       const data = await response.json();
 
       return (data.items || []).map((item: any) => item.name);
-    } catch (error) {
+    } catch {
       return [];
     }
   }
@@ -243,7 +243,7 @@ export class FormioApiHelper {
       );
 
       return response.ok();
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -255,7 +255,7 @@ export class FormioApiHelper {
     try {
       const response = await request.get(`${this.baseURL}/health`);
       return response.ok();
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -325,7 +325,7 @@ export async function verifyUploadIntegrity(
 
   if (!buffer) return false;
 
-  const crypto = require('crypto');
+  const crypto = require('node:crypto');
   const hash = crypto.createHash('sha256').update(buffer).digest('hex');
 
   return hash === originalHash;

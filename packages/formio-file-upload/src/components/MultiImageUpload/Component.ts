@@ -6,9 +6,10 @@
  */
 
 import { Components } from '@formio/js';
-import { logger } from '../../utils/logger';
+
 import { UPLOAD_CONSTANTS } from '../../config/constants';
 import { WHITELABEL_CONFIG } from '../../config/whitelabel';
+import { logger } from '../../utils/logger';
 
 const FileComponent = (Components as any).components.file;
 
@@ -145,7 +146,7 @@ export default class MultiImageUploadComponent extends FileComponent {
       } catch (error) {
         console.error('🔴 [MultiImageUpload] detach() error unmounting React component', {
           timestamp: new Date().toISOString(),
-          error: error,
+          error,
           errorMessage: error instanceof Error ? error.message : String(error),
           errorStack: error instanceof Error ? error.stack : undefined,
         });
@@ -294,7 +295,7 @@ export default class MultiImageUploadComponent extends FileComponent {
             console.log('🔴 [MultiImageUpload] React onChange callback triggered', {
               timestamp: new Date().toISOString(),
               filesCount: files?.length,
-              files: files,
+              files,
             });
 
             this.setValue(files);
@@ -316,7 +317,7 @@ export default class MultiImageUploadComponent extends FileComponent {
       console.error('🔴 [MultiImageUpload] loadReactComponent() FAILED with error', {
         timestamp: new Date().toISOString(),
         componentKey: this.component?.key,
-        error: error,
+        error,
         errorMessage: error instanceof Error ? error.message : String(error),
         errorStack: error instanceof Error ? error.stack : undefined,
         errorType: error ? error.constructor.name : 'unknown',
@@ -367,7 +368,7 @@ export default class MultiImageUploadComponent extends FileComponent {
       } catch (error) {
         console.error('🔴 [MultiImageUpload] destroy() error unmounting React component', {
           timestamp: new Date().toISOString(),
-          error: error,
+          error,
           errorMessage: error instanceof Error ? error.message : String(error),
           errorStack: error instanceof Error ? error.stack : undefined,
         });
@@ -411,7 +412,7 @@ export default class MultiImageUploadComponent extends FileComponent {
       timestamp: new Date().toISOString(),
       componentKey: this.component?.key,
       newValue: value,
-      flags: flags,
+      flags,
       previousValue: this.dataValue,
     });
 

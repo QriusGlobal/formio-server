@@ -1,7 +1,7 @@
+import FormioFileUploadModule from '@formio/file-upload'
+import { Formio } from '@formio/js'
 import { lazy, Suspense } from 'react'
 import { Routes, Route, Link, useLocation } from 'react-router-dom'
-import { Formio } from '@formio/js'
-import FormioFileUploadModule from '@formio/file-upload'
 import './App.css'
 
 // Register Form.io file upload module globally before lazy loading

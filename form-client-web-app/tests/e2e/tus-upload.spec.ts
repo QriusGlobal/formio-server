@@ -1,7 +1,9 @@
+import fs from 'node:fs';
+import path from 'node:path';
+
 import { test, expect } from '@playwright/test';
+
 import { UPPY_FILE_INPUT_SELECTOR, SELECTORS, waitForTestId } from '../utils/test-selectors';
-import path from 'path';
-import fs from 'fs';
 
 /**
  * TUS File Upload E2E Tests
@@ -76,7 +78,7 @@ test.describe('TUS File Upload @tus', () => {
       if (text.includes('Uploading:')) {
         const match = text.match(/(\d+\.\d+)%/);
         if (match) {
-          progressValues.push(parseFloat(match[1]));
+          progressValues.push(Number.parseFloat(match[1]));
         }
       }
     });
@@ -88,7 +90,7 @@ test.describe('TUS File Upload @tus', () => {
     await page.waitForFunction(() => {
       const progressElements = document.querySelectorAll('[data-progress]');
       return Array.from(progressElements).some(el => {
-        const progress = parseInt(el.getAttribute('data-progress') || '0');
+        const progress = Number.parseInt(el.getAttribute('data-progress') || '0');
         return progress > 0;
       });
     }, { timeout: 10000 });
@@ -107,7 +109,7 @@ test.describe('TUS File Upload @tus', () => {
     await expect(page.locator('text=Success')).toBeVisible({ timeout: 60000 });
 
     // Final progress should be 100%
-    const finalProgress = progressValues[progressValues.length - 1];
+    const finalProgress = progressValues.at(-1);
     expect(finalProgress).toBeGreaterThanOrEqual(99);
   });
 
@@ -191,7 +193,7 @@ test.describe('TUS File Upload @tus', () => {
     expect(fs.existsSync(harPath)).toBeTruthy();
 
     // Read and verify HAR contents
-    const fsPromises = await import('fs/promises');
+    const fsPromises = await import('node:fs/promises');
     const harContent = JSON.parse(await fsPromises.readFile(harPath, 'utf-8'));
     const entries = harContent.log.entries;
 

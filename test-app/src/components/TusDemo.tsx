@@ -50,10 +50,10 @@ export const TusDemo: React.FC = () => {
     setFiles(prev => [...prev, ...newFiles]);
 
     // Auto-start uploads
-    newFiles.forEach((fileData, index) => {
+    for (const [index, fileData] of newFiles.entries()) {
       const actualFile = selectedFiles[index];
       startTusUpload(fileData.id, actualFile);
-    });
+    }
 
     // Reset input
     if (fileInputRef.current) {
@@ -89,7 +89,7 @@ export const TusDemo: React.FC = () => {
             if (f.id !== fileId) return f;
 
             // Calculate upload speed (bytes per second)
-            const speed = bytesUploaded / ((Date.now() - parseInt(fileId.split('-')[1])) / 1000);
+            const speed = bytesUploaded / ((Date.now() - Number.parseInt(fileId.split('-')[1])) / 1000);
             const timeRemaining = (bytesTotal - bytesUploaded) / speed;
 
             return {

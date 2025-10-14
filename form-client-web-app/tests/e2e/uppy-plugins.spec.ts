@@ -14,6 +14,11 @@
 
 import { test, expect, Page } from '../fixtures/playwright-fixtures';
 import {
+  setupTestFilesDir,
+  cleanupTestFilesDir,
+  createPNGFile,
+} from '../fixtures/test-files';
+import {
   waitForUppyReady,
   waitForPlugin,
   waitForPluginModal,
@@ -25,11 +30,6 @@ import {
   uploadFiles,
   getFileCount,
 } from '../utils/uppy-helpers';
-import {
-  setupTestFilesDir,
-  cleanupTestFilesDir,
-  createPNGFile,
-} from '../fixtures/test-files';
 
 test.describe('Uppy Plugins', () => {
   let testFilesDir: string;

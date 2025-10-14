@@ -4,11 +4,10 @@
  * Provides helpers to generate test files of various sizes and types
  */
 
-import { promises as fs } from 'fs';
-import path from 'path';
-import crypto from 'crypto';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import crypto from 'node:crypto';
+import { promises as fs } from 'node:fs';
+import path, { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -155,7 +154,7 @@ export async function cleanupTestFiles(): Promise<void> {
     await Promise.all(
       files.map(file => fs.unlink(path.join(fixturesDir, file)))
     );
-  } catch (error) {
+  } catch {
     // Directory might not exist, ignore
   }
 }
@@ -189,5 +188,5 @@ export function formatBytes(bytes: number, decimals = 2): string {
 
   const i = Math.floor(Math.log(bytes) / Math.log(k));
 
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+  return `${Number.parseFloat((bytes / Math.pow(k, i)).toFixed(dm))  } ${  sizes[i]}`;
 }

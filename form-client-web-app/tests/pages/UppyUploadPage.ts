@@ -4,9 +4,11 @@
  * Specialized page object for Uppy file upload testing
  */
 
-import { Page, Locator } from '@playwright/test';
-import { UPPY_FILE_INPUT_SELECTOR } from '../utils/test-selectors';
+
 import { FileUploadPage } from './FileUploadPage';
+import { UPPY_FILE_INPUT_SELECTOR } from '../utils/test-selectors';
+
+import type { Page, Locator } from '@playwright/test';
 
 export interface UppyOptions {
   autoProceed?: boolean;

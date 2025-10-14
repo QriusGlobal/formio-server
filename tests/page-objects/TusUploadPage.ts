@@ -5,8 +5,9 @@
  * following the Page Object pattern for maintainable E2E tests.
  */
 
-import { Page, Locator, expect } from '@playwright/test';
-import path from 'path';
+import path from 'node:path';
+
+import { type Page, type Locator, expect } from '@playwright/test';
 
 export interface UploadFileInfo {
   id: string;
@@ -71,10 +72,9 @@ export class TusUploadPage {
 
     // Create data transfer
     const dataTransfer = await this.page.evaluateHandle((paths) => {
-      const dt = new DataTransfer();
       // Note: In real browser, files would be added here
       // For testing, we use setInputFiles instead
-      return dt;
+      return new DataTransfer();
     }, absolutePaths);
 
     // Trigger drag events
@@ -99,7 +99,7 @@ export class TusUploadPage {
   async getFileProgress(fileName: string): Promise<number> {
     const fileItem = this.getFileItem(fileName);
     const progressText = await fileItem.locator('.tus-progress-text').textContent();
-    return parseInt(progressText?.replace('%', '') || '0', 10);
+    return Number.parseInt(progressText?.replace('%', '') || '0', 10);
   }
 
   /**
@@ -129,7 +129,7 @@ export class TusUploadPage {
       const name = await item.locator('.tus-file-name').textContent() || '';
       const sizeText = await item.locator('.tus-file-meta span').first().textContent() || '';
       const progressText = await item.locator('.tus-progress-text').textContent();
-      const progress = parseInt(progressText?.replace('%', '') || '0', 10);
+      const progress = Number.parseInt(progressText?.replace('%', '') || '0', 10);
 
       const classes = await item.getAttribute('class') || '';
       let status: UploadFileInfo['status'] = 'pending';
@@ -233,7 +233,7 @@ export class TusUploadPage {
    * Parse size string (e.g., "10.5 MB") to bytes
    */
   private parseSizeString(sizeStr: string): number {
-    const match = sizeStr.match(/([\d.]+)\s*([KMGT]?B)/i);
+    const match = sizeStr.match(/([\d.]+)\s*([gkmt]?b)/i);
     if (!match) return 0;
 
     const [, value, unit] = match;
@@ -245,7 +245,7 @@ export class TusUploadPage {
       'TB': 1024 * 1024 * 1024 * 1024,
     };
 
-    return parseFloat(value) * (multipliers[unit.toUpperCase()] || 1);
+    return Number.parseFloat(value) * (multipliers[unit.toUpperCase()] || 1);
   }
 
   /**

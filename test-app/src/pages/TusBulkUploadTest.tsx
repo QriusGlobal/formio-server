@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Form } from '@formio/react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 
 // Note: Form.io file upload module is registered globally in App.tsx
 // No need to register here since this component is lazy-loaded
@@ -96,16 +96,16 @@ export default function TusBulkUploadTest() {
             filePattern: filePatternValue,
             fileMaxSize: '50MB',
             fileMinSize: '1KB',
-            chunkSize: chunkSize,
+            chunkSize,
             resumable: true,
-            parallelUploads: parallelUploads,
+            parallelUploads,
             retryDelays: [0, 3000, 5000, 10000, 20000],
             description: `Select ${maxFiles} ${filePattern} from your device. Supports: Mobile camera 📷, Photo library 🖼️, File browser 📁, Webcam 💻`,
             placeholder: `Tap/Click to select up to ${maxFiles} ${filePattern}`,
             validate: {
               required: true,
               minFiles: 1,
-              maxFiles: maxFiles,
+              maxFiles,
               maxTotalSize: maxFiles * 50 * 1024 * 1024 // maxFiles × 50MB
             },
             conditional: {

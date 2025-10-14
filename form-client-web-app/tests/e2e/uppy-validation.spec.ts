@@ -14,6 +14,17 @@
 
 import { test, expect } from '../fixtures/playwright-fixtures';
 import {
+  setupTestFilesDir,
+  cleanupTestFilesDir,
+  createPNGFile,
+  createJPEGFile,
+  createGIFFile,
+  createWebPFile,
+  createInvalidFile,
+  createLargeFile,
+  createFileWithSize,
+} from '../fixtures/test-files';
+import {
   waitForUppyReady,
   uploadFiles,
   getErrorMessage,
@@ -26,17 +37,6 @@ import {
   waitForTypeError,
   monitorValidationState,
 } from '../utils/uppy-helpers';
-import {
-  setupTestFilesDir,
-  cleanupTestFilesDir,
-  createPNGFile,
-  createJPEGFile,
-  createGIFFile,
-  createWebPFile,
-  createInvalidFile,
-  createLargeFile,
-  createFileWithSize,
-} from '../fixtures/test-files';
 
 test.describe('Uppy File Validation', () => {
   let testFilesDir: string;
@@ -248,7 +248,7 @@ test.describe('Uppy File Validation', () => {
 
       if (error) {
         // Should mention size limit (e.g., "Maximum file size: 50MB")
-        expect(error).toMatch(/\d+\s*(MB|KB|GB)/i);
+        expect(error).toMatch(/\d+\s*(mb|kb|gb)/i);
       }
     });
   });

@@ -3,8 +3,9 @@
  * Validates file uploads and metadata in GCS emulator
  */
 
-import axios, { AxiosInstance } from 'axios';
-import { createHash } from 'crypto';
+import { createHash } from 'node:crypto';
+
+import axios, { type AxiosInstance } from 'axios';
 
 export interface GCSFile {
   name: string;
@@ -292,7 +293,7 @@ export class GCSValidator {
   }> {
     const files = await this.listFiles();
 
-    const stats = {
+    return {
       fileCount: files.length,
       totalSize: files.reduce((sum, file) => sum + file.size, 0),
       contentTypes: files.reduce((acc, file) => {
@@ -300,8 +301,6 @@ export class GCSValidator {
         return acc;
       }, {} as Record<string, number>),
     };
-
-    return stats;
   }
 }
 

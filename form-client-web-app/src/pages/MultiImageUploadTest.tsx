@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { MultiImageUpload, UploadedFile } from '../components/MultiImageUpload';
+
 import { ErrorBoundary } from '../components/ErrorBoundary';
+import { MultiImageUpload, type UploadedFile } from '../components/MultiImageUpload';
 
 export default function MultiImageUploadTest() {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
@@ -42,8 +43,8 @@ export default function MultiImageUploadTest() {
             formKey="site_images"
             maxFiles={20}
             compressionQuality={0.8}
-            autoNumbering={true}
-            extractMetadata={true}
+            autoNumbering
+            extractMetadata
             onChange={handleChange}
             value={uploadedFiles}
           />

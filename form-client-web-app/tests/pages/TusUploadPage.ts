@@ -4,8 +4,10 @@
  * Specialized page object for TUS resumable upload testing
  */
 
-import { Page, Locator } from '@playwright/test';
 import { FileUploadPage } from './FileUploadPage';
+
+import type { Page, Locator } from '@playwright/test';
+
 
 export interface TusUploadOptions {
   chunkSize?: number;
@@ -83,7 +85,7 @@ export class TusUploadPage extends FileUploadPage {
     // Wait for pause to be registered
     await this.page.waitForFunction(() => {
       const tus = (window as any).__tusUpload;
-      return tus && tus.paused === true;
+      return tus?.paused === true;
     });
   }
 
@@ -96,7 +98,7 @@ export class TusUploadPage extends FileUploadPage {
     // Wait for resume to be registered
     await this.page.waitForFunction(() => {
       const tus = (window as any).__tusUpload;
-      return tus && tus.paused === false;
+      return tus?.paused === false;
     });
   }
 
@@ -136,7 +138,7 @@ export class TusUploadPage extends FileUploadPage {
   async getTusFingerprint(): Promise<string | null> {
     return await this.page.evaluate(() => {
       const tus = (window as any).__tusUpload;
-      if (!tus || !tus.options || !tus.options.fingerprint) return null;
+      if (!tus?.options?.fingerprint) return null;
 
       return tus.options.fingerprint(tus.file, tus.options);
     });
@@ -190,7 +192,7 @@ export class TusUploadPage extends FileUploadPage {
     }, { timeout: 5000 });
 
     // Get current progress
-    const bytesBeforePause = await this.getBytesUploaded();
+    const bytesBeforePause =  this.getBytesUploaded();
 
     // Pause upload
     await this.pauseUpload();
@@ -257,20 +259,20 @@ export class TusUploadPage extends FileUploadPage {
   async clearTusStorage(): Promise<void> {
     await this.page.evaluate(() => {
       // Clear localStorage
-      Object.keys(localStorage).forEach(key => {
+      for (const key of Object.keys(localStorage)) {
         if (key.startsWith('tus::')) {
           localStorage.removeItem(key);
         }
-      });
+      }
 
       // Clear IndexedDB if used
       if (window.indexedDB) {
         window.indexedDB.databases().then(databases => {
-          databases.forEach(db => {
-            if (db.name && db.name.startsWith('tus')) {
+          for (const db of databases) {
+            if (db.name?.startsWith('tus')) {
               window.indexedDB.deleteDatabase(db.name);
             }
-          });
+          }
         });
       }
     });

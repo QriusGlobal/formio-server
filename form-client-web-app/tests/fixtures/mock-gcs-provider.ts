@@ -9,7 +9,7 @@
  * - Timeout mode (slow responses)
  */
 
-import { Readable } from 'stream';
+import type { Readable } from 'node:stream';
 
 export type FailureMode = 'success' | 'network' | '503' | '401' | 'timeout';
 
@@ -264,7 +264,7 @@ export class MockGCSProvider {
    * Generate ETag for file
    */
   private generateETag(buffer: Buffer): string {
-    const crypto = require('crypto');
+    const crypto = require('node:crypto');
     return crypto.createHash('md5').update(buffer).digest('hex');
   }
 
@@ -272,7 +272,7 @@ export class MockGCSProvider {
    * Generate signature for presigned URL
    */
   private generateSignature(key: string, action: string, expires: number): string {
-    const crypto = require('crypto');
+    const crypto = require('node:crypto');
     const data = `${action}:${key}:${expires}`;
     return crypto.createHash('sha256').update(data).digest('hex');
   }

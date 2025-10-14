@@ -4,7 +4,7 @@
  * Encapsulates Uppy Dashboard interactions and plugin management
  */
 
-import { Page, Locator, expect } from '@playwright/test';
+import { type Page, type Locator, expect } from '@playwright/test';
 
 export class UppyDashboard {
   readonly page: Page;
@@ -175,15 +175,15 @@ export class UppyDashboard {
 
     // Parse percentage
     const percentMatch = statusPrimary.match(/(\d+)%/);
-    const percentage = percentMatch ? parseInt(percentMatch[1]) : 0;
+    const percentage = percentMatch ? Number.parseInt(percentMatch[1]) : 0;
 
     // Parse file counts
     const fileMatch = statusPrimary.match(/(\d+)\s*of\s*(\d+)/);
-    const uploadedFiles = fileMatch ? parseInt(fileMatch[1]) : 0;
-    const totalFiles = fileMatch ? parseInt(fileMatch[2]) : 0;
+    const uploadedFiles = fileMatch ? Number.parseInt(fileMatch[1]) : 0;
+    const totalFiles = fileMatch ? Number.parseInt(fileMatch[2]) : 0;
 
     // Parse speed and time
-    const speedMatch = statusSecondary.match(/([\d.]+\s*[KMGT]?B\/s)/);
+    const speedMatch = statusSecondary.match(/([\d.]+\s*[GKMT]?B\/s)/);
     const speed = speedMatch ? speedMatch[1] : undefined;
 
     const timeMatch = statusSecondary.match(/(\d+:\d+)/);

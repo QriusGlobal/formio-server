@@ -6,9 +6,10 @@
 
 import { Components } from '@formio/js';
 import * as tus from 'tus-js-client';
-import { ComponentSchema, TusConfig, UploadFile, UploadStatus } from '../../types';
-import { verifyFileType, sanitizeFilename } from '../../validators';
+
+import { type ComponentSchema, TusConfig, type UploadFile, UploadStatus } from '../../types';
 import { logger } from '../../utils/logger';
+import { verifyFileType, sanitizeFilename } from '../../validators';
 
 const FileComponent = Components.components.file;
 
@@ -316,10 +317,10 @@ export default class TusFileUploadComponent extends FileComponent {
       GB: 1024 * 1024 * 1024,
     };
 
-    const match = size.match(/^(\d+(?:\.\d+)?)\s*([KMGT]?B)$/i);
+    const match = size.match(/^(\d+(?:\.\d+)?)\s*([gkmt]?b)$/i);
     if (!match) return null;
 
-    const value = parseFloat(match[1]);
+    const value = Number.parseFloat(match[1]);
     const unit = match[2].toUpperCase();
 
     return value * (units[unit] || 1);
@@ -390,7 +391,7 @@ export default class TusFileUploadComponent extends FileComponent {
         },
         onProgress: (bytesUploaded: number, bytesTotal: number) => {
           const percentage = ((bytesUploaded / bytesTotal) * 100).toFixed(2);
-          uploadFile.progress = parseFloat(percentage);
+          uploadFile.progress = Number.parseFloat(percentage);
           uploadFile.status = UploadStatus.UPLOADING;
           this.updateProgress(uploadFile);
         },

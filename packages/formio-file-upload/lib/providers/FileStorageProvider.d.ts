@@ -3,7 +3,7 @@
  *
  * Abstract provider interface for different storage backends
  */
-import { StorageProvider, UploadFile } from '../types';
+import type { StorageProvider, UploadFile } from '../types';
 export default class FileStorageProvider implements StorageProvider {
     name: string;
     title: string;

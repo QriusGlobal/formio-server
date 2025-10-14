@@ -3,7 +3,10 @@
  * Generates detailed reports with diff images
  */
 
-import {
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+
+import type {
   Reporter,
   FullConfig,
   Suite,
@@ -11,8 +14,6 @@ import {
   TestResult,
   FullResult,
 } from '@playwright/test/reporter';
-import * as fs from 'fs';
-import * as path from 'path';
 
 interface VisualDiff {
   testName: string;
@@ -68,9 +69,9 @@ export default class VisualRegressionReporter implements Reporter {
       const diff: VisualDiff = {
         testName: test.title,
         projectName: test.parent.project()?.name || 'unknown',
-        expected: this.copyAttachment(expectedAttachment.path!, 'expected'),
-        actual: this.copyAttachment(actualAttachment.path!, 'actual'),
-        diff: this.copyAttachment(diffAttachment.path!, 'diff'),
+        expected: this.copyAttachment(expectedAttachment.path, 'expected'),
+        actual: this.copyAttachment(actualAttachment.path, 'actual'),
+        diff: this.copyAttachment(diffAttachment.path, 'diff'),
         diffPixels: this.extractDiffPixels(result.error?.message),
         diffPercentage: 0,
       };
@@ -95,7 +96,7 @@ export default class VisualRegressionReporter implements Reporter {
     if (!errorMessage) return 0;
 
     const match = errorMessage.match(/(\d+) pixels?/);
-    return match ? parseInt(match[1], 10) : 0;
+    return match ? Number.parseInt(match[1], 10) : 0;
   }
 
   private calculateDiffPercentage(diff: VisualDiff): number {

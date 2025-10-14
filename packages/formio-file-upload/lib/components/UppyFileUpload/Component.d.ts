@@ -4,7 +4,7 @@
  * Provides a rich file upload experience using Uppy.js Dashboard
  */
 import Uppy from '@uppy/core';
-import { ComponentSchema } from '../../types';
+import { type ComponentSchema } from '../../types';
 declare const FileComponent: any;
 export default class UppyFileUploadComponent extends FileComponent {
     uppy: Uppy | null;

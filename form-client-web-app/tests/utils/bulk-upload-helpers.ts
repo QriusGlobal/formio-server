@@ -8,9 +8,12 @@
  * - Performance metrics collection
  */
 
-import { Page } from '@playwright/test';
-import { generateTestFile, TestFile } from './file-helpers';
-import path from 'path';
+import path from 'node:path';
+
+import { generateTestFile, type TestFile } from './file-helpers';
+
+import type { Page } from '@playwright/test';
+
 
 export interface BulkUploadConfig {
   fileCount: number;
@@ -72,8 +75,7 @@ export async function generateMixedSizeTestFiles(): Promise<TestFile[]> {
 
   const files: TestFile[] = [];
 
-  for (let i = 0; i < fileSizes.length; i++) {
-    const sizeKB = fileSizes[i];
+  for (const [i, sizeKB] of fileSizes.entries()) {
     const file = await generateTestFile({
       size: sizeKB * 1024,
       filename: `mixed-${i + 1}-${sizeKB}kb.bin`,
@@ -172,12 +174,10 @@ export async function trackConcurrentUploads(
   }, { timeout: 300000 });
 
   // Stop tracking and retrieve results
-  const concurrentCounts = await page.evaluate(() => {
+  return await page.evaluate(() => {
     (window as any).__trackingActive = false;
     return (window as any).__concurrentCounts || [];
   });
-
-  return concurrentCounts;
 }
 
 /**
@@ -299,7 +299,7 @@ export async function waitForBulkUploadComplete(
     });
 
     return uploadedCount === expectedFileCount;
-  } catch (error) {
+  } catch {
     return false;
   }
 }
@@ -323,20 +323,20 @@ export async function extractUploadStatistics(page: Page): Promise<{
 
     // Extract from statistics cards
     const cards = document.querySelectorAll('[style*="grid"] > div');
-    cards.forEach((card) => {
+    for (const card of cards) {
       const text = card.textContent || '';
       const value = card.querySelector('div')?.textContent || '0';
 
       if (text.includes('Files Uploaded')) {
-        stats.filesUploaded = parseInt(value, 10);
+        stats.filesUploaded = Number.parseInt(value, 10);
       } else if (text.includes('Total Size')) {
-        stats.totalSizeMB = parseFloat(value);
+        stats.totalSizeMB = Number.parseFloat(value);
       } else if (text.includes('Chunk Size')) {
-        stats.chunkSizeMB = parseFloat(value);
+        stats.chunkSizeMB = Number.parseFloat(value);
       } else if (text.includes('Parallel Uploads')) {
-        stats.parallelUploads = parseInt(value, 10);
+        stats.parallelUploads = Number.parseInt(value, 10);
       }
-    });
+    }
 
     return stats;
   });

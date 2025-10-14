@@ -14,9 +14,10 @@
  *   const submission = await api.submitForm(formId, data);
  */
 
-import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
+import * as path from 'node:path';
+
+import axios, { type AxiosInstance, AxiosRequestConfig } from 'axios';
 import * as dotenv from 'dotenv';
-import * as path from 'path';
 
 // Load environment variables
 dotenv.config({ path: path.join(__dirname, '../../.env.test') });
@@ -178,7 +179,7 @@ export class FormioAPI {
           this.client.defaults.headers.common['x-jwt-token'] = this.token;
           return { token: this.token, user: response.data.user || {} };
         }
-      } catch (altError) {
+      } catch {
         // Fall through to throw original error
       }
 
@@ -292,7 +293,7 @@ export class FormioAPI {
     try {
       const response = await this.client.get('/health');
       return response.status === 200;
-    } catch (error) {
+    } catch {
       // Try alternative root endpoint
       try {
         const response = await this.client.get('/');

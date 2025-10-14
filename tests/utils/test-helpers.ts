@@ -8,12 +8,14 @@
  * - Network simulation
  */
 
-import { Page } from '@playwright/test';
-import fs from 'fs/promises';
-import path from 'path';
-import crypto from 'crypto';
+import crypto from 'node:crypto';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+
 import { Storage } from '@google-cloud/storage';
 import axios from 'axios';
+
+import type { Page } from '@playwright/test';
 
 export class TestHelpers {
   /**
@@ -93,8 +95,8 @@ export class TestHelpers {
   private static crc32(buffer: Buffer): number {
     let crc = 0xffffffff;
 
-    for (let i = 0; i < buffer.length; i++) {
-      crc ^= buffer[i];
+    for (const element of buffer) {
+      crc ^= element;
       for (let j = 0; j < 8; j++) {
         crc = (crc & 1) ? (0xedb88320 ^ (crc >>> 1)) : (crc >>> 1);
       }
@@ -126,7 +128,7 @@ export class TestHelpers {
 
       if (expectedSize !== undefined) {
         const [metadata] = await file.getMetadata();
-        return parseInt(metadata.size as string, 10) === expectedSize;
+        return Number.parseInt(metadata.size as string, 10) === expectedSize;
       }
 
       return true;

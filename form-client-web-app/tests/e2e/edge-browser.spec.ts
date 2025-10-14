@@ -11,8 +11,8 @@
  */
 
 import { test, expect, Browser } from '../fixtures/playwright-fixtures';
-import { UPPY_FILE_INPUT_SELECTOR } from '../utils/test-selectors';
 import { ConsoleMonitor, simulateTabVisibilityChange, getLocalStorage, clearAllStorage } from '../utils/test-helpers';
+import { UPPY_FILE_INPUT_SELECTOR } from '../utils/test-selectors';
 
 test.describe('Browser State Tests - TUS Upload', () => {
   let consoleMonitor: ConsoleMonitor;
@@ -45,7 +45,7 @@ test.describe('Browser State Tests - TUS Upload', () => {
     await page.waitForFunction(() => {
       const text = document.querySelector('.progress-text')?.textContent;
       const match = text?.match(/(\d+)%/);
-      const progress = match ? parseInt(match[1]) : 0;
+      const progress = match ? Number.parseInt(match[1]) : 0;
       return progress > 0;
     }, { timeout: 10000 });
 
@@ -53,7 +53,7 @@ test.describe('Browser State Tests - TUS Upload', () => {
     const progressBefore = await page.evaluate(() => {
       const text = document.querySelector('.progress-text')?.textContent;
       const match = text?.match(/(\d+)%/);
-      return match ? parseInt(match[1]) : 0;
+      return match ? Number.parseInt(match[1]) : 0;
     });
 
     // Simulate tab becoming hidden
@@ -63,7 +63,7 @@ test.describe('Browser State Tests - TUS Upload', () => {
     await page.waitForFunction((beforeProgress) => {
       const text = document.querySelector('.progress-text')?.textContent;
       const match = text?.match(/(\d+)%/);
-      const currentProgress = match ? parseInt(match[1]) : 0;
+      const currentProgress = match ? Number.parseInt(match[1]) : 0;
       return currentProgress > beforeProgress;
     }, progressBefore, { timeout: 15000 });
 
@@ -74,7 +74,7 @@ test.describe('Browser State Tests - TUS Upload', () => {
     const progressAfter = await page.evaluate(() => {
       const text = document.querySelector('.progress-text')?.textContent;
       const match = text?.match(/(\d+)%/);
-      return match ? parseInt(match[1]) : 0;
+      return match ? Number.parseInt(match[1]) : 0;
     });
 
     expect(progressAfter).toBeGreaterThan(progressBefore);
@@ -111,7 +111,7 @@ test.describe('Browser State Tests - TUS Upload', () => {
     await page.waitForFunction(() => {
       const text = document.querySelector('.progress-text')?.textContent;
       const match = text?.match(/(\d+)%/);
-      const progress = match ? parseInt(match[1]) : 0;
+      const progress = match ? Number.parseInt(match[1]) : 0;
       return progress > 10; // Wait for meaningful progress
     }, { timeout: 10000 });
 
@@ -144,7 +144,7 @@ test.describe('Browser State Tests - TUS Upload', () => {
     await page.waitForFunction(() => {
       const text = document.querySelector('.progress-text')?.textContent;
       const match = text?.match(/(\d+)%/);
-      const progress = match ? parseInt(match[1]) : 0;
+      const progress = match ? Number.parseInt(match[1]) : 0;
       const hasStorage = Object.keys(localStorage).some(key => key.includes('tus'));
       return progress >= 20 && hasStorage;
     }, { timeout: 15000 });

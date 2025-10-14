@@ -124,12 +124,12 @@ export function observeIntersection(
   options: IntersectionObserverInit = {}
 ): IntersectionObserver {
   const observer = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
+    for (const entry of entries) {
       callback(entry.target, entry.isIntersecting);
-    });
+    }
   }, options);
 
-  elements.forEach(el => observer.observe(el));
+  for (const el of elements) observer.observe(el);
 
   return observer;
 }

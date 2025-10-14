@@ -5,7 +5,7 @@
  * without arbitrary timeouts.
  */
 
-import { Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
 
 /**
  * Browser Feature Detection Patterns
@@ -85,7 +85,7 @@ export const UploadProgress = {
     return page.waitForFunction(() => {
       const text = document.querySelector('.progress-text')?.textContent;
       const match = text?.match(/(\d+)%/);
-      const progress = match ? parseInt(match[1]) : 0;
+      const progress = match ? Number.parseInt(match[1]) : 0;
       return progress > 0;
     }, { timeout });
   },
@@ -98,7 +98,7 @@ export const UploadProgress = {
       (minProgress) => {
         const text = document.querySelector('.progress-text')?.textContent;
         const match = text?.match(/(\d+)%/);
-        const progress = match ? parseInt(match[1]) : 0;
+        const progress = match ? Number.parseInt(match[1]) : 0;
         return progress >= minProgress;
       },
       threshold,
@@ -118,7 +118,7 @@ export const UploadProgress = {
       (baseline) => {
         const text = document.querySelector('.progress-text')?.textContent;
         const match = text?.match(/(\d+)%/);
-        const currentProgress = match ? parseInt(match[1]) : 0;
+        const currentProgress = match ? Number.parseInt(match[1]) : 0;
         return currentProgress > baseline;
       },
       baselineProgress,
@@ -133,7 +133,7 @@ export const UploadProgress = {
     return page.evaluate(() => {
       const text = document.querySelector('.progress-text')?.textContent;
       const match = text?.match(/(\d+)%/);
-      return match ? parseInt(match[1]) : 0;
+      return match ? Number.parseInt(match[1]) : 0;
     });
   },
 };

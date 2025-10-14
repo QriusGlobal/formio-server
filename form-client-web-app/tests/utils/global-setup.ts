@@ -4,11 +4,13 @@
  * Runs once before all tests to verify environment and bootstrap Form.io
  */
 
-import { chromium, FullConfig } from '@playwright/test';
-import { execSync } from 'child_process';
-import * as path from 'path';
-import * as fs from 'fs';
-import { fileURLToPath } from 'url';
+import { execSync } from 'node:child_process';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+import { chromium, type FullConfig } from '@playwright/test';
+
 import { GCSApiHelper, FormioApiHelper } from './api-helpers';
 import { generateStandardTestFiles } from './file-helpers';
 
@@ -25,7 +27,7 @@ async function bootstrapFormio(): Promise<void> {
 
   // Check if .env.test exists and has required fields
   if (fs.existsSync(envTestPath)) {
-    const fsPromises = await import('fs/promises');
+    const fsPromises = await import('node:fs/promises');
     const envContent = await fsPromises.readFile(envTestPath, 'utf-8');
     const hasToken = envContent.includes('FORMIO_JWT_TOKEN=') &&
                      envContent.match(/FORMIO_JWT_TOKEN=.+/);
@@ -80,7 +82,7 @@ async function globalSetup(config: FullConfig) {
         timeout: 10000,
         waitUntil: 'domcontentloaded'
       }).then(r => {
-        if (!r || !r.ok()) {
+        if (!r?.ok()) {
           throw new Error('Test app is not running. Start with: npm run dev');
         }
         console.log('  ✅ Test app is running');
@@ -122,14 +124,14 @@ async function globalSetup(config: FullConfig) {
     // 6. Load and store configuration in environment
     const envTestPath = path.join(__dirname, '../../.env.test');
     if (fs.existsSync(envTestPath)) {
-      const fsPromises = await import('fs/promises');
+      const fsPromises = await import('node:fs/promises');
       const envContent = await fsPromises.readFile(envTestPath, 'utf-8');
-      envContent.split('\n').forEach(line => {
+      for (const line of envContent.split('\n')) {
         const match = line.match(/^([^#=]+)=(.*)$/);
         if (match) {
           process.env[match[1].trim()] = match[2].trim();
         }
-      });
+      }
     }
 
     process.env.PLAYWRIGHT_SETUP_COMPLETE = 'true';

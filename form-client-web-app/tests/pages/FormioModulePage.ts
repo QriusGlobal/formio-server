@@ -4,7 +4,7 @@
  * Encapsulates interactions with the FormioModuleDemo page
  */
 
-import { Page, Locator, expect } from '@playwright/test';
+import { type Page, type Locator, expect } from '@playwright/test';
 
 export class FormioModulePage {
   readonly page: Page;
@@ -157,7 +157,7 @@ export class FormioModulePage {
       const item = fileItems.nth(i);
       const fileName = await item.locator('.file-name').textContent() || '';
       const fileSize = await item.locator('.file-size').textContent() || '';
-      const uploadUrl = await item.locator('.file-url').textContent().catch(() => undefined);
+      const uploadUrl = await item.locator('.file-url').textContent().catch(() => {});
 
       files.push({
         fileName: fileName.trim(),
@@ -174,13 +174,13 @@ export class FormioModulePage {
     const progressText = await progressBar.getAttribute('aria-valuenow');
 
     if (progressText) {
-      return parseInt(progressText);
+      return Number.parseInt(progressText);
     }
 
     // Try to get from text
     const text = await progressBar.textContent();
     const match = text?.match(/(\d+)%/);
-    return match ? parseInt(match[1]) : 0;
+    return match ? Number.parseInt(match[1]) : 0;
   }
 
   async getUppyDashboardStatus(): Promise<{

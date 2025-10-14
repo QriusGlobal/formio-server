@@ -1,13 +1,14 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import Uppy from '@uppy/core';
-import Tus from '@uppy/tus';
 import Compressor from '@uppy/compressor';
-import Webcam from '@uppy/webcam';
+import Uppy from '@uppy/core';
 import GoldenRetriever from '@uppy/golden-retriever';
 import { Dashboard } from '@uppy/react';
+import Tus from '@uppy/tus';
+import Webcam from '@uppy/webcam';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import '@uppy/core/css/style.css';
 import '@uppy/dashboard/css/style.css';
 import { verifyFileType, sanitizeFilename, UPLOAD_CONSTANTS } from '@formio/file-upload';
+
 import { logger } from '../utils/logger';
 
 export interface MultiImageUploadProps {
@@ -45,7 +46,7 @@ export function MultiImageUpload({
   const [uploadStatus, setUploadStatus] = useState<string>('');
 
   const [uppy] = useState(() => {
-    const uppyInstance = new Uppy({
+    return new Uppy({
       id: formKey,
       restrictions: {
         maxNumberOfFiles: maxFiles,
@@ -79,8 +80,6 @@ export function MultiImageUpload({
         expires: 24 * 60 * 60 * 1000,
         serviceWorker: true
       });
-
-    return uppyInstance;
   });
 
   // ✅ Cache geolocation once
@@ -141,7 +140,7 @@ export function MultiImageUpload({
           lowercase: false
         });
         file.name = safeName;
-      } catch (error) {
+      } catch {
         logger.error('File validation failed', { filename: file.name, type: file.type });
         uppy.removeFile(file.id);
         uppy.info('File validation failed', 'error', 5000);

@@ -11,10 +11,10 @@
  */
 
 import { test, expect } from '../fixtures/playwright-fixtures';
-import { UPPY_FILE_INPUT_SELECTOR } from '../utils/test-selectors';
 import { MemoryMonitor, forceGarbageCollection, waitForMemoryStabilization } from '../utils/memory-monitor';
-import { ConsoleMonitor, waitForUploadCompletion } from '../utils/test-helpers';
 import { NetworkMonitor } from '../utils/network-simulator';
+import { ConsoleMonitor, waitForUploadCompletion } from '../utils/test-helpers';
+import { UPPY_FILE_INPUT_SELECTOR } from '../utils/test-selectors';
 
 // Set longer timeout for large file tests
 test.setTimeout(300000); // 5 minutes
@@ -71,14 +71,14 @@ test.describe('Large File Upload Tests - TUS', () => {
         const progressText = await page.locator('.progress-text').textContent();
         const match = progressText?.match(/(\d+)%/);
         if (match) {
-          const progress = parseInt(match[1]);
+          const progress = Number.parseInt(match[1]);
           if (progress > lastProgress) {
             progressUpdates.push(progress);
             lastProgress = progress;
             console.log(`Upload progress: ${progress}%`);
           }
         }
-      } catch (error) {
+      } catch {
         // Element might not be visible
       }
     }, 5000);
@@ -132,18 +132,18 @@ test.describe('Large File Upload Tests - TUS', () => {
     await expect(page.locator('.progress-bar')).toBeVisible({ timeout: 5000 });
 
     // Track upload speed
-    let speeds: number[] = [];
+    const speeds: number[] = [];
     const speedInterval = setInterval(async () => {
       try {
         const speedText = await page.locator('.tus-file-meta').textContent();
         const match = speedText?.match(/(\d+\.?\d*)\s*(KB|MB)\/s/);
         if (match) {
-          const value = parseFloat(match[1]);
+          const value = Number.parseFloat(match[1]);
           const unit = match[2];
           const speedKBps = unit === 'MB' ? value * 1024 : value;
           speeds.push(speedKBps);
         }
-      } catch (error) {
+      } catch {
         // Ignore
       }
     }, 3000);
@@ -182,7 +182,7 @@ test.describe('Large File Upload Tests - TUS', () => {
         const size = 2 * 1024 * 1024 * 1024; // 2GB
         const blob = new Blob([new ArrayBuffer(size)], { type: 'application/octet-stream' });
         return blob.size === size;
-      } catch (error) {
+      } catch {
         return false;
       }
     });
@@ -212,7 +212,7 @@ test.describe('Large File Upload Tests - TUS', () => {
     const progressText = await page.locator('.progress-text').textContent();
     const match = progressText?.match(/(\d+)%/);
     expect(match).toBeTruthy();
-    const progress = parseInt(match![1]);
+    const progress = Number.parseInt(match![1]);
     expect(progress).toBeGreaterThan(0);
 
     // Check memory is still reasonable
@@ -247,7 +247,7 @@ test.describe('Large File Upload Tests - TUS', () => {
     const progressBefore = await page.evaluate(() => {
       const text = document.querySelector('.progress-text')?.textContent;
       const match = text?.match(/(\d+)%/);
-      return match ? parseInt(match[1]) : 0;
+      return match ? Number.parseInt(match[1]) : 0;
     });
 
     expect(progressBefore).toBeGreaterThan(0);
@@ -265,7 +265,7 @@ test.describe('Large File Upload Tests - TUS', () => {
     const progressAfter = await page.evaluate(() => {
       const text = document.querySelector('.progress-text')?.textContent;
       const match = text?.match(/(\d+)%/);
-      return match ? parseInt(match[1]) : 0;
+      return match ? Number.parseInt(match[1]) : 0;
     });
 
     expect(progressAfter).toBeGreaterThanOrEqual(progressBefore);
@@ -306,7 +306,7 @@ test.describe('Large File Upload Tests - TUS', () => {
           const progressElement = document.querySelector('.progress-text');
           const progressText = progressElement?.textContent;
           const match = progressText?.match(/(\d+)%/);
-          const progress = match ? parseInt(match[1]) : 0;
+          const progress = match ? Number.parseInt(match[1]) : 0;
 
           // Sample memory at every 10% milestone
           const currentMilestone = Math.floor(progress / 10) * 10;

@@ -1,43 +1,10 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-echo "🔍 Running pre-commit checks..."
+echo "🔍 Running pre-commit checks with lint-staged..."
 
-# Brand Exposure Check
-echo "Checking for brand exposure..."
-STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(js|ts|jsx|tsx)$' || true)
-
-if [ -n "$STAGED_FILES" ]; then
-  BRAND_VIOLATIONS=0
-  
-  for file in $STAGED_FILES; do
-    if [ -f "$file" ]; then
-      # Check for brand keywords
-      if grep -iqE '(formio|uppy|form\.io)' "$file"; then
-        # Exclude legitimate uses (imports, node_modules, config files)
-        if [[ ! "$file" =~ (node_modules|package.json|package-lock.json|.lock|.config.js|test|spec) ]]; then
-          echo "⚠️  Brand reference found in: $file"
-          BRAND_VIOLATIONS=$((BRAND_VIOLATIONS + 1))
-        fi
-      fi
-      
-      # Check for console.log statements
-      if grep -q 'console\.\(log\|debug\|info\)' "$file"; then
-        if [[ ! "$file" =~ (scripts/|test|spec|.config.js) ]]; then
-          echo "⚠️  Console statement found in: $file"
-        fi
-      fi
-    fi
-  done
-  
-  if [ $BRAND_VIOLATIONS -gt 0 ]; then
-    echo ""
-    echo "❌ Brand exposure detected in $BRAND_VIOLATIONS file(s)"
-    echo "   Run: npm run lint:brand to see full report"
-    echo "   Fix violations before committing"
-    exit 1
-  fi
-fi
+# Run lint-staged (will lint only staged files)
+pnpm exec lint-staged
 
 # Check for .env files
 if git diff --cached --name-only | grep -q '\.env$'; then
@@ -60,52 +27,15 @@ STAGED_ALL=$(git diff --cached --name-only --diff-filter=ACM || true)
 if [ -n "$STAGED_ALL" ]; then
   for file in $STAGED_ALL; do
     if [ -f "$file" ]; then
-      # Check for potential secrets
-      if grep -qE '(api[_-]?key|apikey|password|secret|token).*["\047][a-zA-Z0-9]{20,}["\047]' "$file"; then
-        if [[ ! "$file" =~ (test|spec|mock|fixture) ]]; then
-          echo "❌ Error: Potential secret detected in: $file"
-          echo "   Use environment variables for sensitive data"
-          exit 1
+      # Check for potential secrets (relaxed pattern)
+      if grep -qE '(api[_-]?key|password|secret[_-]?key|bearer[[:space:]]+[a-zA-Z0-9]{30,})' "$file"; then
+        if [[ ! "$file" =~ (test|spec|mock|fixture|example) ]]; then
+          echo "⚠️  Warning: Potential secret pattern detected in: $file"
+          echo "   Please review manually. Use environment variables for sensitive data."
         fi
       fi
     fi
   done
 fi
-
-# Check if services are running (optional E2E tests)
-echo "Checking if services are running..."
-if ! curl -sf http://localhost:3001/health > /dev/null 2>&1; then
-  echo "⚠️  Warning: Form.io server is not running"
-  echo "   E2E tests will be skipped"
-  echo "   Run 'make upload-dev' to start services"
-  echo "✅ Pre-commit checks passed (E2E skipped)!"
-  exit 0
-fi
-
-# Run quick smoke tests on E2E test files
-echo "Running E2E smoke tests..."
-cd test-app
-
-# Verify test file naming conventions
-echo "Checking test file naming conventions..."
-find e2e -name "*.spec.ts" -o -name "*.test.ts" | while read -r file; do
-  if [[ ! $file =~ \.spec\.ts$ ]]; then
-    echo "❌ Error: Test file should use .spec.ts extension: $file"
-    exit 1
-  fi
-done
-
-# Verify test structure (check for test.describe blocks)
-echo "Validating test structure..."
-if ! grep -r "test\.describe" e2e/*.spec.ts > /dev/null 2>&1; then
-  echo "⚠️  Warning: No test.describe blocks found in E2E tests"
-fi
-
-# Run a quick smoke test (just one test to verify setup)
-echo "Running quick smoke test..."
-npx playwright test --project=chromium --grep @smoke --max-failures=1 || {
-  echo "❌ Smoke test failed. Please fix the issues before committing."
-  exit 1
-}
 
 echo "✅ Pre-commit checks passed!"

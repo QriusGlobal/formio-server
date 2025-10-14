@@ -9,6 +9,7 @@
  */
 
 import { test, expect } from '@playwright/test';
+
 import { TusUploadPage } from '../page-objects/TusUploadPage';
 import { TestHelpers } from '../utils/test-helpers';
 
@@ -209,7 +210,7 @@ test.describe('TUS Resume Functionality Tests', () => {
       if (request.url().includes('/files') && request.method() === 'PATCH') {
         const offset = request.headers()['upload-offset'];
         if (offset) {
-          uploadOffsets.push(parseInt(offset, 10));
+          uploadOffsets.push(Number.parseInt(offset, 10));
         }
       }
     });
@@ -233,7 +234,7 @@ test.describe('TUS Resume Functionality Tests', () => {
     await uploadPage.page.waitForTimeout(1000);
 
     const offsetsBeforeResume = [...uploadOffsets];
-    const lastOffsetBeforeResume = offsetsBeforeResume[offsetsBeforeResume.length - 1] || 0;
+    const lastOffsetBeforeResume = offsetsBeforeResume.at(-1) || 0;
 
     // Resume
     await uploadPage.resumeUpload(fileName);
@@ -283,7 +284,7 @@ test.describe('TUS Resume Functionality Tests', () => {
       // Wait for progress increment
       await TestHelpers.waitFor(async () => {
         const progress = await uploadPage.getFileProgress(fileName);
-        const lastCheckpoint = progressCheckpoints[progressCheckpoints.length - 1] || 0;
+        const lastCheckpoint = progressCheckpoints.at(-1) || 0;
         return progress > lastCheckpoint + 15; // At least 15% increment
       }, 60000);
 

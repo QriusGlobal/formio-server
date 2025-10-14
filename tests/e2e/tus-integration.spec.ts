@@ -10,6 +10,7 @@
  */
 
 import { test, expect } from '@playwright/test';
+
 import { TusUploadPage } from '../page-objects/TusUploadPage';
 import { TestHelpers } from '../utils/test-helpers';
 
@@ -45,7 +46,7 @@ test.describe('TUS Integration Tests', () => {
     // Get upload URL from component
     const fileUrl = await page.evaluate(() => {
       const fileItems = document.querySelectorAll('.tus-file-item');
-      const lastItem = fileItems[fileItems.length - 1];
+      const lastItem = fileItems.at(-1);
       return lastItem?.getAttribute('data-upload-url') || null;
     });
 
@@ -58,7 +59,7 @@ test.describe('TUS Integration Tests', () => {
       try {
         const submission = await TestHelpers.createFormSubmission(
           formId,
-          fileUrl!,
+          fileUrl,
           {
             fileName,
             fileSize,
@@ -159,7 +160,7 @@ test.describe('TUS Integration Tests', () => {
       await download.saveAs(downloadPath);
 
       // Verify file size
-      const fs = require('fs/promises');
+      const fs = require('node:fs/promises');
       const stats = await fs.stat(downloadPath);
       expect(stats.size).toBe(fileSize);
 
@@ -261,7 +262,7 @@ test.describe('TUS Integration Tests', () => {
         'fileUploadError',
       ];
 
-      eventTypes.forEach(eventType => {
+      for (const eventType of eventTypes) {
         document.addEventListener(eventType, (e: any) => {
           (window as any).formioEvents.push({
             type: eventType,
@@ -269,7 +270,7 @@ test.describe('TUS Integration Tests', () => {
             timestamp: Date.now(),
           });
         });
-      });
+      }
     });
 
     // Generate file

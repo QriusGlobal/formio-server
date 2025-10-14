@@ -9,8 +9,8 @@
  * - Metadata processing
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as tus from 'tus-js-client';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 describe('TUS Upload Configuration', () => {
   beforeEach(() => {
@@ -52,9 +52,9 @@ describe('TUS Upload Configuration', () => {
         'javascript:alert(1)'
       ];
 
-      invalidEndpoints.forEach(endpoint => {
+      for (const endpoint of invalidEndpoints) {
         expect(endpoint).not.toMatch(/^https?:\/\/.+/);
-      });
+      }
     });
 
     it('should validate retry delay configuration', () => {
@@ -73,10 +73,10 @@ describe('TUS Upload Configuration', () => {
         10 * 1024 * 1024   // 10 MB
       ];
 
-      validChunkSizes.forEach(size => {
+      for (const size of validChunkSizes) {
         expect(size).toBeGreaterThan(0);
         expect(size).toBeLessThanOrEqual(100 * 1024 * 1024); // Max 100MB
-      });
+      }
     });
   });
 
@@ -89,10 +89,10 @@ describe('TUS Upload Configuration', () => {
         { url: 'https://blob.core.windows.net/container/', provider: 'azure' }
       ];
 
-      endpoints.forEach(({ url, provider }) => {
+      for (const { url, provider } of endpoints) {
         const detected = detectStorageProvider(url);
         expect(detected).toBeTruthy();
-      });
+      }
     });
 
     it('should configure GCS-specific headers', () => {
@@ -190,9 +190,9 @@ describe('TUS Upload Configuration', () => {
         { status: 504, retryable: true }
       ];
 
-      errors.forEach(({ status, retryable }) => {
+      for (const { status, retryable } of errors) {
         expect(isRetryableStatus(status)).toBe(retryable);
-      });
+      }
     });
 
     it('should handle client 4xx errors as non-retryable', () => {
@@ -203,9 +203,9 @@ describe('TUS Upload Configuration', () => {
         { status: 404, retryable: false }
       ];
 
-      errors.forEach(({ status, retryable }) => {
+      for (const { status, retryable } of errors) {
         expect(isRetryableStatus(status)).toBe(retryable);
-      });
+      }
     });
 
     it('should format error messages correctly', () => {

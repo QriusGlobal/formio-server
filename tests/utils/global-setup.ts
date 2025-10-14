@@ -8,12 +8,13 @@
  * - Create test fixtures
  */
 
-import { chromium, FullConfig } from '@playwright/test';
-import { spawn, ChildProcess } from 'child_process';
-import path from 'path';
+import { spawn, type ChildProcess } from 'node:child_process';
+import path from 'node:path';
+
+import { chromium, type FullConfig } from '@playwright/test';
 
 let gcsEmulator: ChildProcess | null = null;
-let formioServer: ChildProcess | null = null;
+const formioServer: ChildProcess | null = null;
 
 async function globalSetup(config: FullConfig) {
   console.log('\n🚀 Starting E2E Test Environment Setup...\n');
@@ -106,7 +107,7 @@ async function waitForServices() {
         await storage.getBuckets();
         gcsReady = true;
         console.log('✓ GCS Emulator ready');
-      } catch (error) {
+      } catch {
         attempts++;
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
@@ -135,7 +136,7 @@ async function waitForServices() {
           formioReady = true;
           console.log('✓ Form.io server ready');
         }
-      } catch (error) {
+      } catch {
         attempts++;
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
@@ -234,7 +235,7 @@ async function initializeTestData() {
 async function createTestFixtures() {
   console.log('\n📁 Creating test fixtures...');
 
-  const fs = require('fs/promises');
+  const fs = require('node:fs/promises');
   const fixturesDir = path.resolve(__dirname, '../fixtures');
 
   try {

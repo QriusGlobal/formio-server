@@ -3,9 +3,10 @@
  * Organizes and manages test failure screenshots
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
-import { Reporter, TestCase, TestResult } from '@playwright/test/reporter';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+
+import type { Reporter, TestCase, TestResult } from '@playwright/test/reporter';
 
 export interface ScreenshotInfo {
   testName: string;
@@ -33,7 +34,7 @@ export class ScreenshotOrganizer implements Reporter {
 
   private organizeScreenshots(test: TestCase, result: TestResult) {
     const projectName = test.parent.project()?.name || 'default';
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const timestamp = new Date().toISOString().replace(/[.:]/g, '-');
     const testSlug = this.slugify(test.title);
 
     // Create organized directory structure
@@ -42,7 +43,7 @@ export class ScreenshotOrganizer implements Reporter {
       fs.mkdirSync(targetDir, { recursive: true });
     }
 
-    result.attachments.forEach((attachment, index) => {
+    for (const [index, attachment] of result.attachments.entries()) {
       if (attachment.name === 'screenshot' && attachment.path) {
         const ext = path.extname(attachment.path);
         const fileName = `${timestamp}-${index}${ext}`;
@@ -62,7 +63,7 @@ export class ScreenshotOrganizer implements Reporter {
           });
         }
       }
-    });
+    }
   }
 
   onEnd() {
@@ -197,7 +198,7 @@ export class ScreenshotOrganizer implements Reporter {
   private slugify(text: string): string {
     return text
       .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/[^\da-z]+/g, '-')
       .replace(/^-|-$/g, '');
   }
 }

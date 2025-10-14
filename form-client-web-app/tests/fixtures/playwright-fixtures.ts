@@ -5,6 +5,7 @@
  */
 
 import { test as base } from '@playwright/test';
+
 import { FileUploadPage } from '../pages/FileUploadPage';
 import { TusUploadPage } from '../pages/TusUploadPage';
 import { UppyUploadPage } from '../pages/UppyUploadPage';

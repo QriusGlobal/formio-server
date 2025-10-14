@@ -3,10 +3,12 @@
  * Full-stack validation with environment checks and cleanup
  */
 
-import { spawn, ChildProcess } from 'child_process';
+import { spawn, type ChildProcess } from 'node:child_process';
+
 import axios from 'axios';
-import { gcsValidator } from '../utils/gcs-validator';
+
 import { formioValidator } from '../utils/formio-validator';
+import { gcsValidator } from '../utils/gcs-validator';
 
 export interface ServiceConfig {
   name: string;
@@ -102,10 +104,10 @@ export class IntegrationTestRunner {
     const allReady = serviceStatuses.every((s) => s.status === 'ok');
 
     // Print status
-    serviceStatuses.forEach((s) => {
+    for (const s of serviceStatuses) {
       const icon = s.status === 'ok' ? '✅' : '❌';
       console.log(`${icon} ${s.name}: ${s.message || s.status}`);
-    });
+    }
 
     console.log();
 
@@ -268,10 +270,10 @@ export class IntegrationTestRunner {
       // 2. Verify database state
       console.log('🔍 Verifying database state...\n');
       const dbStatus = await this.verifyDatabaseState();
-      dbStatus.checks.forEach((check) => {
+      for (const check of dbStatus.checks) {
         const icon = check.passed ? '✅' : '❌';
         console.log(`${icon} ${check.name}: ${check.message}`);
-      });
+      }
       console.log();
 
       // 3. Run tests

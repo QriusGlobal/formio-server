@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+
 import App from './App.tsx';
 import './index.css';
 
@@ -15,10 +16,11 @@ import './whitelabel.css';
 // Register Form.io File Upload Module
 // CRITICAL: Import from @formio/js (bundled in @qrius/formio-react) to use the SAME Components registry!
 import { Formio, Components } from '@formio/js';
+
+import { MultiImageUpload } from './components/MultiImageUpload';
 import FormioFileUploadModule, {
   MultiImageUploadComponent
 } from '../../packages/formio-file-upload/src/index';
-import { MultiImageUpload } from './components/MultiImageUpload';
 
 // CRITICAL: Register React component factory BEFORE Formio.use()
 // This enables the Form.io adapter to load the React component at runtime

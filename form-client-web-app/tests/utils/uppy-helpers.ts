@@ -4,10 +4,12 @@
  * Helper functions for testing Uppy file upload component
  */
 
-import { Page, Locator, expect } from '@playwright/test';
-import { UPPY_FILE_INPUT_SELECTOR, SELECTORS, waitForTestId } from '../utils/test-selectors';
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+
+import { type Page, Locator, expect } from '@playwright/test';
+
+import { UPPY_FILE_INPUT_SELECTOR, SELECTORS, waitForTestId } from "./test-selectors";
 
 /**
  * Wait for Uppy to be fully initialized and ready
@@ -64,7 +66,7 @@ export function createTestFile(filename: string, content: string, mimeType: stri
  */
 export async function generateTestImages(count: number, basePath: string): Promise<string[]> {
   const files: string[] = [];
-  const fsPromises = await import('fs/promises');
+  const fsPromises = await import('node:fs/promises');
 
   for (let i = 0; i < count; i++) {
     const filename = `test-image-${i + 1}.png`;
@@ -143,7 +145,7 @@ export async function getUploadProgress(page: Page): Promise<number> {
   if (!progressText) return 0;
 
   const match = progressText.match(/(\d+)%/);
-  return match ? parseInt(match[1], 10) : 0;
+  return match ? Number.parseInt(match[1], 10) : 0;
 }
 
 /**
@@ -229,7 +231,7 @@ export async function dragAndDropFile(
   filePath: string,
   dropZoneSelector = '.uppy-Dashboard-dropFilesHereHint'
 ): Promise<void> {
-  const fsPromises = await import('fs/promises');
+  const fsPromises = await import('node:fs/promises');
   const fileBuffer = await fsPromises.readFile(filePath);
   const fileName = path.basename(filePath);
 
@@ -531,8 +533,7 @@ export async function getGoldenRetrieverData(page: Page): Promise<any> {
  */
 export async function clearGoldenRetrieverStorage(page: Page): Promise<void> {
   await page.evaluate(() => {
-    Object.keys(localStorage)
-      .filter(key => key.startsWith('uppyState'))
-      .forEach(key => localStorage.removeItem(key));
+    for (const key of Object.keys(localStorage)
+      .filter(key => key.startsWith('uppyState'))) localStorage.removeItem(key);
   });
 }

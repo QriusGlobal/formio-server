@@ -4,7 +4,7 @@
  * Common utilities for edge case and stress testing.
  */
 
-import { Page, expect } from '@playwright/test';
+import { type Page, expect } from '@playwright/test';
 
 /**
  * Generate test file of specified size
@@ -37,7 +37,7 @@ export async function waitForUploadCompletion(
 
     const hasError = await page.locator('.upload-error').count() > 0;
     return hasError ? 'error' : 'success';
-  } catch (error) {
+  } catch {
     throw new Error(`Upload did not complete within ${timeout}ms`);
   }
 }
@@ -115,7 +115,7 @@ export function createMaliciousFileName(type: 'xss' | 'path-traversal' | 'oversi
     case 'path-traversal':
       return '../../../etc/passwd';
     case 'oversized':
-      return 'a'.repeat(10000) + '.txt';
+      return `${'a'.repeat(10000)  }.txt`;
     case 'special-chars':
       return 'file:with*special|chars?.txt';
     default:

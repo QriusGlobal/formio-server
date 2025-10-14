@@ -11,11 +11,13 @@
  * 7. Generate large test files if needed
  */
 
-import { chromium, FullConfig } from '@playwright/test';
-import { execSync } from 'child_process';
-import * as fs from 'fs/promises';
-import * as path from 'path';
+import { execSync } from 'node:child_process';
+import * as fs from 'node:fs/promises';
+import * as path from 'node:path';
+
+import { chromium, type FullConfig } from '@playwright/test';
 import { Redis } from 'ioredis';
+
 import { E2E_CONFIG, TEST_USERS } from '../config/e2e-test.config';
 
 interface SetupResult {
@@ -34,7 +36,7 @@ async function checkDockerService(serviceName: string, port: number): Promise<bo
       timeout: 5000,
     });
     return result.includes('Up');
-  } catch (error) {
+  } catch {
     return false;
   }
 }
@@ -57,7 +59,7 @@ async function waitForService(
         console.log(`  ✅ ${name} is ready`);
         return true;
       }
-    } catch (error) {
+    } catch {
       // Ignore errors during startup
     }
 
@@ -380,18 +382,18 @@ export default async function globalSetup(config: FullConfig) {
   allWarnings.push(...filesResult.warnings);
 
   // Print summary
-  console.log('\n' + '='.repeat(60));
+  console.log(`\n${  '='.repeat(60)}`);
   console.log('\n📊 Setup Summary:\n');
 
   if (allWarnings.length > 0) {
     console.log('⚠️  Warnings:');
-    allWarnings.forEach(warning => console.log(`   - ${warning}`));
+    for (const warning of allWarnings) console.log(`   - ${warning}`);
     console.log('');
   }
 
   if (allErrors.length > 0) {
     console.log('❌ Errors:');
-    allErrors.forEach(error => console.log(`   - ${error}`));
+    for (const error of allErrors) console.log(`   - ${error}`);
     console.log('');
     throw new Error('Setup failed with errors');
   }

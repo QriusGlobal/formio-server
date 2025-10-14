@@ -301,7 +301,7 @@ export const FeatureComparison: React.FC = () => {
           <h3>TUS (Basic)</h3>
           <div className="score-value">{scores.tusCount}/{features.length}</div>
           <div className="score-bar">
-            <div className="score-fill" style={{ width: `${scores.tus}%` }}></div>
+            <div className="score-fill" style={{ width: `${scores.tus}%` }} />
           </div>
           <p>{scores.tus}% feature coverage</p>
         </div>
@@ -309,7 +309,7 @@ export const FeatureComparison: React.FC = () => {
           <h3>Uppy (Enhanced)</h3>
           <div className="score-value">{scores.uppyCount}/{features.length}</div>
           <div className="score-bar">
-            <div className="score-fill" style={{ width: `${scores.uppy}%` }}></div>
+            <div className="score-fill" style={{ width: `${scores.uppy}%` }} />
           </div>
           <p>{scores.uppy}% feature coverage</p>
         </div>

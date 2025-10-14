@@ -11,8 +11,8 @@
  */
 
 import { test, expect } from '../fixtures/playwright-fixtures';
-import { UPPY_FILE_INPUT_SELECTOR } from '../utils/test-selectors';
 import { ConsoleMonitor, createMaliciousFileName } from '../utils/test-helpers';
+import { UPPY_FILE_INPUT_SELECTOR } from '../utils/test-selectors';
 
 test.describe('Security Tests - TUS Upload', () => {
   let consoleMonitor: ConsoleMonitor;
@@ -80,8 +80,8 @@ test.describe('Security Tests - TUS Upload', () => {
 
     // Wait for file name to be displayed or error to appear
     await Promise.race([
-      page.locator('.tus-file-name').waitFor({ state: 'visible', timeout: 3000 }),
-      page.locator('.upload-error').waitFor({ state: 'visible', timeout: 3000 })
+      await page.locator('.tus-file-name').waitFor({ state: 'visible', timeout: 3000 }),
+      await page.locator('.upload-error').waitFor({ state: 'visible', timeout: 3000 })
     ]).catch(() => {}); // Allow both to timeout gracefully
 
     // Check if file name is displayed (should be sanitized)
@@ -138,8 +138,8 @@ test.describe('Security Tests - TUS Upload', () => {
 
     // Wait for file processing to complete (error or display)
     await Promise.race([
-      page.locator('.upload-error').waitFor({ state: 'visible', timeout: 3000 }),
-      page.locator('.tus-file-name').waitFor({ state: 'visible', timeout: 3000 })
+      await page.locator('.upload-error').waitFor({ state: 'visible', timeout: 3000 }),
+      await page.locator('.tus-file-name').waitFor({ state: 'visible', timeout: 3000 })
     ]).catch(() => {}); // Allow both to timeout gracefully
 
     // Should either reject or sanitize the path
@@ -195,7 +195,7 @@ test.describe('Security Tests - TUS Upload', () => {
 
       // Should contain ellipsis if truncated
       if ((displayedName?.length || 0) < oversizedName.length) {
-        expect(displayedName).toMatch(/\.\.\.|…/);
+        expect(displayedName).toMatch(/\.{3}|…/);
       }
 
       console.log(`Truncated name length: ${displayedName?.length}`);
@@ -387,8 +387,8 @@ test.describe('Security Tests - Uppy Upload', () => {
 
     // Wait for Uppy to process and show restriction message or file item
     await Promise.race([
-      page.locator('.uppy-Informer').waitFor({ state: 'visible', timeout: 3000 }),
-      page.locator('.uppy-Dashboard-Item').waitFor({ state: 'visible', timeout: 3000 })
+      await page.locator('.uppy-Informer').waitFor({ state: 'visible', timeout: 3000 }),
+      await page.locator('.uppy-Dashboard-Item').waitFor({ state: 'visible', timeout: 3000 })
     ]).catch(() => {}); // Allow both to timeout gracefully
 
     const hasError = await page.locator('.uppy-Informer').count() > 0;
@@ -418,8 +418,8 @@ test.describe('Security Tests - Uppy Upload', () => {
 
     // Wait for Uppy to process the file and display it
     await Promise.race([
-      page.locator('.uppy-Dashboard-Item-name').waitFor({ state: 'visible', timeout: 3000 }),
-      page.locator('.uppy-Informer').waitFor({ state: 'visible', timeout: 3000 })
+      await page.locator('.uppy-Dashboard-Item-name').waitFor({ state: 'visible', timeout: 3000 }),
+      await page.locator('.uppy-Informer').waitFor({ state: 'visible', timeout: 3000 })
     ]).catch(() => {}); // Allow both to timeout gracefully
 
     // Verify no script execution
@@ -560,7 +560,7 @@ test.describe('Security Headers Validation', () => {
     const cookies = await context.cookies();
 
     if (cookies.length > 0) {
-      cookies.forEach(cookie => {
+      for (const cookie of cookies) {
         console.log(`Cookie: ${cookie.name}`);
 
         // Check for HttpOnly flag (prevents XSS access)
@@ -578,7 +578,7 @@ test.describe('Security Headers Validation', () => {
         // Check for SameSite attribute
         expect(['Strict', 'Lax', 'None']).toContain(cookie.sameSite);
         console.log(`  ✓ SameSite: ${cookie.sameSite}`);
-      });
+      }
     } else {
       console.log('No cookies set');
     }
@@ -617,7 +617,7 @@ test.describe('HTTPS/TLS Configuration (Production)', () => {
       expect(location).toContain('https://');
 
       console.log(`✓ HTTP→HTTPS redirect: ${response.status()} → ${location}`);
-    } catch (error) {
+    } catch {
       // Some configurations might not allow HTTP at all
       console.log('HTTP endpoint not accessible (HTTPS-only mode)');
     }
@@ -629,7 +629,7 @@ test.describe('HTTPS/TLS Configuration (Production)', () => {
 
     expect(hsts).toBeDefined();
     expect(hsts).toContain('max-age=');
-    expect(parseInt(hsts!.match(/max-age=(\d+)/)?.[1] || '0')).toBeGreaterThan(3600);
+    expect(Number.parseInt(hsts.match(/max-age=(\d+)/)?.[1] || '0')).toBeGreaterThan(3600);
 
     console.log(`✓ HSTS: ${hsts}`);
   });
@@ -719,7 +719,7 @@ test.describe('Rate Limiting & DDoS Protection', () => {
             'Tus-Resumable': '1.0.0',
             'Upload-Length': '1000',
           },
-        }).catch(err => ({ error: err }))
+        }).catch(error => ({ error }))
       );
     }
 

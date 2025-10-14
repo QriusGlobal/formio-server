@@ -11,9 +11,10 @@
  * - TUS upload server running at localhost:1080
  */
 
+import path from 'node:path';
+
 import { test, expect } from '@playwright/test';
-import { MongoClient, Db, ObjectId } from 'mongodb';
-import path from 'path';
+import { MongoClient, type Db, ObjectId } from 'mongodb';
 
 // MongoDB connection configuration
 const MONGO_URL = process.env.MONGO_URL || 'mongodb://localhost:27017';
@@ -296,8 +297,7 @@ test.describe('MongoDB Submission Persistence Validation', () => {
 
     // Get file data from component before submitting
     const fileDataFromComponent = await page.evaluate(() => {
-      const resumeData = (window as any).lastUploadedResume;
-      return resumeData;
+      return (window as any).lastUploadedResume;
     });
 
     // Create draft submission via API (without submit flag)

@@ -15,6 +15,13 @@
  */
 
 import { test, expect, Page } from '../fixtures/playwright-fixtures';
+import {
+  setupTestFilesDir,
+  cleanupTestFilesDir,
+  createPNGFile,
+  createJPEGFile,
+  createMultipleImages,
+} from '../fixtures/test-files';
 import { UPPY_FILE_INPUT_SELECTOR, SELECTORS, waitForTestId } from '../utils/test-selectors';
 import {
   waitForUppyReady,
@@ -27,13 +34,6 @@ import {
   getUploadProgress,
   dragAndDropFile,
 } from '../utils/uppy-helpers';
-import {
-  setupTestFilesDir,
-  cleanupTestFilesDir,
-  createPNGFile,
-  createJPEGFile,
-  createMultipleImages,
-} from '../fixtures/test-files';
 
 test.describe('Uppy Dashboard UI', () => {
   let testFilesDir: string;

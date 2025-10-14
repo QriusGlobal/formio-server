@@ -2,7 +2,7 @@
  * TypeScript Type Definitions for Playwright Tests
  */
 
-import { Page, Locator, APIRequestContext } from '@playwright/test';
+import { type Page, Locator, type APIRequestContext } from '@playwright/test';
 
 /**
  * Test File Information

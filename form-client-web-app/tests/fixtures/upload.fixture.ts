@@ -4,10 +4,11 @@
  * Provides reusable file upload helpers for E2E tests
  */
 
-import { test as base, expect, Page } from '@playwright/test';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as crypto from 'crypto';
+import * as crypto from 'node:crypto';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+
+import { test as base, expect, type Page } from '@playwright/test';
 
 export interface UploadFixture {
   files: TestFileGenerator;
@@ -124,7 +125,7 @@ export const test = base.extend<{ upload: UploadFixture }>({
         for (const file of testFiles) {
           try {
             await fs.promises.unlink(file.path);
-          } catch (err) {
+          } catch {
             // File might already be deleted
           }
         }
@@ -205,7 +206,7 @@ export const test = base.extend<{ upload: UploadFixture }>({
       async getUploadProgress(page: Page): Promise<number> {
         const progressText = await page.locator('.upload-progress, .uppy-StatusBar-statusSecondary').textContent();
         const match = progressText?.match(/(\d+)%/);
-        return match ? parseInt(match[1]) : 0;
+        return match ? Number.parseInt(match[1]) : 0;
       },
 
       async cancelUpload(page: Page): Promise<void> {
@@ -223,10 +224,10 @@ export const test = base.extend<{ upload: UploadFixture }>({
       },
 
       async getChunkProgress(page: Page): Promise<{ uploaded: number; total: number }> {
-        const progressData = await page.evaluate(() => {
+        return await page.evaluate(() => {
           // Access TUS upload instance if available
           const upload = (window as any).currentTusUpload;
-          if (upload && upload.url) {
+          if (upload?.url) {
             return {
               uploaded: upload.offset || 0,
               total: upload.file?.size || 0
@@ -234,8 +235,6 @@ export const test = base.extend<{ upload: UploadFixture }>({
           }
           return { uploaded: 0, total: 0 };
         });
-
-        return progressData;
       },
 
       async simulateNetworkFailure(page: Page): Promise<void> {
@@ -312,8 +311,7 @@ export const test = base.extend<{ upload: UploadFixture }>({
       },
 
       async getDashboardFiles(page: Page): Promise<string[]> {
-        const files = await page.locator('.uppy-Dashboard-file').allTextContents();
-        return files;
+        return await page.locator('.uppy-Dashboard-file').allTextContents();
       }
     };
 

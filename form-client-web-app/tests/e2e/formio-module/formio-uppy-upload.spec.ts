@@ -5,9 +5,9 @@
  */
 
 import { test, expect } from '../../fixtures/formio.fixture';
+import { monitorUploadRequests, verifyServerFile } from '../../fixtures/upload.fixture';
 import { FormioModulePage } from '../../pages/FormioModulePage';
 import { UppyDashboard } from '../../pages/UppyDashboard';
-import { monitorUploadRequests, verifyServerFile } from '../../fixtures/upload.fixture';
 
 test.describe('Form.io Uppy Dashboard Component', () => {
   let formPage: FormioModulePage;
@@ -119,7 +119,7 @@ test.describe('Form.io Uppy Dashboard Component', () => {
     // EVENT-DRIVEN: Wait for recording to start and run for 3 seconds
     await page.waitForFunction(() => {
       const recorder = (window as any).uppyRecorder;
-      return recorder && recorder.recording;
+      return recorder?.recording;
     }, { timeout: 5000 });
 
     // Record for 3 seconds using Promise.race for precise timing
@@ -238,8 +238,8 @@ test.describe('Form.io Uppy Dashboard Component', () => {
 
     // Verify progress tracking
     expect(progressUpdates.length).toBeGreaterThan(0);
-    expect(progressUpdates[progressUpdates.length - 1].percentage).toBe(100);
-    expect(progressUpdates[progressUpdates.length - 1].totalFiles).toBe(3);
+    expect(progressUpdates.at(-1).percentage).toBe(100);
+    expect(progressUpdates.at(-1).totalFiles).toBe(3);
   });
 
   test('should remove files from dashboard', async ({ page, upload }) => {

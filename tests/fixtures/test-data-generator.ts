@@ -3,9 +3,10 @@
  * Generates realistic test data for E2E tests
  */
 
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+
 import { faker } from '@faker-js/faker';
-import * as fs from 'fs';
-import * as path from 'path';
 
 export interface TestFile {
   name: string;
@@ -59,7 +60,7 @@ export class TestDataGenerator {
   private generateImageFile(size: number, name?: string): TestFile {
     // Generate fake PNG data (simplified)
     const content = Buffer.alloc(size);
-    content.write('\x89PNG\r\n\x1a\n', 0, 'binary');
+    content.write('\x89PNG\r\n\x1A\n', 0, 'binary');
 
     return {
       name: name || `${faker.system.fileName()}.png`,
@@ -168,7 +169,7 @@ export class TestDataGenerator {
         size: 4,
       },
       longName: {
-        name: 'a'.repeat(200) + '.txt',
+        name: `${'a'.repeat(200)  }.txt`,
         content: Buffer.from('test'),
         mimeType: 'text/plain',
         size: 4,
@@ -184,10 +185,10 @@ export class TestDataGenerator {
       fs.mkdirSync(outputDir, { recursive: true });
     }
 
-    files.forEach((file) => {
+    for (const file of files) {
       const filePath = path.join(outputDir, file.name);
       fs.writeFileSync(filePath, file.content);
-    });
+    }
   }
 
   /**

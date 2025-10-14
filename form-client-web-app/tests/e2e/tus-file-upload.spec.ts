@@ -119,7 +119,7 @@ test.describe('TUS File Upload E2E Tests', () => {
 
       // Verify upload status appears
       const statusText = await page.textContent('body');
-      expect(statusText).toMatch(/Uploading|Success|%/i);
+      expect(statusText).toMatch(/uploading|success|%/i);
     });
 
     test('should handle drag and drop file selection', async ({ page }) => {
@@ -250,7 +250,7 @@ test.describe('TUS File Upload E2E Tests', () => {
         response => {
           if (response.url().includes('/files/') && response.request().method() === 'PATCH') {
             const offset = response.headers()['upload-offset'];
-            return offset && parseInt(offset) >= fileSize / 2;
+            return offset && Number.parseInt(offset) >= fileSize / 2;
           }
           return false;
         },
@@ -301,7 +301,7 @@ test.describe('TUS File Upload E2E Tests', () => {
         response => {
           if (response.url().includes('/files/') && response.request().method() === 'PATCH') {
             const offset = response.headers()['upload-offset'];
-            return offset && parseInt(offset) >= fileSize;
+            return offset && Number.parseInt(offset) >= fileSize;
           }
           return false;
         },
@@ -309,7 +309,7 @@ test.describe('TUS File Upload E2E Tests', () => {
       );
 
       const bodyText = await page.textContent('body');
-      expect(bodyText).toMatch(/Success|Complete|uploaded/i);
+      expect(bodyText).toMatch(/success|complete|uploaded/i);
     });
 
     test('should display upload URL on success', async ({ page }) => {
@@ -352,7 +352,7 @@ test.describe('TUS File Upload E2E Tests', () => {
         response => {
           if (response.url().includes('/files/') && response.request().method() === 'PATCH') {
             const offset = response.headers()['upload-offset'];
-            return offset && parseInt(offset) >= fileSize;
+            return offset && Number.parseInt(offset) >= fileSize;
           }
           return false;
         },
@@ -390,7 +390,7 @@ test.describe('TUS File Upload E2E Tests', () => {
       );
 
       const bodyText = await page.textContent('body');
-      expect(bodyText).toMatch(/Error|Failed|error/i);
+      expect(bodyText).toMatch(/error|failed/i);
     });
 
     test('should handle network timeout errors', async ({ page }) => {

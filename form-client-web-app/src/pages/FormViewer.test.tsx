@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect } from 'vitest';
+
 import '@testing-library/jest-dom';
 import FormViewer from './FormViewer';
 
@@ -43,7 +44,7 @@ describe('FormViewer', () => {
 
   it('changes selected form when option is changed', () => {
     render(<FormViewer />);
-    const select = screen.getByRole('combobox') as HTMLSelectElement;
+    const select = screen.getByRole('combobox');
 
     fireEvent.change(select, { target: { value: 'contact' } });
     expect(select.value).toBe('contact');
@@ -66,7 +67,7 @@ describe('FormViewer', () => {
     // Check that textarea has content
     const textarea = screen.getByPlaceholderText(
       /Paste your Form.io JSON here/
-    ) as HTMLTextAreaElement;
+    );
     expect(textarea.value).toContain('"display": "form"');
     expect(textarea.value).toContain('"components":');
   });

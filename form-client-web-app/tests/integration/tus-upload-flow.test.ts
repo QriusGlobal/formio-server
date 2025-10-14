@@ -9,8 +9,8 @@
  * - Multi-file uploads
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as tus from 'tus-js-client';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 describe('TUS Upload Flow Integration', () => {
   let mockFetch: any;
@@ -47,7 +47,7 @@ describe('TUS Upload Flow Integration', () => {
 
         // Mock upload chunks
         if (options.method === 'PATCH') {
-          const contentLength = parseInt(options.headers['Content-Length']);
+          const contentLength = Number.parseInt(options.headers['Content-Length']);
           return Promise.resolve({
             ok: true,
             status: 204,
@@ -77,7 +77,7 @@ describe('TUS Upload Flow Integration', () => {
         upload.start();
         setTimeout(() => {
           expect(events).toContain('success');
-          resolve(undefined);
+          resolve();
         }, 1000);
       });
     });
@@ -101,8 +101,8 @@ describe('TUS Upload Flow Integration', () => {
         }
 
         if (options.method === 'PATCH') {
-          const offset = parseInt(options.headers['Upload-Offset'] || '0');
-          const length = parseInt(options.headers['Content-Length'] || '0');
+          const offset = Number.parseInt(options.headers['Upload-Offset'] || '0');
+          const length = Number.parseInt(options.headers['Content-Length'] || '0');
           return Promise.resolve({
             ok: true,
             status: 204,
@@ -126,8 +126,8 @@ describe('TUS Upload Flow Integration', () => {
         upload.start();
         setTimeout(() => {
           expect(progressEvents.length).toBeGreaterThan(0);
-          expect(progressEvents[progressEvents.length - 1].total).toBe(fileSize);
-          resolve(undefined);
+          expect(progressEvents.at(-1).total).toBe(fileSize);
+          resolve();
         }, 1000);
       });
     });
@@ -141,7 +141,7 @@ describe('TUS Upload Flow Integration', () => {
         tags: 'important,urgent'
       };
 
-      let capturedMetadata: Record<string, string> = {};
+      const capturedMetadata: Record<string, string> = {};
 
       mockFetch.mockImplementation((url: string, options: any) => {
         if (options.method === 'POST') {
@@ -174,7 +174,7 @@ describe('TUS Upload Flow Integration', () => {
         upload.start();
         setTimeout(() => {
           expect(capturedMetadata.filename).toBe('document.pdf');
-          resolve(undefined);
+          resolve();
         }, 500);
       });
     });
@@ -221,10 +221,10 @@ describe('TUS Upload Flow Integration', () => {
         }
 
         if (options.method === 'PATCH') {
-          const offset = parseInt(options.headers['Upload-Offset'] || '0');
+          const offset = Number.parseInt(options.headers['Upload-Offset'] || '0');
           expect(offset).toBe(currentOffset);
 
-          const length = parseInt(options.headers['Content-Length'] || '0');
+          const length = Number.parseInt(options.headers['Content-Length'] || '0');
           currentOffset += length;
 
           return Promise.resolve({
@@ -304,7 +304,7 @@ describe('TUS Upload Flow Integration', () => {
         upload.start();
         setTimeout(() => {
           expect(attemptCount).toBeGreaterThan(1);
-          resolve(undefined);
+          resolve();
         }, 1000);
       });
     });
@@ -343,7 +343,7 @@ describe('TUS Upload Flow Integration', () => {
         upload.start();
         setTimeout(() => {
           expect(attemptCount).toBe(2);
-          resolve(undefined);
+          resolve();
         }, 1000);
       });
     });
@@ -375,7 +375,7 @@ describe('TUS Upload Flow Integration', () => {
         setTimeout(() => {
           expect(attemptCount).toBe(1); // Should not retry
           expect(errorCaught).toBe(true);
-          resolve(undefined);
+          resolve();
         }, 500);
       });
     });
@@ -538,7 +538,7 @@ describe('TUS Upload Flow Integration', () => {
 
           expect(response.ok).toBe(true);
         }
-      } catch (error) {
+      } catch {
         // Expected for test
       }
 

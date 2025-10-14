@@ -3,7 +3,7 @@
  * Runs once before all tests
  */
 
-import { chromium, FullConfig } from '@playwright/test';
+import { chromium, type FullConfig } from '@playwright/test';
 
 async function globalSetup(config: FullConfig) {
   console.log('🔧 Running global setup...');
@@ -28,7 +28,7 @@ async function globalSetup(config: FullConfig) {
         ready = true;
         console.log('✅ Form.io server is ready');
       }
-    } catch (error) {
+    } catch {
       console.log(`⏳ Waiting for Form.io server... (${retries} retries left)`);
       retries--;
       await new Promise(resolve => setTimeout(resolve, 2000));

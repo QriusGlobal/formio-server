@@ -1,5 +1,6 @@
+import path from 'node:path';
+
 import { test, expect } from '@playwright/test';
-import path from 'path';
 
 test.describe('Form.io File Upload Integration', () => {
   test.beforeEach(async ({ page }) => {
