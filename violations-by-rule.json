@@ -1,0 +1,202 @@
+[
+  {
+    "rule": "no-console",
+    "count": 449
+  },
+  {
+    "rule": "@typescript-eslint/prefer-nullish-coalescing",
+    "count": 362
+  },
+  {
+    "rule": "@typescript-eslint/explicit-function-return-type",
+    "count": 201
+  },
+  {
+    "rule": "no-unused-vars",
+    "count": 192
+  },
+  {
+    "rule": "@typescript-eslint/no-unused-vars",
+    "count": 191
+  },
+  {
+    "rule": "no-undef",
+    "count": 187
+  },
+  {
+    "rule": "@typescript-eslint/explicit-module-boundary-types",
+    "count": 174
+  },
+  {
+    "rule": "security/detect-non-literal-fs-filename",
+    "count": 55
+  },
+  {
+    "rule": "no-return-await",
+    "count": 53
+  },
+  {
+    "rule": "security/detect-object-injection",
+    "count": 51
+  },
+  {
+    "rule": "@typescript-eslint/no-non-null-assertion",
+    "count": 47
+  },
+  {
+    "rule": "import/no-unresolved",
+    "count": 35
+  },
+  {
+    "rule": "sonarjs/no-duplicate-string",
+    "count": 16
+  },
+  {
+    "rule": "react-hooks/rules-of-hooks",
+    "count": 14
+  },
+  {
+    "rule": "unicorn/no-array-for-each",
+    "count": 9
+  },
+  {
+    "rule": "sonarjs/no-unused-collection",
+    "count": 9
+  },
+  {
+    "rule": "unicorn/consistent-function-scoping",
+    "count": 7
+  },
+  {
+    "rule": "jsx-a11y/label-has-associated-control",
+    "count": 7
+  },
+  {
+    "rule": "sonarjs/cognitive-complexity",
+    "count": 6
+  },
+  {
+    "rule": "react/no-array-index-key",
+    "count": 6
+  },
+  {
+    "rule": "no-param-reassign",
+    "count": 6
+  },
+  {
+    "rule": "security/detect-unsafe-regex",
+    "count": 5
+  },
+  {
+    "rule": "security/detect-non-literal-regexp",
+    "count": 5
+  },
+  {
+    "rule": "no-case-declarations",
+    "count": 5
+  },
+  {
+    "rule": "promise/always-return",
+    "count": 4
+  },
+  {
+    "rule": "no-empty-pattern",
+    "count": 4
+  },
+  {
+    "rule": "promise/no-nesting",
+    "count": 3
+  },
+  {
+    "rule": "no-control-regex",
+    "count": 3
+  },
+  {
+    "rule": "import/order",
+    "count": 3
+  },
+  {
+    "rule": "import/named",
+    "count": 3
+  },
+  {
+    "rule": "unicorn/explicit-length-check",
+    "count": 2
+  },
+  {
+    "rule": "sonarjs/no-identical-functions",
+    "count": 2
+  },
+  {
+    "rule": "react/no-unescaped-entities",
+    "count": 2
+  },
+  {
+    "rule": "react-hooks/exhaustive-deps",
+    "count": 2
+  },
+  {
+    "rule": "no-constant-binary-expression",
+    "count": 2
+  },
+  {
+    "rule": "import/no-named-as-default-member",
+    "count": 2
+  },
+  {
+    "rule": "import/no-extraneous-dependencies",
+    "count": 2
+  },
+  {
+    "rule": "@typescript-eslint/prefer-optional-chain",
+    "count": 2
+  },
+  {
+    "rule": "@typescript-eslint/consistent-type-imports",
+    "count": 2
+  },
+  {
+    "rule": "unicorn/prefer-number-properties",
+    "count": 1
+  },
+  {
+    "rule": "unicorn/prefer-add-event-listener",
+    "count": 1
+  },
+  {
+    "rule": "sonarjs/prefer-single-boolean-return",
+    "count": 1
+  },
+  {
+    "rule": "sonarjs/no-nested-template-literals",
+    "count": 1
+  },
+  {
+    "rule": "promise/catch-or-return",
+    "count": 1
+  },
+  {
+    "rule": "prefer-promise-reject-errors",
+    "count": 1
+  },
+  {
+    "rule": "no-redeclare",
+    "count": 1
+  },
+  {
+    "rule": "no-dupe-keys",
+    "count": 1
+  },
+  {
+    "rule": "no-async-promise-executor",
+    "count": 1
+  },
+  {
+    "rule": "jsx-a11y/role-supports-aria-props",
+    "count": 1
+  },
+  {
+    "rule": "jsx-a11y/click-events-have-key-events",
+    "count": 1
+  }
+]

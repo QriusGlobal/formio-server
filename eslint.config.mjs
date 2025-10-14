@@ -180,9 +180,26 @@ export default [
       'no-unsanitized/property': 'error',
 
       // ========================================================================
-      // TYPESCRIPT RULES - Strict type checking
+      // TYPESCRIPT RULES - Basic syntax only (strict typing disabled)
       // ========================================================================
-      '@typescript-eslint/no-explicit-any': 'error',
+      // Type Safety Rules - DISABLED (user decision: no strict typing yet)
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-floating-promises': 'off',
+      '@typescript-eslint/require-await': 'off',
+      '@typescript-eslint/no-misused-promises': 'off',
+      '@typescript-eslint/restrict-template-expressions': 'off',
+      '@typescript-eslint/restrict-plus-operands': 'off',
+      '@typescript-eslint/no-unnecessary-type-assertion': 'off',
+      '@typescript-eslint/no-redundant-type-constituents': 'off',
+      '@typescript-eslint/await-thenable': 'off',
+      '@typescript-eslint/strict-boolean-expressions': 'off',
+
+      // Basic TypeScript Rules - KEPT
       '@typescript-eslint/no-unused-vars': [
         'error',
         {
@@ -201,18 +218,6 @@ export default [
         }
       ],
       '@typescript-eslint/explicit-module-boundary-types': 'warn',
-      '@typescript-eslint/no-unsafe-assignment': 'error',
-      '@typescript-eslint/no-unsafe-member-access': 'error',
-      '@typescript-eslint/no-unsafe-call': 'error',
-      '@typescript-eslint/no-unsafe-return': 'error',
-      '@typescript-eslint/no-floating-promises': 'error',
-      '@typescript-eslint/no-misused-promises': [
-        'error',
-        { checksVoidReturn: { attributes: false } }
-      ],
-      '@typescript-eslint/await-thenable': 'error',
-      '@typescript-eslint/no-unnecessary-type-assertion': 'error',
-      '@typescript-eslint/strict-boolean-expressions': 'off', // Too strict for React
       '@typescript-eslint/consistent-type-imports': [
         'error',
         { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
@@ -429,7 +434,7 @@ export default [
       'no-implied-eval': 'error',
       'no-new-func': 'error',
       'no-return-await': 'error',
-      'require-await': 'error',
+      'require-await': 'off', // Disabled - conflicts with @typescript-eslint/require-await
       'no-throw-literal': 'error',
       'prefer-promise-reject-errors': 'error'
     }
@@ -468,13 +473,13 @@ export default [
       }
     },
     rules: {
-      // Relax some rules for tests
-      '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/no-unsafe-assignment': 'warn',
-      '@typescript-eslint/no-unsafe-member-access': 'warn',
-      '@typescript-eslint/no-unsafe-call': 'warn',
-      '@typescript-eslint/no-unsafe-return': 'warn',
-      '@typescript-eslint/no-floating-promises': 'warn',
+      // Disable type safety rules for tests (matches main config)
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/no-floating-promises': 'off',
       'sonarjs/cognitive-complexity': 'off',
       'sonarjs/no-duplicate-string': 'off',
       'import/no-extraneous-dependencies': 'off',
