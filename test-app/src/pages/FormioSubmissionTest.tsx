@@ -4,6 +4,7 @@ import { Form } from '@formio/react';
 import { useState } from 'react';
 
 // Register file upload module
+// eslint-disable-next-line react-hooks/rules-of-hooks -- Formio.use() is NOT a React Hook, it's Form.io plugin registration
 Formio.use(FormioFileUploadModule);
 
 export default function FormioSubmissionTest() {
@@ -111,41 +112,48 @@ export default function FormioSubmissionTest() {
 
   return (
     <div style={{ maxWidth: '900px', margin: '2rem auto', padding: '1rem' }}>
-      <div style={{
-        background: '#f5f5f5',
-        padding: '1.5rem',
-        borderRadius: '8px',
-        marginBottom: '2rem'
-      }}>
+      <div
+        style={{
+          background: '#f5f5f5',
+          padding: '1.5rem',
+          borderRadius: '8px',
+          marginBottom: '2rem'
+        }}
+      >
         <h1 style={{ margin: '0 0 1rem 0', color: '#333' }}>
           Form.io File Upload Integration Test
         </h1>
         <p style={{ margin: 0, color: '#666' }}>
           This page validates that uploaded files are properly included in form submission data.
-          Upload files using TUS (single and multiple) and Uppy components, then submit to see the results.
+          Upload files using TUS (single and multiple) and Uppy components, then submit to see the
+          results.
         </p>
       </div>
 
       {error && (
-        <div style={{
-          background: '#ffebee',
-          color: '#c62828',
-          padding: '1rem',
-          borderRadius: '4px',
-          marginBottom: '1rem',
-          border: '1px solid #ef5350'
-        }}>
+        <div
+          style={{
+            background: '#ffebee',
+            color: '#c62828',
+            padding: '1rem',
+            borderRadius: '4px',
+            marginBottom: '1rem',
+            border: '1px solid #ef5350'
+          }}
+        >
           ⚠️ {error}
         </div>
       )}
 
       {!submission ? (
-        <div style={{
-          background: 'white',
-          padding: '2rem',
-          borderRadius: '8px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-        }}>
+        <div
+          style={{
+            background: 'white',
+            padding: '2rem',
+            borderRadius: '8px',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+          }}
+        >
           <Form
             form={formDefinition}
             onSubmit={handleSubmit}
@@ -158,16 +166,16 @@ export default function FormioSubmissionTest() {
         </div>
       ) : (
         <div>
-          <div style={{
-            background: '#e8f5e9',
-            padding: '1.5rem',
-            borderRadius: '8px',
-            marginBottom: '2rem',
-            border: '2px solid #4caf50'
-          }}>
-            <h2 style={{ margin: '0 0 1rem 0', color: '#2e7d32' }}>
-              ✅ Submission Successful!
-            </h2>
+          <div
+            style={{
+              background: '#e8f5e9',
+              padding: '1.5rem',
+              borderRadius: '8px',
+              marginBottom: '2rem',
+              border: '2px solid #4caf50'
+            }}
+          >
+            <h2 style={{ margin: '0 0 1rem 0', color: '#2e7d32' }}>✅ Submission Successful!</h2>
             <button
               onClick={resetForm}
               style={{
@@ -184,40 +192,48 @@ export default function FormioSubmissionTest() {
             </button>
           </div>
 
-          <div style={{
-            background: 'white',
-            padding: '1.5rem',
-            borderRadius: '8px',
-            marginBottom: '1rem',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-          }}>
+          <div
+            style={{
+              background: 'white',
+              padding: '1.5rem',
+              borderRadius: '8px',
+              marginBottom: '1rem',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            }}
+          >
             <h3 style={{ margin: '0 0 1rem 0' }}>📋 Submitted Data:</h3>
-            <pre style={{
-              background: '#f5f5f5',
-              padding: '1rem',
-              borderRadius: '4px',
-              overflow: 'auto',
-              fontSize: '0.875rem',
-              lineHeight: '1.5'
-            }}>
+            <pre
+              style={{
+                background: '#f5f5f5',
+                padding: '1rem',
+                borderRadius: '4px',
+                overflow: 'auto',
+                fontSize: '0.875rem',
+                lineHeight: '1.5'
+              }}
+            >
               {JSON.stringify(submission.data, null, 2)}
             </pre>
           </div>
 
-          <div style={{
-            background: 'white',
-            padding: '1.5rem',
-            borderRadius: '8px',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-          }}>
+          <div
+            style={{
+              background: 'white',
+              padding: '1.5rem',
+              borderRadius: '8px',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            }}
+          >
             <h3 style={{ margin: '0 0 1rem 0' }}>🔍 File Upload Validation:</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div style={{
-                padding: '1rem',
-                background: '#f5f5f5',
-                borderRadius: '4px',
-                borderLeft: `4px solid ${submission.data.resume?.url ? '#4caf50' : '#f44336'}`
-              }}>
+              <div
+                style={{
+                  padding: '1rem',
+                  background: '#f5f5f5',
+                  borderRadius: '4px',
+                  borderLeft: `4px solid ${submission.data.resume?.url ? '#4caf50' : '#f44336'}`
+                }}
+              >
                 <strong>Resume (TUS Single File):</strong>
                 {submission.data.resume?.url ? (
                   <div style={{ marginTop: '0.5rem' }}>
@@ -237,31 +253,38 @@ export default function FormioSubmissionTest() {
                       <span style={{ color: '#4caf50', fontWeight: 'bold' }}>✅</span>
                     </a>
                     <div style={{ fontSize: '0.875rem', color: '#666', marginTop: '0.25rem' }}>
-                      Size: {(submission.data.resume.size / 1024).toFixed(2)} KB |
-                      Type: {submission.data.resume.type} |
-                      Storage: {submission.data.resume.storage}
+                      Size: {(submission.data.resume.size / 1024).toFixed(2)} KB | Type:{' '}
+                      {submission.data.resume.type} | Storage: {submission.data.resume.storage}
                     </div>
                   </div>
                 ) : (
-                  <div style={{ marginTop: '0.5rem', color: '#c62828' }}>
-                    ❌ No resume uploaded
-                  </div>
+                  <div style={{ marginTop: '0.5rem', color: '#c62828' }}>❌ No resume uploaded</div>
                 )}
               </div>
 
-              <div style={{
-                padding: '1rem',
-                background: '#f5f5f5',
-                borderRadius: '4px',
-                borderLeft: `4px solid ${
-                  Array.isArray(submission.data.portfolio) && submission.data.portfolio.length > 0
-                    ? '#4caf50'
-                    : '#ff9800'
-                }`
-              }}>
+              <div
+                style={{
+                  padding: '1rem',
+                  background: '#f5f5f5',
+                  borderRadius: '4px',
+                  borderLeft: `4px solid ${
+                    Array.isArray(submission.data.portfolio) && submission.data.portfolio.length > 0
+                      ? '#4caf50'
+                      : '#ff9800'
+                  }`
+                }}
+              >
                 <strong>Portfolio (TUS Multiple Files):</strong>
-                {Array.isArray(submission.data.portfolio) && submission.data.portfolio.length > 0 ? (
-                  <div style={{ marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {Array.isArray(submission.data.portfolio) &&
+                submission.data.portfolio.length > 0 ? (
+                  <div
+                    style={{
+                      marginTop: '0.5rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.5rem'
+                    }}
+                  >
                     {submission.data.portfolio.map((file: any, idx: number) => (
                       <a
                         key={idx}
@@ -293,12 +316,14 @@ export default function FormioSubmissionTest() {
                 )}
               </div>
 
-              <div style={{
-                padding: '1rem',
-                background: '#f5f5f5',
-                borderRadius: '4px',
-                borderLeft: `4px solid ${submission.data.profilePhoto?.url ? '#4caf50' : '#ff9800'}`
-              }}>
+              <div
+                style={{
+                  padding: '1rem',
+                  background: '#f5f5f5',
+                  borderRadius: '4px',
+                  borderLeft: `4px solid ${submission.data.profilePhoto?.url ? '#4caf50' : '#ff9800'}`
+                }}
+              >
                 <strong>Profile Photo (Uppy Upload):</strong>
                 {submission.data.profilePhoto?.url ? (
                   <div style={{ marginTop: '0.5rem' }}>
@@ -318,8 +343,8 @@ export default function FormioSubmissionTest() {
                       <span style={{ color: '#4caf50', fontWeight: 'bold' }}>✅</span>
                     </a>
                     <div style={{ fontSize: '0.875rem', color: '#666', marginTop: '0.25rem' }}>
-                      Size: {(submission.data.profilePhoto.size / 1024).toFixed(2)} KB |
-                      Type: {submission.data.profilePhoto.type}
+                      Size: {(submission.data.profilePhoto.size / 1024).toFixed(2)} KB | Type:{' '}
+                      {submission.data.profilePhoto.type}
                     </div>
                   </div>
                 ) : (
@@ -331,18 +356,23 @@ export default function FormioSubmissionTest() {
             </div>
           </div>
 
-          <div style={{
-            background: '#fff3e0',
-            padding: '1rem',
-            borderRadius: '4px',
-            marginTop: '1rem',
-            border: '1px solid #ffb74d'
-          }}>
-            <h4 style={{ margin: '0 0 0.5rem 0', color: '#e65100' }}>💡 Integration Success Criteria:</h4>
+          <div
+            style={{
+              background: '#fff3e0',
+              padding: '1rem',
+              borderRadius: '4px',
+              marginTop: '1rem',
+              border: '1px solid #ffb74d'
+            }}
+          >
+            <h4 style={{ margin: '0 0 0.5rem 0', color: '#e65100' }}>
+              💡 Integration Success Criteria:
+            </h4>
             <ul style={{ margin: 0, paddingLeft: '1.5rem', color: '#666' }}>
               <li>
-                <strong>TUS Single Upload:</strong> {submission.data.resume?.url ? '✅ PASS' : '❌ FAIL'} -
-                File URL in <code>submission.data.resume</code>
+                <strong>TUS Single Upload:</strong>{' '}
+                {submission.data.resume?.url ? '✅ PASS' : '❌ FAIL'} - File URL in{' '}
+                <code>submission.data.resume</code>
               </li>
               <li>
                 <strong>TUS Multiple Upload:</strong>{' '}
@@ -352,8 +382,9 @@ export default function FormioSubmissionTest() {
                 - Array of file URLs in <code>submission.data.portfolio</code>
               </li>
               <li>
-                <strong>Uppy Upload:</strong> {submission.data.profilePhoto?.url ? '✅ PASS' : '⚠️ OPTIONAL'} -
-                File URL in <code>submission.data.profilePhoto</code>
+                <strong>Uppy Upload:</strong>{' '}
+                {submission.data.profilePhoto?.url ? '✅ PASS' : '⚠️ OPTIONAL'} - File URL in{' '}
+                <code>submission.data.profilePhoto</code>
               </li>
             </ul>
           </div>

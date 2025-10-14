@@ -484,6 +484,10 @@ export default [
       'sonarjs/no-duplicate-string': 'off',
       'import/no-extraneous-dependencies': 'off',
 
+      // Disable React hooks for test files (Playwright fixtures use page.use() which triggers false positives)
+      'react-hooks/rules-of-hooks': 'off',
+      'react-hooks/exhaustive-deps': 'off',
+
       // Import rules - Allow test dependencies
       'import/no-unresolved': [
         'error',

@@ -1,16 +1,17 @@
-import FormioFileUploadModule from '@formio/file-upload'
-import { Formio } from '@formio/js'
-import { lazy, Suspense } from 'react'
-import { Routes, Route, Link, useLocation } from 'react-router-dom'
-import './App.css'
+import FormioFileUploadModule from '@formio/file-upload';
+import { Formio } from '@formio/js';
+import { lazy, Suspense } from 'react';
+import { Routes, Route, Link, useLocation } from 'react-router-dom';
+import './App.css';
 
 // Register Form.io file upload module globally before lazy loading
 // This ensures the module is available when lazy-loaded components render
-Formio.use(FormioFileUploadModule)
+// eslint-disable-next-line react-hooks/rules-of-hooks -- Formio.use() is NOT a React Hook, it's Form.io plugin registration
+Formio.use(FormioFileUploadModule);
 
 // Lazy load route components for better performance
-const FormioSubmissionTest = lazy(() => import('./pages/FormioSubmissionTest'))
-const TusBulkUploadTest = lazy(() => import('./pages/TusBulkUploadTest'))
+const FormioSubmissionTest = lazy(() => import('./pages/FormioSubmissionTest'));
+const TusBulkUploadTest = lazy(() => import('./pages/TusBulkUploadTest'));
 
 // Loading component with GPU acceleration
 function LoadingSpinner() {
@@ -27,15 +28,17 @@ function LoadingSpinner() {
         willChange: 'opacity'
       }}
     >
-      <div style={{
-        width: '50px',
-        height: '50px',
-        border: '4px solid #f3f3f3',
-        borderTop: '4px solid #667eea',
-        borderRadius: '50%',
-        animation: 'spin 1s linear infinite',
-        transform: 'translateZ(0)' // GPU acceleration
-      }} />
+      <div
+        style={{
+          width: '50px',
+          height: '50px',
+          border: '4px solid #f3f3f3',
+          borderTop: '4px solid #667eea',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite',
+          transform: 'translateZ(0)' // GPU acceleration
+        }}
+      />
       <style>{`
         @keyframes spin {
           0% { transform: translateZ(0) rotate(0deg); }
@@ -43,11 +46,11 @@ function LoadingSpinner() {
         }
       `}</style>
     </div>
-  )
+  );
 }
 
 function App() {
-  const location = useLocation()
+  const location = useLocation();
 
   return (
     <div className="App" style={{ transform: 'translateZ(0)' }}>
@@ -56,13 +59,15 @@ function App() {
         <p>Complete testing environment for TUS and Uppy file upload integration</p>
 
         {/* Navigation */}
-        <nav style={{
-          marginTop: '1.5rem',
-          display: 'flex',
-          gap: '1rem',
-          justifyContent: 'center',
-          flexWrap: 'wrap'
-        }}>
+        <nav
+          style={{
+            marginTop: '1.5rem',
+            display: 'flex',
+            gap: '1rem',
+            justifyContent: 'center',
+            flexWrap: 'wrap'
+          }}
+        >
           <Link
             to="/"
             style={{
@@ -109,7 +114,7 @@ function App() {
         </Suspense>
       </main>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
