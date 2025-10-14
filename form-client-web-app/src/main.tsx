@@ -14,8 +14,8 @@ import './formio-dark.css';
 import './whitelabel.css';
 
 // Register Form.io File Upload Module
-// CRITICAL: Import from @formio/js (bundled in @qrius/formio-react) to use the SAME Components registry!
-import { Formio, Components } from '@formio/js';
+// CRITICAL: Import from @qrius/formio-react to use the SAME Components registry!
+import { Formio, Components } from '@qrius/formio-react';
 
 import { MultiImageUpload } from './components/MultiImageUpload';
 import FormioFileUploadModule, {
@@ -31,6 +31,7 @@ MultiImageUploadComponent.registerReactComponent(() => ({
 }));
 
 // Register module with Form.io
+// eslint-disable-next-line react-hooks/rules-of-hooks -- Formio.use() is NOT a React Hook, it's Form.io plugin registration
 Formio.use(FormioFileUploadModule);
 
 // REQUIRED: Explicit component registration for Form.io's component loader
