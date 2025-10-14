@@ -1,4 +1,4 @@
-. "$(dirname -- "$0")/_/husky.sh"
+# Husky modern format (v9+)
 
 echo "🚀 Running pre-push checks..."
 
@@ -11,8 +11,8 @@ fi
 
 # Run critical E2E tests before push
 echo "Running critical E2E tests..."
-cd test-app
-npm run test:e2e -- --grep @critical || {
+cd form-client-web-app
+pnpm run test:e2e -- --grep @critical || {
   echo "❌ Critical E2E tests failed. Please fix before pushing."
   exit 1
 }
