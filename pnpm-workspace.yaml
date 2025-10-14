@@ -12,7 +12,6 @@ packages:
   - "formio-react"
 
   # Applications (not published)
-  - "test-app"
   - "form-client-web-app"
 
   # Infrastructure (Terraform - no package.json)

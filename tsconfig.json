@@ -15,11 +15,7 @@
     "jsx": "react-jsx",
     "types": ["node"]
   },
-  "references": [
-    { "path": "./packages/formio-file-upload" },
-    { "path": "./form-client-web-app" },
-    { "path": "./test-app" }
-  ],
+  "references": [{ "path": "./packages/formio-file-upload" }, { "path": "./form-client-web-app" }],
   "files": [],
   "include": [],
   "exclude": ["node_modules", "dist", "build", "lib", "coverage", ".next", ".turbo"]

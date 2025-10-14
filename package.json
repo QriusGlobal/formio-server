@@ -8,7 +8,6 @@
     "formio",
     "formio-core",
     "formio-react",
-    "test-app",
     "form-client-web-app"
   ],
   "scripts": {

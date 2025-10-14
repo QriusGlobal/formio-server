@@ -1,6 +1,0 @@
-# Large test fixture files
-test-file-*.bin
-test-file-*.txt
-
-# Keep the directory structure
-!.gitignore
