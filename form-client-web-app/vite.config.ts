@@ -2,6 +2,7 @@ import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import replace from '@rollup/plugin-replace';
 import { visualizer } from 'rollup-plugin-visualizer';
+import commonjs from '@rollup/plugin-commonjs';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
@@ -72,6 +73,11 @@ export default defineConfig(({ mode }) => {
 
       rollupOptions: {
         plugins: [
+          commonjs({
+            include: [/formio-react/, /node_modules/],
+            requireReturnsDefault: 'auto',
+            esmExternals: true
+          }),
           mode === 'analyze' &&
             visualizer({
               filename: 'dist/stats.html',
@@ -85,10 +91,7 @@ export default defineConfig(({ mode }) => {
             if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
               return 'vendor-react';
             }
-            if (
-              id.includes('node_modules/@qrius/formio-react') ||
-              id.includes('node_modules/@formio/')
-            ) {
+            if (id.includes('formio-react/lib') || id.includes('node_modules/@formio/')) {
               return 'vendor-formio';
             }
             if (id.includes('node_modules')) {
@@ -97,13 +100,20 @@ export default defineConfig(({ mode }) => {
           },
           chunkFileNames: isProduction ? 'assets/[hash].js' : 'assets/[name]-[hash].js',
           entryFileNames: isProduction ? 'assets/[hash].js' : 'assets/[name]-[hash].js',
-          assetFileNames: isProduction ? 'assets/[hash].[ext]' : 'assets/[name]-[hash].[ext]'
+          assetFileNames: isProduction ? 'assets/[hash].[ext]' : 'assets/[name]-[hash].[ext]',
+          // Ensure proper CommonJS named exports handling
+          interop: 'auto',
+          exports: 'named'
         }
       }
     },
 
     optimizeDeps: {
-      include: ['react', 'react-dom', '@qrius/formio-react']
+      include: ['react', 'react-dom', '@qrius/formio-react'],
+      esbuildOptions: {
+        // Ensure proper CommonJS to ESM conversion
+        mainFields: ['module', 'main']
+      }
     }
   };
 });

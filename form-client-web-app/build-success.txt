@@ -1,0 +1,28 @@
+ WARN  Issue while reading "/Users/mishal/code/worktrees/formio-monorepo-20251009/.npmrc". Failed to replace env in config: ${GITHUB_TOKEN}
+ WARN  Issue while reading "/Users/mishal/code/worktrees/formio-monorepo-20251009/.npmrc". Failed to replace env in config: ${GITHUB_TOKEN}
+
+> form-client-web-app@0.0.1 build /Users/mishal/code/worktrees/formio-monorepo-20251009/form-client-web-app
+> vite build
+
+NODE_ENV=production is not supported in the .env file. Only NODE_ENV=development is supported to create a development build of your project. If you need to set process.env.NODE_ENV, you can set it in the Vite config instead.
+vite v5.4.20 building for production...
+transforming...
+✓ 3146 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                 1.48 kB │ gzip:   0.59 kB
+dist/assets/BtvjY1KL.woff2    130.40 kB
+dist/assets/BOrJxbIo.woff     176.03 kB
+dist/assets/qIO8E9An.css       29.54 kB │ gzip:   6.62 kB
+dist/assets/zlDtN3HN.css       67.32 kB │ gzip:  10.63 kB
+dist/assets/CBdO3sPr.css      118.58 kB │ gzip:  23.43 kB
+dist/assets/CPX9CHwV.js       188.99 kB │ gzip:  59.16 kB
+dist/assets/hjfgsSLn.js       221.25 kB │ gzip:  67.64 kB
+dist/assets/CFJ-6qf_.js       979.58 kB │ gzip: 301.78 kB
+dist/assets/DYRuGnOB.js     1,094.03 kB │ gzip: 264.42 kB
+
+(!) Some chunks are larger than 1000 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 9.16s

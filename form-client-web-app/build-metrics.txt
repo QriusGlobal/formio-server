@@ -1,0 +1,12 @@
+computing gzip size...
+dist/index.html                 1.48 kB │ gzip:   0.59 kB
+dist/assets/BtvjY1KL.woff2    130.40 kB
+dist/assets/BOrJxbIo.woff     176.03 kB
+dist/assets/qIO8E9An.css       29.54 kB │ gzip:   6.62 kB
+dist/assets/zlDtN3HN.css       67.32 kB │ gzip:  10.63 kB
+dist/assets/CBdO3sPr.css      118.58 kB │ gzip:  23.43 kB
+dist/assets/CPX9CHwV.js       188.99 kB │ gzip:  59.16 kB
+dist/assets/hjfgsSLn.js       221.25 kB │ gzip:  67.64 kB
+dist/assets/CFJ-6qf_.js       979.58 kB │ gzip: 301.78 kB
+dist/assets/DYRuGnOB.js     1,094.03 kB │ gzip: 264.42 kB
+✓ built in 9.16s
