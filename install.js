@@ -156,7 +156,7 @@ module.exports = function(formio, items, done) {
      */
     areYouSure: function(done) {
       if (process.env.ROOT_EMAIL) {
-        done();
+        return done();
       }
       prompt.get([
         {
@@ -218,8 +218,16 @@ module.exports = function(formio, items, done) {
      */
     whatTemplate: function(done) {
       if (process.env.ROOT_EMAIL) {
-        templateFile = 'client';
-        done();
+        // Gemini's architectural fix (Option 3 upgraded to Option B):
+        // Use minimal template when client directory is missing
+        if (fs.existsSync('client')) {
+          templateFile = 'client';
+        } else {
+          // Fallback to minimal template if 'client' directory doesn't exist
+          // This provides essential admin form and administrator role
+          templateFile = 'minimal-project.json';
+        }
+        return done();
       }
 
       let message = '\nWhich project template would you like to install?\n'.green;
@@ -352,8 +360,12 @@ module.exports = function(formio, items, done) {
           },
         }
       ]).then(function(result) {
+        // Use environment variables if set, otherwise use prompt results
+        const email = process.env.ROOT_EMAIL || result.email;
+        const password = process.env.ROOT_PASSWORD || result.password;
+
         util.log('Encrypting password');
-        formio.encrypt(result.password, async function(err, hash) {
+        formio.encrypt(password, async function(err, hash) {
           if (err) {
             return done(err);
           }
@@ -364,7 +376,7 @@ module.exports = function(formio, items, done) {
             await formio.resources.submission.model.create({
               form: project.resources.admin._id,
               data: {
-                email: result.email,
+                email: email,
                 password: hash
               },
               roles: [

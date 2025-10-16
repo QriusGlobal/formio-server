@@ -131,7 +131,8 @@ module.exports = function(options) {
     };
 
     // Check for the client folder.
-    if (!fs.existsSync('client') && !test && !noInstall) {
+    const skipClientDownload = process.env.FORMIO_SKIP_CLIENT_DOWNLOAD === 'true';
+    if (!fs.existsSync('client') && !test && !noInstall && !skipClientDownload) {
       install.download = true;
       install.extract = true;
     }
