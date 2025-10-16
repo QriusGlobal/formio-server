@@ -6,7 +6,7 @@
 [subrepo]
 	remote = https://github.com/QriusGlobal/formio-server.git
 	branch = main
-	commit =
-	parent =
+	commit = aa05bb996193e45a368a37197d595ec6638d5e21
+	parent = aa05bb996193e45a368a37197d595ec6638d5e21
 	method = merge
 	cmdver = 0.4.9
