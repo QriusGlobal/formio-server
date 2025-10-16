@@ -1,0 +1,92 @@
+{
+  "title": "Default Project",
+  "version": "2.0.0",
+  "name": "default",
+  "description": "Minimal project template for Docker deployment",
+  "settings": {
+    "cors": "*"
+  },
+  "roles": {
+    "administrator": {
+      "title": "Administrator",
+      "description": "Administrator role with full system access",
+      "admin": true,
+      "default": false
+    },
+    "authenticated": {
+      "title": "Authenticated",
+      "description": "Authenticated user role",
+      "admin": false,
+      "default": false
+    },
+    "anonymous": {
+      "title": "Anonymous",
+      "description": "Anonymous role",
+      "default": true,
+      "admin": false
+    }
+  },
+  "resources": {
+    "admin": {
+      "title": "Admin",
+      "type": "resource",
+      "name": "admin",
+      "path": "admin",
+      "display": "form",
+      "tags": [],
+      "settings": {},
+      "components": [
+        {
+          "label": "Email",
+          "tableView": true,
+          "key": "email",
+          "type": "email",
+          "input": true
+        },
+        {
+          "label": "Password",
+          "tableView": false,
+          "key": "password",
+          "type": "password",
+          "input": true,
+          "protected": true
+        },
+        {
+          "type": "button",
+          "label": "Submit",
+          "key": "submit",
+          "disableOnInvalid": true,
+          "input": true,
+          "tableView": false
+        }
+      ],
+      "submissionAccess": [
+        {
+          "type": "create_own",
+          "roles": []
+        },
+        {
+          "type": "read_own",
+          "roles": []
+        },
+        {
+          "type": "update_own",
+          "roles": []
+        },
+        {
+          "type": "delete_own",
+          "roles": []
+        }
+      ],
+      "access": [
+        {
+          "type": "read_all",
+          "roles": ["administrator"]
+        }
+      ]
+    }
+  },
+  "forms": {},
+  "actions": {},
+  "revisions": {}
+}

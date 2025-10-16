@@ -1,0 +1,54 @@
+# ═══════════════════════════════════════════════════════════════
+#  Checkmake Configuration
+# ═══════════════════════════════════════════════════════════════
+#
+#  Purpose: Makefile linting and best practices enforcement
+#  Tool: https://github.com/mrtazz/checkmake
+#
+#  Installation:
+#    brew install checkmake
+#
+#  Usage:
+#    checkmake Makefile
+#    make lint-makefile
+#
+# ═══════════════════════════════════════════════════════════════
+
+rules:
+  # ─────────────────────────────────────────────────────────────
+  #  Critical Rules (error level)
+  # ─────────────────────────────────────────────────────────────
+
+  phonydeclared:
+    # All non-file targets must be declared .PHONY
+    severity: error
+
+  timestampexpanded:
+    # Timestamps must be expanded in recipe, not declaration
+    severity: error
+
+  # ─────────────────────────────────────────────────────────────
+  #  Best Practice Rules (warning level)
+  # ─────────────────────────────────────────────────────────────
+
+  minphony:
+    # Minimum 3 .PHONY targets required
+    severity: warning
+    minPhony: 3
+
+  maxbodylength:
+    # Recipe bodies shouldn't exceed 20 lines
+    severity: warning
+    maxBodyLength: 25
+
+# ═══════════════════════════════════════════════════════════════
+#  Expected Output
+# ═══════════════════════════════════════════════════════════════
+#
+#  $ checkmake Makefile
+#  # No output = passed all checks
+#
+#  $ echo $?
+#  0
+#
+# ═══════════════════════════════════════════════════════════════

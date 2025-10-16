@@ -1,0 +1,56 @@
+# ═══════════════════════════════════════════════════════════════
+#  ShellCheck Configuration
+# ═══════════════════════════════════════════════════════════════
+#
+#  Purpose: Static analysis for shell scripts
+#  Tool: https://www.shellcheck.net/
+#
+#  Installation:
+#    brew install shellcheck
+#
+#  Usage:
+#    shellcheck scripts/*.sh
+#    make lint-shell
+#
+# ═══════════════════════════════════════════════════════════════
+
+# Shell to check (bash/sh/dash/ksh)
+shell=bash
+
+# Minimum severity level (error/warning/info/style)
+severity=style
+
+# ───────────────────────────────────────────────────────────────
+#  Disabled Checks (with justification)
+# ───────────────────────────────────────────────────────────────
+
+# SC2034 - Unused variables
+# Reason: False positives in sourced scripts (utils.sh exports vars)
+disable=SC2034
+
+# SC1091 - Not following sourced files
+# Reason: Intentional - shellcheck should check each file independently
+disable=SC1091
+
+# ───────────────────────────────────────────────────────────────
+#  Enabled Optional Checks
+# ───────────────────────────────────────────────────────────────
+
+# Suggest adding default case in case statements
+enable=add-default-case
+
+# Require double quoting
+enable=quote-safe-variables
+
+# Suggest explicit -n in if [ $var ]
+enable=require-variable-braces
+
+# ═══════════════════════════════════════════════════════════════
+#  Verification
+# ═══════════════════════════════════════════════════════════════
+#
+#  All scripts should pass with zero errors:
+#    shellcheck scripts/*.sh
+#    echo $?  # Should be 0
+#
+# ═══════════════════════════════════════════════════════════════

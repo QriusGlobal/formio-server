@@ -1,0 +1,276 @@
+# ═══════════════════════════════════════════════════════════════
+#  FormIO Custom Build - Docker Compose Configuration
+# ═══════════════════════════════════════════════════════════════
+#
+#  Platform: macOS M4 Pro (Apple Silicon ARM64)
+#  Services: FormIO (custom) + MongoDB + Redis + GCS Emulator + TUS
+#
+#  Usage:
+#    docker compose up -d      # Start all services
+#    docker compose down       # Stop services (keep data)
+#    docker compose down -v    # Stop and delete volumes
+#
+#  Health Checks: All services have health checks for proper startup order
+#  Volumes: Data persists across container restarts
+#
+# ═══════════════════════════════════════════════════════════════
+
+services:
+  # ─────────────────────────────────────────────────────────────
+  #  MongoDB (Database)
+  # ─────────────────────────────────────────────────────────────
+
+  mongodb:
+    image: mongo:6
+    container_name: formio-custom-mongo
+    platform: linux/arm64
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: ${MONGO_DB_NAME:-formioapp_custom}
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - formio-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    mem_limit: 1g
+    cpus: 1.0
+
+  # ─────────────────────────────────────────────────────────────
+  #  Redis (Job Queue for BullMQ)
+  # ─────────────────────────────────────────────────────────────
+
+  redis:
+    image: redis:7-alpine
+    container_name: formio-custom-redis
+    platform: linux/arm64
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - formio-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: 0.5
+
+  # ─────────────────────────────────────────────────────────────
+  #  GCS Emulator (Local File Storage)
+  # ─────────────────────────────────────────────────────────────
+
+  gcs-emulator:
+    image: fsouza/fake-gcs-server:latest
+    container_name: formio-custom-gcs
+    platform: linux/arm64
+    ports:
+      - "4443:4443"
+    command:
+      - "-scheme=http"
+      - "-port=4443"
+      - "-external-url=http://localhost:4443"
+      - "-filesystem-root=/data"
+    networks:
+      - formio-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:4443/storage/v1/b"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    tmpfs:
+      - /data:rw,noexec,nosuid,size=1g
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────────────────────
+  #  TUS Server (Resumable Upload Protocol)
+  # ─────────────────────────────────────────────────────────────
+
+  tus-server:
+    image: tusproject/tusd:latest
+    container_name: formio-custom-tus
+    platform: linux/arm64
+    # user: "1000:1000"  # Removed - causes permission issues on some systems
+    ports:
+      - "${TUS_PORT:-1080}:1080"
+    volumes:
+      - tus-uploads:/data/uploads
+    command:
+      - "-host=0.0.0.0"
+      - "-port=1080"
+      - "-behind-proxy"
+      - "-hooks-enabled-events=pre-create,post-create,post-receive,post-finish,post-terminate"
+      - "-upload-dir=/data/uploads"
+      - "-max-size=${TUS_MAX_SIZE:-5368709120}"
+      - "-base-path=/files/"
+    networks:
+      - formio-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:1080/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: 0.5
+
+  # ─────────────────────────────────────────────────────────────
+  #  FormIO Server (Custom Build with Plugin)
+  # ─────────────────────────────────────────────────────────────
+  #
+  #  Build Strategy: Production-grade (pnpm pack tarball)
+  #  No runtime symlinks - plugin installed at build time
+  #  Architecture approved by: Opus 4.1 + Gemini 2.5 Pro
+  #
+  # ─────────────────────────────────────────────────────────────
+
+  formio-custom:
+    build:
+      context: ..  # Build from monorepo root
+      dockerfile: custom-build/Dockerfile
+      target: production
+      args:
+        - NODE_VERSION=${NODE_VERSION:-20}
+        - PNPM_VERSION=${PNPM_VERSION:-8.15.0}
+    image: formio-custom:latest
+    container_name: formio-custom
+    platform: linux/arm64
+    ports:
+      - "${FORMIO_PORT:-3001}:3001"
+    environment:
+      # Database
+      MONGO: mongodb://mongodb:27017/${MONGO_DB_NAME:-formioapp_custom}
+
+      # Secrets (CHANGE IN PRODUCTION!)
+      JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret-change-in-production}
+      DB_SECRET: ${DB_SECRET:-dev-db-secret-change-in-production}
+
+      # Redis (BullMQ)
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+
+      # Async Upload Configuration
+      ENABLE_ASYNC_GCS_UPLOAD: ${ENABLE_ASYNC_GCS_UPLOAD:-true}
+      BULLMQ_WORKER_CONCURRENCY: ${BULLMQ_WORKER_CONCURRENCY:-3}
+
+      # GCS Storage
+      FORMIO_FILES_SERVER: gcs
+      FORMIO_S3_SERVER: http://gcs-emulator:4443
+      FORMIO_S3_BUCKET: ${GCS_BUCKET_NAME:-formio-custom-uploads}
+      FORMIO_S3_REGION: auto
+      FORMIO_S3_KEY: ${GCS_ACCESS_KEY:-local-access-key}
+      FORMIO_S3_SECRET: ${GCS_SECRET_KEY:-local-secret-key}
+      GCS_PROJECT_ID: ${GCS_PROJECT_ID:-formio-custom}
+
+      # Admin Credentials
+      ROOT_EMAIL: ${ROOT_EMAIL:-admin@formio.local}
+      ROOT_PASSWORD: ${ROOT_PASSWORD:-admin123}
+
+      # Installation (skip interactive prompts in Docker)
+      INSTALL: "true"
+      FORMIO_SKIP_CLIENT_DOWNLOAD: "true"
+
+      # Server Configuration
+      PORT: 3001
+      HOST: 0.0.0.0
+
+      # CORS
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:64849,http://localhost:3000}
+
+      # Logging
+      DEBUG: ${DEBUG:-formio:*}
+      NODE_ENV: ${NODE_ENV:-development}
+
+      # Rate Limiting
+      DISABLE_RATE_LIMIT: ${DISABLE_RATE_LIMIT:-false}
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      gcs-emulator:
+        condition: service_healthy
+      tus-server:
+        condition: service_healthy
+    networks:
+      - formio-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    mem_limit: 1g
+    cpus: 2.0
+
+# ─────────────────────────────────────────────────────────────
+#  Networks
+# ─────────────────────────────────────────────────────────────
+
+networks:
+  formio-network:
+    name: formio_custom_network
+    driver: bridge
+
+# ─────────────────────────────────────────────────────────────
+#  Volumes (Persistent Data)
+# ─────────────────────────────────────────────────────────────
+
+volumes:
+  mongo-data:
+    name: formio_custom_mongo_data
+    driver: local
+  redis-data:
+    name: formio_custom_redis_data
+    driver: local
+  tus-uploads:
+    name: formio_custom_tus_uploads
+    driver: local
+
+# ═══════════════════════════════════════════════════════════════
+#  Usage Examples
+# ═══════════════════════════════════════════════════════════════
+#
+#  Start services:
+#    docker compose up -d
+#
+#  View logs (all services):
+#    docker compose logs -f
+#
+#  View logs (FormIO only):
+#    docker compose logs -f formio-custom
+#
+#  Stop services (keep data):
+#    docker compose down
+#
+#  Stop and delete data:
+#    docker compose down -v
+#
+#  Restart single service:
+#    docker compose restart formio-custom
+#
+#  Check service health:
+#    docker compose ps
+#
+#  Shell into FormIO container:
+#    docker compose exec formio-custom sh
+#
+#  Verify plugin installation:
+#    docker compose exec formio-custom \
+#      node -e "console.log(require('@formio/file-upload'))"
+#
+# ═══════════════════════════════════════════════════════════════

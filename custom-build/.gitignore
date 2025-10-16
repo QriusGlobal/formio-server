@@ -1,0 +1,34 @@
+# ═══════════════════════════════════════════════════════════════
+#  Git Exclusions for custom-build/
+# ═══════════════════════════════════════════════════════════════
+
+# Environment overrides (never commit secrets)
+.env.local
+*.local.env
+.env
+
+# Docker artifacts
+.docker/
+
+# Logs
+*.log
+logs/
+
+# macOS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Test artifacts
+coverage/
+.nyc_output/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
