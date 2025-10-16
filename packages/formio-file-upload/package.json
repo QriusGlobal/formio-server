@@ -3,10 +3,12 @@
   "version": "0.0.1",
   "description": "File upload module for Form.io with TUS resumable uploads and Uppy.js integration",
   "type": "module",
+  "main": "lib/index.js",
   "module": "lib/index.esm.js",
   "types": "lib/index.d.ts",
   "exports": {
     ".": {
+      "require": "./lib/index.js",
       "import": "./lib/index.esm.js",
       "types": "./lib/index.d.ts"
     },
